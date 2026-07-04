@@ -6,7 +6,7 @@ export const saveGameController = async (req: Request, res: Response) => {
   const { userId } = getAuth(req);
   const { url } = req.body;
 
-  await saveNewGame(url, userId);
+  await saveNewGame(url, userId!);
 
   res.status(200).json({ success: true, message: "Game saved successfully" });
 };
