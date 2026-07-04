@@ -6,7 +6,6 @@ import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
 
 // Routers
-import userRouter from "./Routers/users.routes";
 import requireAuth from "./Middlewares/Auth/users.auth";
 
 // Init
@@ -21,8 +20,6 @@ app.use(
 app.use(clerkMiddleware());
 
 app.use(express.json());
-
-app.use("/users", userRouter);
 
 // Routes
 app.get("/", (req: Request, res: Response) => {
