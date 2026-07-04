@@ -14,7 +14,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor: auto-parse JSON strings and unwrap common `data` envelope
 api.interceptors.response.use((res) => res.data);
 
 export default api;
