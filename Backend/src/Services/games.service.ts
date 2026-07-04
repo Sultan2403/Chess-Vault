@@ -1,3 +1,3 @@
-export const saveNewGame = (url: string)=>{
+export const saveNewGame = (url: string, userId: string)=>{
   
 }
