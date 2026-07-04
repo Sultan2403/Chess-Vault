@@ -8,6 +8,12 @@ const foldersSchema = new mongoose.Schema(
       trim: true,
     },
 
+    description: {
+      type: String,
+      trim: true,
+      required: false,
+    },
+
     userId: {
       type: String,
       required: true,
