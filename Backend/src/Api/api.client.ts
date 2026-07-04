@@ -11,7 +11,7 @@ api.interceptors.request.use((config) => {
   if (!config.headers.has("User-Agent")) {
     config.headers.set(
       "User-Agent",
-      `Chess-Vault-Backend/1.0 ${env.DEV_EMAIL}`,
+      `Chess-Vault-Backend/1.0 (contact: ${env.DEV_EMAIL})`,
     );
   }
 
