@@ -8,6 +8,7 @@ import requireAuth from "./Middlewares/Auth/users.auth";
 
 // Routers
 import gamesRouter from "./Routers/games.routes";
+import foldersRouter from "./Routers/folders.routes";
 
 // Init
 const app = express();
@@ -24,7 +25,8 @@ app.use(express.json());
 
 // Routes
 
-app.use("/games", gamesRouter);
+app.use("/games", requireAuth, gamesRouter);
+app.use("/folders", requireAuth, foldersRouter);
 
 app.get("/", (req: Request, res: Response) => {
   res

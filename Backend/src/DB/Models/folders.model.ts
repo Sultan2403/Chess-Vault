@@ -23,6 +23,9 @@ const foldersSchema = new mongoose.Schema(
   { strict: true, timestamps: true },
 );
 
+foldersSchema.index({ userId: 1, name: 1 }, { unique: true });
+
+
 foldersSchema.set("toJSON", {
   transform: (doc, obj) => {
     const { _id, __v, ...rest } = obj;
@@ -34,3 +37,5 @@ foldersSchema.set("toJSON", {
 });
 
 const Folders = mongoose.model("folders", foldersSchema, "folders");
+
+export default Folders;
