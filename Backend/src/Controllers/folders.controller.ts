@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { getAuth } from "@clerk/express";
 import {
   createFolder,
   deleteFolder,
@@ -7,25 +6,12 @@ import {
   getUserFolders,
   updateFolder,
 } from "../Services/folders.service";
-
-const getUserId = (req: Request) => getAuth(req).userId;
-
-const unauthorizedResponse = (res: Response) =>
-  res.status(401).json({ error: "Unauthorized" });
-
-const internalError = (res: Response, error: unknown) => {
-  console.error(error);
-  return res.status(500).json({ error: "Internal server error" });
-};
-
-const parsePositiveInt = (value: unknown, fallback: number) => {
-  const parsed = Number.parseInt(String(value ?? ""), 10);
-  return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
-};
+import { getUserId } from "../Utils/auth";
+import { parsePositiveInt } from "../Utils/parsePositiveInt";
+import { internalError } from "../Utils/responses";
 
 export const listFoldersController = async (req: Request, res: Response) => {
   const userId = getUserId(req);
-  if (!userId) return unauthorizedResponse(res);
 
   const page = parsePositiveInt(req.query.page, 1);
   const limit = parsePositiveInt(req.query.limit, 20);
@@ -40,12 +26,7 @@ export const listFoldersController = async (req: Request, res: Response) => {
 
 export const createFolderController = async (req: Request, res: Response) => {
   const userId = getUserId(req);
-  if (!userId) return unauthorizedResponse(res);
-
   const { name, description } = req.body;
-  if (!name || typeof name !== "string") {
-    return res.status(400).json({ error: "Folder name is required" });
-  }
 
   try {
     const folder = await createFolder({ name, description, userId });
@@ -57,9 +38,8 @@ export const createFolderController = async (req: Request, res: Response) => {
 
 export const getFolderController = async (req: Request, res: Response) => {
   const userId = getUserId(req);
-  if (!userId) return unauthorizedResponse(res);
+  const id = String(req.params.id);
 
-  const { id } = req.params;
   try {
     const folder = await getFolderById(id, userId);
     if (!folder) {
@@ -73,16 +53,8 @@ export const getFolderController = async (req: Request, res: Response) => {
 
 export const updateFolderController = async (req: Request, res: Response) => {
   const userId = getUserId(req);
-  if (!userId) return unauthorizedResponse(res);
-
-  const { id } = req.params;
+  const id = String(req.params.id);
   const { name, description } = req.body;
-  if (name !== undefined && typeof name !== "string") {
-    return res.status(400).json({ error: "Folder name must be a string" });
-  }
-  if (description !== undefined && typeof description !== "string") {
-    return res.status(400).json({ error: "Folder description must be a string" });
-  }
 
   try {
     const folder = await updateFolder(id, userId, { name, description });
@@ -97,9 +69,8 @@ export const updateFolderController = async (req: Request, res: Response) => {
 
 export const deleteFolderController = async (req: Request, res: Response) => {
   const userId = getUserId(req);
-  if (!userId) return unauthorizedResponse(res);
+  const id = String(req.params.id);
 
-  const { id } = req.params;
   try {
     const deleted = await deleteFolder(id, userId);
     if (!deleted) {
