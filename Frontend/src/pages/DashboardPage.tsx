@@ -40,6 +40,7 @@ export default function DashboardPage() {
           <p className="mt-3 text-slate-300">
             Protected content will appear here once your backend is connected.
           </p>
+          
         </section>
       </div>
     </div>
