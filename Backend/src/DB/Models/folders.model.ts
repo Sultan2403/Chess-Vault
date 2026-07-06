@@ -36,6 +36,6 @@ foldersSchema.set("toJSON", {
   },
 });
 
-const Folders = mongoose.model("folders", foldersSchema, "folders");
+const Folders = mongoose.model("Folder", foldersSchema, "folders");
 
 export default Folders;
