@@ -1,22 +1,19 @@
 import mongoose from "mongoose";
 import { Platforms, Results } from "../../Config/constants";
 
-const playerSchema = new mongoose.Schema(
-  {
-    username: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
-    rating: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
+const playerSchema = {
+  username: {
+    type: String,
+    required: true,
+    trim: true,
   },
-  { _id: false },
-);
+
+  rating: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+};
 
 const gameSchema = new mongoose.Schema(
   {
