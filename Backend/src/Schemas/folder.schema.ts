@@ -1,10 +1,5 @@
 import { z } from "zod";
-
-const toNumberOrUndefined = (val: unknown) => {
-  if (val === undefined || val === null) return undefined;
-  const n = Number(val);
-  return Number.isNaN(n) ? undefined : n;
-};
+import { toNumberOrUndefined } from "../Utils";
 
 export const createFolderBody = z.object({
   name: z.string().min(1),

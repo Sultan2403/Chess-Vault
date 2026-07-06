@@ -7,7 +7,7 @@ import {
   updateFolder,
 } from "../Services/folders.service";
 import { getUserId } from "../Utils/auth";
-import { parsePositiveInt } from "../Utils/parsePositiveInt";
+import { parsePositiveInt } from "../Utils";
 import { internalError } from "../Utils/responses";
 
 export const listFoldersController = async (req: Request, res: Response) => {

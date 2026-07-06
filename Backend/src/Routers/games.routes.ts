@@ -3,6 +3,6 @@ import { saveGameController } from "../Controllers/games.controller";
 
 const router = Router()
 
-router.post("/import", saveGameController)
+router.post("/", saveGameController)
 
 export default router
