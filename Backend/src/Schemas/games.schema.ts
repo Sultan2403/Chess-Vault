@@ -22,6 +22,8 @@ export const GameSchema = z.object({
   blackPlayer: playerInputSchema,
   result: z.enum(Results),
 
+  isRated: z.boolean(),
+
   timeControl: z.string().trim().min(1),
   timeClass: z.string().trim().min(1),
 
