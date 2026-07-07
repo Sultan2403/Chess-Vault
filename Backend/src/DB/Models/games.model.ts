@@ -95,6 +95,20 @@ const gameSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    notes: {
+      type: String,
+      required: false,
+      trim: true,
+      max: 1000
+    },
+
+    tags: {
+      type: String,
+      required: false,
+      trim: true,
+      max: 20
+    }
   },
   {
     strict: true,

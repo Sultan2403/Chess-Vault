@@ -1,13 +1,15 @@
 import axios from "axios";
 import { env } from "../Config/env";
 
-const url = "https://api.chess.com/pub";
+const chess_com_url = "https://api.chess.com/pub";
+const lichess_url = "";
 
-const api = axios.create({
-  baseURL: url,
+const chess_com_api = axios.create({
+  baseURL: chess_com_url,
+  timeout: 5000,
 });
 
-api.interceptors.request.use((config) => {
+chess_com_api.interceptors.request.use((config) => {
   config.headers.set(
     "User-Agent",
     `Chess-Vault-Backend/1.0 (contact: ${env.DEV_EMAIL})`,
@@ -16,6 +18,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-api.interceptors.response.use((res) => res.data);
+chess_com_api.interceptors.response.use((res) => res.data);
 
-export default api;
+export { chess_com_api };
