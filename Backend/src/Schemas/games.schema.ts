@@ -24,7 +24,6 @@ export const GameSchema = z.object({
 
   isRated: z.boolean(),
 
-  timeControl: z.string().trim().min(1),
   timeClass: z.string().trim().min(1),
 
   playedAt: z.coerce.date(),

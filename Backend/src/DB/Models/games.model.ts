@@ -73,12 +73,6 @@ const gameSchema = new mongoose.Schema(
       required: true,
     },
 
-    timeControl: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-
     isRated: {
       type: Boolean,
       required: true

@@ -6,8 +6,8 @@ const getStuff = async () => {
   try {
     const chessComRes = await chessComApi.getPlayerGamesForMonth(
       "Sultan2403",
-      2024,
-      6,
+      2026,
+      7,
     );
     console.log("chess.com response:", chessComRes);
 
@@ -15,8 +15,8 @@ const getStuff = async () => {
     console.log("lichess response:", res);
 
     fs.writeFileSync(
-      "src/Api/lichess.test2.json",
-      JSON.stringify(res, null, 2),
+      "src/Api/chess.comtest.json",
+      JSON.stringify(chessComRes, null, 2),
     );
   } catch (err: any) {
     if (err.response) {
