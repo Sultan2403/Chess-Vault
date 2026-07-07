@@ -4,6 +4,37 @@ const import_Chess_Com_Game = async () => {};
 
 const import_Lichess_Game = async () => {};
 
+export const normalizeLichessGame = ({
+  game,
+  userId,
+  folderId,
+}: {
+  game: Lichess_Game;
+  userId: string;
+  folderId: string;
+}): Game => {
+  return {
+    userId,
+    folderId,
+    platform: "lichess",
+    platformGameId: game.id,
+    sourceUrl: game.url,
+    title: `${game.white.username} vs ${game.black.username}`,
+    whitePlayer: { username: game.white.username, rating: game.white.rating },
+    blackPlayer: { username: game.black.username, rating: game.black.rating },
+    result:
+      game.white.result === "win"
+        ? "white"
+        : game.black.result === "win"
+          ? "black"
+          : "draw",
+    timeClass: game.time_class,
+    playedAt: new Date(game.end_time * 1000),
+    pgn: game.pgn,
+    isRated: game.rated,
+  };
+};
+
 export const normalizeChessComGame = ({
   game,
   userId,
@@ -16,10 +47,10 @@ export const normalizeChessComGame = ({
   const title = `${game.white.username} vs ${game.black.username}`;
   const result =
     game.white.result === "win"
-      ? "White won"
+      ? "white"
       : game.black.result === "win"
-        ? "Black won"
-        : "Draw";
+        ? "black"
+        : "draw";
 
   return {
     userId,
