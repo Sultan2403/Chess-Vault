@@ -1,4 +1,4 @@
-import { Chess_Com_Game, Game } from "../Types/games.types";
+import { Chess_Com_Game, Game, Lichess_Game } from "../Types/games.types";
 
 const import_Chess_Com_Game = async () => {};
 
@@ -13,23 +13,19 @@ export const normalizeLichessGame = ({
   userId: string;
   folderId: string;
 }): Game => {
+    const sourceUrl = `https://lichess.org/${game.id}` 
   return {
     userId,
     folderId,
     platform: "lichess",
     platformGameId: game.id,
-    sourceUrl: game.url,
-    title: `${game.white.username} vs ${game.black.username}`,
-    whitePlayer: { username: game.white.username, rating: game.white.rating },
-    blackPlayer: { username: game.black.username, rating: game.black.rating },
-    result:
-      game.white.result === "win"
-        ? "white"
-        : game.black.result === "win"
-          ? "black"
-          : "draw",
-    timeClass: game.time_class,
-    playedAt: new Date(game.end_time * 1000),
+    sourceUrl,
+    title: `${game.players.white.user.name} vs ${game.players.black.user.name}`,
+    whitePlayer: { username: game.players.white.user.name, rating: game.players.white.rating },
+    blackPlayer: { username: game.players.black.user.name, rating: game.players.black.rating },
+    result: game.winner || "draw",
+    timeClass: game.speed,
+    playedAt: new Date(game.createdAt * 1000),
     pgn: game.pgn,
     isRated: game.rated,
   };
