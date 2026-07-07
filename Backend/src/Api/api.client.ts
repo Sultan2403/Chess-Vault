@@ -10,7 +10,7 @@ const chess_com_api = axios.create({
 });
 
 const lichess_api = axios.create({
-  baseUrl: lichess_url,
+  baseURL: lichess_url,
   timeout: 3000
 })
 
@@ -29,4 +29,4 @@ lichess_api.interceptors.response.use((res) => res.data);
 
 
 
-export { chess_com_api,  };
+export { chess_com_api, lichess_api };
