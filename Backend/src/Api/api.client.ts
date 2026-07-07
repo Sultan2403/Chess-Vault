@@ -11,8 +11,8 @@ const chess_com_api = axios.create({
 
 const lichess_api = axios.create({
   baseURL: lichess_url,
-  timeout: 3000
-})
+  timeout: 3000,
+});
 
 chess_com_api.interceptors.request.use((config) => {
   config.headers.set(
@@ -25,8 +25,5 @@ chess_com_api.interceptors.request.use((config) => {
 
 chess_com_api.interceptors.response.use((res) => res.data);
 lichess_api.interceptors.response.use((res) => res.data);
-
-
-
 
 export { chess_com_api, lichess_api };

@@ -1,8 +1,17 @@
 import { chess_com_api } from "./api.client";
 
 const chessComApi = {
-  getPlayerGamesForMonth: (username: string, year: string, month: string) =>
-    chess_com_api.get(`/player/${username}/games/${year}/${month}`),
+  getPlayerGamesForMonth: (
+    username: string,
+    year: string | number,
+    month: string | number,
+  ) => {
+    const yearString = `${year}`;
+    const monthString = `${month}`.padStart(2, "0");
+    return chess_com_api.get(
+      `/player/${username}/games/${yearString}/${monthString}`,
+    );
+  },
 };
 
 export default chessComApi;
