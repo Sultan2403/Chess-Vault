@@ -4,7 +4,7 @@ const lichessApi = {
   getUserGames: (username: string) =>
     lichess_api.get(`/games/user/${username}`, {
       params: {
-        limit: 10,
+        pgnInJson: true,
       },
     }),
 };
