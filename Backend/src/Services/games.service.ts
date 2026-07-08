@@ -26,6 +26,7 @@ export const importGames = async ({
     userId,
     folderId,
     username,
+    platform,
   }: ImportGameParams): Promise<ImportResult> => {
     // 1. Grab all active history blocks from Chess.com
     const response = await chessComApi.getPlayerArchives(username);
@@ -91,6 +92,7 @@ export const importGames = async ({
     userId,
     folderId,
     username,
+    platform,
   }: ImportGameParams): Promise<ImportResult> => {
     return new Promise(async (resolve, reject) => {
       try {
@@ -140,9 +142,19 @@ export const importGames = async ({
 
   try {
     if (platform === Platforms.CHESS_COM) {
-      return await import_Chess_Com_Games({ userId, folderId, username });
+      return await import_Chess_Com_Games({
+        userId,
+        folderId,
+        username,
+        platform,
+      });
     } else {
-      return await import_Lichess_Game({ userId, folderId, username });
+      return await import_Lichess_Game({
+        userId,
+        folderId,
+        username,
+        platform,
+      });
     }
   } catch (error) {
     console.error("❌ Import failed:", error);

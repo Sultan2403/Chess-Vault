@@ -1,7 +1,16 @@
 import { z } from "zod";
 import { Platforms, Results } from "../Config/constants";
+import { isValidMongoId } from "../Utils";
 
 const PlatformValues = Object.values(Platforms);
+
+export const importGamesParams = z.object({
+  folderId: z.string().trim().min(1).refine(isValidMongoId, {
+    message: "Invalid folder id",
+  }),
+  platform: z.enum(PlatformValues),
+  username: z.string().trim().min(1),
+});
 
 const playerInputSchema = z.object({
   username: z.string().trim().min(1),
