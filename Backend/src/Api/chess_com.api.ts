@@ -17,6 +17,16 @@ const chessComApi = {
       `/player/${username}/games/${yearString}/${monthString}`,
     );
   },
+
+  getPlayerArchives: (username: string) => {
+    return chess_com_api.get<any, { archives: string[] }>(
+      `/player/${username}/games/archives`,
+    );
+  },
+
+  getGamesFromArchiveUrl: (fullUrl: string) => {
+    return chess_com_api.get<any, { games: Chess_Com_Game[] }>(fullUrl);
+  },
 };
 
 export default chessComApi;
