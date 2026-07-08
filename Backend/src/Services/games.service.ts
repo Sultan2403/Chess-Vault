@@ -1,11 +1,19 @@
 import chessComApi from "../Api/chess_com.api";
+import ndjson from "ndjson";
 import Games from "../DB/Models/games.model";
 import { normalizeChessComGame, normalizeLichessGame } from "../Helpers";
 import {
   Platforms,
+  type PlatformType,
   MAX_GAMES_PER_USER,
 } from "../Config/constants";
-import { ImportGamesParams, ImportGameParams } from "../Types/games.types";
+import {
+  ImportGamesParams,
+  ImportGameParams,
+  Lichess_Game,
+  Game,
+} from "../Types/games.types";
+import lichessApi from "../Api/lichess.api";
 
 export const importGames = async ({
   userId,
@@ -13,7 +21,6 @@ export const importGames = async ({
   username,
   platform,
 }: ImportGamesParams): Promise<void> => {
-
   const import_Chess_Com_Games = async ({
     userId,
     folderId,
@@ -82,7 +89,44 @@ export const importGames = async ({
     userId,
     folderId,
     username,
-  }: ImportGameParams) => {};
+  }: ImportGameParams) => {
+    try {
+      const response = await lichessApi.getUserGames(username);
+
+      const gamesBuffer: Game[] = [];
+
+      // Pipe the raw network stream directly into the ndjson parser
+      response
+        .pipe(ndjson.parse())
+        .on("data", (rawGame: Lichess_Game) => {
+          // This fires automatically for every fully formed JSON object
+          const normalized = normalizeLichessGame({
+            game: rawGame,
+            userId,
+            folderId,
+          });
+          gamesBuffer.push(normalized);
+        })
+        .on("end", async () => {
+          // Once the stream terminates, we hit the DB exactly once
+          if (gamesBuffer.length > 0) {
+            console.log(
+              `📥 Stream ended. Bulk inserting ${gamesBuffer.length} games...`,
+            );
+            await Games.insertMany(gamesBuffer);
+            console.log("🎉 Lichess sync perfectly completed using NDJSON!");
+          } else {
+            console.log("ℹ️ No new games found.");
+          }
+        })
+        .on("error", (err: any) => {
+          console.error("❌ Error during stream parsing:", err);
+          throw err;
+        });
+    } catch (error) {
+      console.error("❌ Lichess buffered sync failed:", error);
+    }
+  };
 
   if (platform === Platforms.CHESS_COM) {
     await import_Chess_Com_Games({ userId, folderId, username });
