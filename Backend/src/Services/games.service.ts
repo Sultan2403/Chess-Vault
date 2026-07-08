@@ -13,7 +13,7 @@ export const normalizeLichessGame = ({
   userId: string;
   folderId: string;
 }): Game => {
-    const sourceUrl = `https://lichess.org/${game.id}` 
+  const sourceUrl = `https://lichess.org/${game.id}`;
   return {
     userId,
     folderId,
@@ -21,8 +21,14 @@ export const normalizeLichessGame = ({
     platformGameId: game.id,
     sourceUrl,
     title: `${game.players.white.user.name} vs ${game.players.black.user.name}`,
-    whitePlayer: { username: game.players.white.user.name, rating: game.players.white.rating },
-    blackPlayer: { username: game.players.black.user.name, rating: game.players.black.rating },
+    whitePlayer: {
+      username: game.players.white.user.name,
+      rating: game.players.white.rating,
+    },
+    blackPlayer: {
+      username: game.players.black.user.name,
+      rating: game.players.black.rating,
+    },
     result: game.winner || "draw",
     timeClass: game.speed,
     playedAt: new Date(game.createdAt * 1000),
@@ -105,5 +111,42 @@ console.log(
     userId: "test_101",
     folderId: "test_101",
     game,
+  }),
+);
+
+const lichessGame = {
+  id: "0EQEkaaO",
+  rated: true,
+  variant: "standard",
+  speed: "rapid",
+  perf: "rapid",
+  createdAt: 1783011731662,
+  lastMoveAt: 1783011881096,
+  status: "resign",
+  source: "pool",
+  players: {
+    white: {
+      user: { name: "thibaultpreat", id: "thibaultpreat" },
+      rating: 1605,
+      ratingDiff: -7,
+    },
+    black: {
+      user: { name: "Sultan2403", id: "sultan2403" },
+      rating: 1580,
+      ratingDiff: 13,
+    },
+  },
+  winner: "black",
+  moves:
+    "e4 c6 Nf3 d5 exd5 cxd5 Bb5+ Nc6 Ne5 Qc7 Nxc6 bxc6 Ba4 e5 d4 Nf6 O-O Bd6 Re1 O-O dxe5 Bxe5 c3 Bxh2+ Kf1 Ba6+",
+  pgn: '[Event "rated rapid game"]\n[Site "https://lichess.org/0EQEkaaO"]\n[Date "2026.07.02"]\n[Round "-"]\n[White "thibaultpreat"]\n[Black "Sultan2403"]\n[Result "0-1"]\n[GameId "0EQEkaaO"]\n[UTCDate "2026.07.02"]\n[UTCTime "17:02:11"]\n[WhiteElo "1605"]\n[BlackElo "1580"]\n[WhiteRatingDiff "-7"]\n[BlackRatingDiff "+13"]\n[Variant "Standard"]\n[TimeControl "600+0"]\n[ECO "B10"]\n[Termination "Normal"]\n\n1. e4 c6 2. Nf3 d5 3. exd5 cxd5 4. Bb5+ Nc6 5. Ne5 Qc7 6. Nxc6 bxc6 7. Ba4 e5 8. d4 Nf6 9. O-O Bd6 10. Re1 O-O 11. dxe5 Bxe5 12. c3 Bxh2+ 13. Kf1 Ba6+ 0-1\n\n\n',
+  clock: { initial: 600, increment: 0, totalTime: 600 },
+};
+
+console.log(
+  normalizeLichessGame({
+    userId: "test_101",
+    folderId: "test_101",
+    game: lichessGame,
   }),
 );

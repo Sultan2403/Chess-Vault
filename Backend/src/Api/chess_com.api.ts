@@ -1,3 +1,4 @@
+import { Chess_Com_Game } from "../Types/games.types";
 import { chess_com_api } from "./api.client";
 
 const chessComApi = {
@@ -8,7 +9,7 @@ const chessComApi = {
   ) => {
     const yearString = `${year}`;
     const monthString = `${month}`.padStart(2, "0");
-    return chess_com_api.get(
+    return chess_com_api.get<any, { games: Chess_Com_Game[] }>(
       `/player/${username}/games/${yearString}/${monthString}`,
     );
   },
