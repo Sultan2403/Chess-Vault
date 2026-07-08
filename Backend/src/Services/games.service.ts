@@ -27,7 +27,9 @@ export const importGames = async ({
       return normalizeChessComGame({ game, userId, folderId });
     });
 
-    await Games.insertMany(normalizedGames);
+    // We wanna save games that matches user's filters
+
+    // await Games.insertMany(normalizedGames);
   };
 
   const import_Lichess_Game = async ({
@@ -35,7 +37,7 @@ export const importGames = async ({
     folderId,
     username,
   }: ImportGameParams) => {};
-  
+
   if (platform === Platforms.CHESS_COM) {
     await import_Chess_Com_Game({ userId, folderId, username });
   } else {
