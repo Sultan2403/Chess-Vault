@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { Platforms, Results } from "../Config/constants";
 
+const PlatformValues = Object.values(Platforms);
+
 const playerInputSchema = z.object({
   username: z.string().trim().min(1),
   rating: z.number().nonnegative(),
@@ -11,7 +13,7 @@ export const GameSchema = z.object({
 
   folderId: z.string().trim().min(1),
 
-  platform: z.enum(Platforms),
+  platform: z.enum(PlatformValues),
   platformGameId: z.string().trim().min(1),
 
   sourceUrl: z.string().trim().min(1),

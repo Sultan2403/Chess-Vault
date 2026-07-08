@@ -1,7 +1,18 @@
 import z from "zod";
 import { GameSchema } from "../Schemas/games.schema";
+import { PlatformType } from "../Config/constants";
 
 export type Game = z.infer<typeof GameSchema>;
+
+export interface ImportGameParams {
+  userId: string;
+  folderId: string;
+  username: string;
+}
+
+export interface ImportGamesParams extends ImportGameParams {
+  platform: PlatformType;
+}
 
 interface Chess_Com_Player {
   rating: number;

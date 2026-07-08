@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { Platforms, Results } from "../../Config/constants";
 
+const PlatformValues = Object.values(Platforms);
+
 const playerSchema = {
   username: {
     type: String,
@@ -33,7 +35,7 @@ const gameSchema = new mongoose.Schema(
     // Source
     platform: {
       type: String,
-      enum: Platforms,
+      enum: PlatformValues,
       required: true,
     },
 
