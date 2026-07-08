@@ -63,11 +63,10 @@ export const importGames = async ({
 
         // 5. Bulk dump the month's chunk into MongoDB to minimize roundtrips
         if (gamesToInsert.length > 0) {
-          // We wanna save according to user's filters so we apply filters on the games first.
-          // await Games.insertMany(gamesToInsert);
-          // console.log(
-          //   `✅ Batched ${gamesToInsert.length} games into DB. (Running Total: ${totalImported})`,
-          // );
+          await Games.insertMany(gamesToInsert);
+          console.log(
+            `✅ Batched ${gamesToInsert.length} games into DB. (Running Total: ${totalImported})`,
+          );
         }
       }
 
