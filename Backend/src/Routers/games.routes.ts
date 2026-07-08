@@ -1,8 +1,8 @@
-import {Router} from "express"
-import { importGameController } from "../Controllers/games.controller";
+import { Router } from "express";
+import { importGamesController } from "../Controllers/games.controller";
 
-const router = Router()
+const router = Router();
 
-router.post("/import", saveGameController)
+router.post("/import", importGamesController);
 
-export default router
+export default router;
