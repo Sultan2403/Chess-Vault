@@ -3,7 +3,7 @@ import { GameSchema } from "../Schemas/games.schema";
 
 export type Game = z.infer<typeof GameSchema>;
 
-export interface Chess_Com_Player {
+interface Chess_Com_Player {
   rating: number;
   result: string;
   "@id": string;

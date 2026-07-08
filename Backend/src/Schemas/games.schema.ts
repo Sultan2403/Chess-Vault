@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Platforms, Results } from "../Config/constants";
 
-export const playerInputSchema = z.object({
+const playerInputSchema = z.object({
   username: z.string().trim().min(1),
   rating: z.number().nonnegative(),
 });
