@@ -3,7 +3,6 @@ import Games from "../DB/Models/games.model";
 import { normalizeChessComGame, normalizeLichessGame } from "../Helpers";
 import {
   Platforms,
-  type PlatformType,
   MAX_GAMES_PER_USER,
 } from "../Config/constants";
 import { ImportGamesParams, ImportGameParams } from "../Types/games.types";
@@ -14,6 +13,7 @@ export const importGames = async ({
   username,
   platform,
 }: ImportGamesParams): Promise<void> => {
+
   const import_Chess_Com_Games = async ({
     userId,
     folderId,
