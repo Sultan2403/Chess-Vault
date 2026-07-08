@@ -1,14 +1,19 @@
 import { Request, Response } from "express";
-import { getAuth } from "@clerk/express";
+import { importGames } from "../Services/games.service";
+import { ImportGamesParams } from "../Types/games.types";
+import { getUserId } from "../Utils/auth";
 
-export const saveGameController = async (req: Request, res: Response) => {
-  const { userId } = getAuth(req);
-  const { folderId, platform } = req.params;
+export const importGamesController = async (req: Request, res: Response) => {
+  const userId = getUserId(req);
+  const { folderId, platform, username }: ImportGamesParams = req.body;
 
+  const result = await importGames({ platform, folderId, username, userId });
+  if (result.success) {
+    return res.status(200).json({ success: true, message: result.message });
+  }
 
-
-
-
-  res.status(200).json({ success: true, message: "Games imported successfully" });
+  res.status(500).json({
+    success: false,
+    message: result.message || "Something went wrong",
+  });
 };
-

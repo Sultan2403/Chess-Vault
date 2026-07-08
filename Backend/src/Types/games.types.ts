@@ -4,6 +4,11 @@ import { PlatformType } from "../Config/constants";
 
 export type Game = z.infer<typeof GameSchema>;
 
+export interface ImportResult {
+  success: boolean;
+  message?: string;
+}
+
 export interface ImportGameParams {
   userId: string;
   folderId: string;
