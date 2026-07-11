@@ -29,7 +29,11 @@ export const importGames = async ({
     platform,
   }: ImportGameParams): Promise<ImportResult> => {
     // 1. Grab all active history blocks from Chess.com
+
+    console.log("Starting Chess.com import...");
     const response = await chessComApi.getPlayerArchives(username);
+
+    console.log("Chess.com responded with archive", response);
     const archiveUrls = response.archives;
 
     if (!archiveUrls || archiveUrls.length === 0) {
@@ -43,7 +47,9 @@ export const importGames = async ({
     const recentArchives = archiveUrls.reverse();
     let totalImported = 0;
 
+    console.log("📥 Starting import of Chess.com games for user:", username);
     for (const archiveUrl of recentArchives) {
+      console.log("Current archive", archiveUrl);
       // Hard break if a previous month already maxed us out
       if (totalImported >= MAX_GAMES_PER_USER) break;
 
@@ -53,11 +59,18 @@ export const importGames = async ({
       const monthlyData = await chessComApi.getGamesFromArchiveUrl(archiveUrl);
       if (!monthlyData.games || monthlyData.games.length === 0) continue;
 
+      console.log(
+        "Monthly data fetched. Total games in this archive:",
+        monthlyData.games.length,
+      );
+      console.log("Games: ", monthlyData.games);
+
       // 4. Reverse the individual games array to get the newest games first
       const monthlyGames = monthlyData.games.reverse();
       const gamesToInsert = [];
 
       for (const game of monthlyGames) {
+        console.log("Processing game: ", game);
         if (totalImported >= MAX_GAMES_PER_USER) {
           console.log(
             `🛑 Hard limit of ${MAX_GAMES_PER_USER} games hit mid-archive.`,
@@ -66,7 +79,16 @@ export const importGames = async ({
         }
 
         // Normalize and stage for batch insertion
-        gamesToInsert.push(normalizeChessComGame({ game, userId, folderId }));
+        const normalizedGame = normalizeChessComGame({
+          game,
+          userId,
+          folderId,
+        });
+
+        console.log("Normalized game ready for insertion: ", normalizedGame);
+        console.log("Pushing game to insert array: ", normalizedGame);
+
+        gamesToInsert.push(normalizedGame);
         totalImported++;
       }
 
@@ -92,11 +114,13 @@ export const importGames = async ({
     userId,
     folderId,
     username,
-    platform,
   }: ImportGameParams): Promise<ImportResult> => {
     return new Promise(async (resolve, reject) => {
       try {
+        console.log("Starting lichess import...");
         const response = await lichessApi.getUserGames(username);
+
+        console.log("Lichess server responded with games:", response);
 
         const gamesBuffer: Game[] = [];
 
@@ -110,6 +134,7 @@ export const importGames = async ({
               userId,
               folderId,
             });
+            console.log("New game normalized", normalized);
             gamesBuffer.push(normalized);
           })
           .on("end", async () => {
@@ -118,7 +143,8 @@ export const importGames = async ({
               console.log(
                 `📥 Stream ended. Bulk inserting ${gamesBuffer.length} games...`,
               );
-              await Games.insertMany(gamesBuffer);
+              console.log("Inserting games into DB...");
+              // await Games.insertMany(gamesBuffer);
               console.log("🎉 Lichess sync perfectly completed using NDJSON!");
               resolve({
                 success: true,

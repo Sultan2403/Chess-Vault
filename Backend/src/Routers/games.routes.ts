@@ -6,8 +6,8 @@ import { importGamesParams } from "../Schemas/games.schema";
 const router = Router();
 
 router.post(
-  "/import/:folderId/:platform/:username",
-  validate({ params: importGamesParams }) as any,
+  "/import",
+  validate({ body: importGamesParams }),
   importGamesController,
 );
 
