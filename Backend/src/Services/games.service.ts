@@ -26,7 +26,6 @@ export const importGames = async ({
     userId,
     folderId,
     username,
-    platform,
   }: ImportGameParams): Promise<ImportResult> => {
     // 1. Grab all active history blocks from Chess.com
 
@@ -63,14 +62,13 @@ export const importGames = async ({
         "Monthly data fetched. Total games in this archive:",
         monthlyData.games.length,
       );
-      console.log("Games: ", monthlyData.games);
 
       // 4. Reverse the individual games array to get the newest games first
       const monthlyGames = monthlyData.games.reverse();
       const gamesToInsert = [];
 
       for (const game of monthlyGames) {
-        console.log("Processing game: ", game);
+        
         if (totalImported >= MAX_GAMES_PER_USER) {
           console.log(
             `🛑 Hard limit of ${MAX_GAMES_PER_USER} games hit mid-archive.`,
@@ -85,15 +83,15 @@ export const importGames = async ({
           folderId,
         });
 
-        console.log("Normalized game ready for insertion: ", normalizedGame);
-        console.log("Pushing game to insert array: ", normalizedGame);
-
+        console.log("Normalized game ready for insertion: ");
+       
         gamesToInsert.push(normalizedGame);
         totalImported++;
       }
 
       // 5. Bulk dump the month's chunk into MongoDB to minimize roundtrips
       if (gamesToInsert.length > 0) {
+        console.log("Inserting games to db...")
         await Games.insertMany(gamesToInsert);
         console.log(
           `✅ Batched ${gamesToInsert.length} games into DB. (Running Total: ${totalImported})`,
@@ -182,8 +180,8 @@ export const importGames = async ({
         platform,
       });
     }
-  } catch (error) {
-    console.error("❌ Import failed:", error);
+  } catch (error: any) {
+    console.error("❌ Import failed:", error?.message);
     return { success: false, message: "Something went wrong" };
   }
 };
