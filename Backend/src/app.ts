@@ -9,6 +9,7 @@ import requireAuth from "./Middlewares/Auth/users.auth";
 // Routers
 import gamesRouter from "./Routers/games.routes";
 import foldersRouter from "./Routers/folders.routes";
+import webhookRoutes from "./Routers/webhooks.routes";
 
 // Init
 const app = express();
@@ -19,8 +20,10 @@ app.use(
   }),
 );
 
-app.use(clerkMiddleware());
+app.use("/webhooks", webhookRoutes);
 
+
+app.use(clerkMiddleware());
 app.use(express.json());
 
 // Routes

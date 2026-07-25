@@ -30,3 +30,9 @@ export const PLANS_CONFIG = {
 } as const;
 
 export const planTypes = ["free", "pro"]
+
+export const CLERK_WEBHOOK_EVENTS = {
+  USER_CREATED: "user.created",
+  USER_DELETED: "user.deleted",
+  USER_UPDATED: "user.updated",
+}

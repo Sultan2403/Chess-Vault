@@ -11,6 +11,7 @@ const envSchema = z.object({
 
   CLERK_PUBLISHABLE_KEY: z.string().min(5, "Clerk publishable key missing"),
   CLERK_SECRET_KEY: z.string().min(5, "Clerk secret key missing"),
+  CLERK_WEBHOOK_SECRET: z.string().min(5, "Clerk webhook secret not configured."),
 
   DEV_EMAIL: z.string().min(5, "Dev email not configured"),
 });
