@@ -22,6 +22,7 @@
     "express-zod-safe": "^3.2.1",
     "mongoose": "^9.8.0",
     "ndjson": "^2.0.0",
+    "svix": "^1.99.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
