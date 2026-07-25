@@ -6,10 +6,6 @@
 # Node / package manager
 node_modules/
 **/node_modules/
-pnpm-lock.yaml
-yarn.lock
-package-lock.json
-bun.lockb
 
 # Build output
 dist/
