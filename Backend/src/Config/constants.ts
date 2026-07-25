@@ -3,8 +3,30 @@ export const Platforms = {
   LICHESS: "lichess",
 } as const;
 
-export type PlatformType = typeof Platforms[keyof typeof Platforms];
+export type PlatformType = (typeof Platforms)[keyof typeof Platforms];
 
 export const Results = ["white", "black", "draw"] as const;
 
 export const MAX_GAMES_PER_USER = 1000;
+
+export const PLANS_CONFIG = {
+  free: {
+    tier: "free",
+    gameBankLimit: 1000,
+    linkedAccountLimit: 2,
+    aiEnabled: false,
+    analyticsEnabled: false,
+    sharingEnabled: false,
+  },
+
+  // pro: {
+  //   tier: "pro",
+  //   gameBankLimit: 10000,
+  //   linkedAccountLimit: 10,
+  //   aiEnabled: true,
+  //   analyticsEnabled: true,
+  //   sharingEnabled: true,
+  // },
+} as const;
+
+export const planTypes = ["free", "pro"]
