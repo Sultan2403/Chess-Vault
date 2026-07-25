@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@clerk/express": "^2.1.35",
+    "@clerk/express": "^2.1.46",
     "@types/cors": "^2.8.19",
     "@types/ndjson": "^2.0.4",
     "axios": "^1.18.1",
@@ -20,14 +20,14 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-zod-safe": "^3.2.1",
-    "mongoose": "^9.7.3",
+    "mongoose": "^9.8.0",
     "ndjson": "^2.0.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^25.9.4",
-    "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "@types/node": "^25.9.5",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2"
   }
 }
