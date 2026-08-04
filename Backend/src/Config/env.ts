@@ -13,6 +13,9 @@ const envSchema = z.object({
   CLERK_SECRET_KEY: z.string().min(5, "Clerk secret key missing"),
   CLERK_WEBHOOK_SECRET: z.string().min(5, "Clerk webhook secret not configured."),
 
+  PAYSTACK_API_KEY: z.string().min(5, "Paystack API key missing"),
+  PAYSTACK_TEST_API_KEY: z.string().min(5, "Paystack test API key missing"),
+
   DEV_EMAIL: z.string().min(5, "Dev email not configured"),
 });
 

@@ -9,23 +9,28 @@ export const handleClerkWebhook = async (req: Request, res: Response) => {
   if (!secret) return res.status(500).json({ error: "Missing secret" });
 
   try {
-    // Pass req.headers directly. It throws automatically if headers are missing or invalid.
     const wh = new Webhook(secret);
     const evt = wh.verify(
       req.body,
       req.headers as unknown as WebhookRequiredHeaders,
     ) as any;
 
+    const userId = evt.data.id;
+
     if (evt.type === CLERK_WEBHOOK_EVENTS.USER_CREATED) {
-      await Accounts.create({ userId: evt.data.id });
-      console.log(`✅ Game Bank initialized for ${evt.data.id}`);
+      // Upsert ensures we don't throw duplicate key errors if the event triggers twice
+      await Accounts.updateOne(
+        { userId },
+        { $setOnInsert: { userId } },
+        { upsert: true },
+      );
+      console.log(`✅ Game Bank initialized for ${userId}`);
     } else if (evt.type === CLERK_WEBHOOK_EVENTS.USER_DELETED) {
-      await Accounts.deleteOne({ userId: evt.data.id });
+      // deleteOne is inherently idempotent (deleting non-existent record is a no-op)
+      await Accounts.deleteOne({ userId });
 
-      //   Add background jobs to empty all user data. Or do it here directly
-
-      //   Background job would be preffered due to natural volume and time
-      console.log(`🗑️ Account removed for ${evt.data.id}`);
+      // TODO: Dispatch background job to purge user data (e.g. BullMQ / RabbitMQ)
+      console.log(`🗑️ Account removed for ${userId}`);
     }
 
     return res.status(200).json({ success: true });
