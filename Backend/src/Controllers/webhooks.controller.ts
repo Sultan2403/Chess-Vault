@@ -5,6 +5,7 @@ import Accounts from "../DB/Models/accounts.model";
 import { CLERK_WEBHOOK_EVENTS } from "../Config/constants";
 
 export const handleClerkWebhook = async (req: Request, res: Response) => {
+  console.log("Processing...")
   const secret = env.CLERK_WEBHOOK_SECRET;
   if (!secret) return res.status(500).json({ error: "Missing secret" });
 
@@ -14,6 +15,8 @@ export const handleClerkWebhook = async (req: Request, res: Response) => {
       req.body,
       req.headers as unknown as WebhookRequiredHeaders,
     ) as any;
+
+    console.log("Secret verified! It's clerk broooo")
 
     const userId = evt.data.id;
 
@@ -33,6 +36,7 @@ export const handleClerkWebhook = async (req: Request, res: Response) => {
       console.log(`🗑️ Account removed for ${userId}`);
     }
 
+    console.log("Webhook succesfully processed!")
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error("❌ Webhook error:", err);
