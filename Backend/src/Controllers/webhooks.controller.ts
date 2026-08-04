@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Webhook, WebhookRequiredHeaders } from "svix";
-import { env } from "../Config/env";
+import env from "../Config/env";
 import Accounts from "../DB/Models/accounts.model";
 import { CLERK_WEBHOOK_EVENTS } from "../Config/constants";
 

@@ -1,9 +1,15 @@
 import { z } from "zod";
 import "dotenv/config";
 
+const isProd = process.env.NODE_ENV === "production";
 const envSchema = z.object({
   PORT: z.string().default("5000").transform(Number),
-  MONGO_DB_URI: z.string().min(5, "MongoDB URI is required"), // Safer than .url()
+  MONGO_DB_URI: z.string().min(5, "MongoDB URI is required"),
+
+  REDIS_PORT: z.coerce.number().min(1, "REDIS_PORT is required").default(6379),
+  REDIS_URL: isProd
+    ? z.url("REDIS_URL must be a valid connection string")
+    : z.string().min(1, "REDIS_URL is required").default("localhost"),
 
   NODE_ENV: z
     .enum(["development", "production", "test"])
@@ -11,7 +17,9 @@ const envSchema = z.object({
 
   CLERK_PUBLISHABLE_KEY: z.string().min(5, "Clerk publishable key missing"),
   CLERK_SECRET_KEY: z.string().min(5, "Clerk secret key missing"),
-  CLERK_WEBHOOK_SECRET: z.string().min(5, "Clerk webhook secret not configured."),
+  CLERK_WEBHOOK_SECRET: z
+    .string()
+    .min(5, "Clerk webhook secret not configured."),
 
   PAYSTACK_API_KEY: z.string().min(5, "Paystack API key missing"),
   PAYSTACK_TEST_API_KEY: z.string().min(5, "Paystack test API key missing"),
@@ -31,4 +39,6 @@ const validateEnv = () => {
   return result.data;
 };
 
-export const env = validateEnv()!;
+const env = validateEnv()!;
+
+export default env;

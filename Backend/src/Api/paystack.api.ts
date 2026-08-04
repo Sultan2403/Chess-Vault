@@ -1,5 +1,5 @@
 import axios from "axios";
-import { env } from "../Config/env";
+import env from "../Config/env";
 
 const api = axios.create({
   baseURL: "https://api.paystack.co",

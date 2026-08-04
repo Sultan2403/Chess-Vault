@@ -1,5 +1,5 @@
 import app from "./app";
-import { env } from "./Config/env";
+import env from "./Config/env";
 import connectDB from "./DB/Connections/mongo";
 
 connectDB();

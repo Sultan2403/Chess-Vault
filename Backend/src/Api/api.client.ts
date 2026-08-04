@@ -1,5 +1,5 @@
 import axios from "axios";
-import { env } from "../Config/env";
+import env from "../Config/env";
 
 const chess_com_url = "https://api.chess.com/pub";
 const lichess_url = "https://lichess.org/api";
