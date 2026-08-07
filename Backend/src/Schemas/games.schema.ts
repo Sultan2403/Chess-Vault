@@ -47,4 +47,33 @@ export const GameSchema = z.object({
   updatedAt: z.coerce.date().optional(),
 });
 
+export const searchGamesQuery = z.object({
+  folderId: z
+    .string()
+    .trim()
+    .refine(isValidMongoId, { message: "Invalid folder id" })
+    .optional(),
+
+  search: z.string().trim().max(100).optional(),
+
+  platform: z.enum(PlatformValues).optional(),
+  result: z.enum(Results).optional(),
+  timeClass: z.string().trim().optional(),
+
+  isRated: z
+    .preprocess((val) => {
+      if (val === "true") return true;
+      if (val === "false") return false;
+      return val;
+    }, z.boolean().optional()),
+
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(15),
+});
+
+export const searchGamesParamsSchema = searchGamesQuery.extend({
+  userId: z.string().trim().min(1),
+});
+
+
 

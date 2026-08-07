@@ -1,5 +1,9 @@
 import z from "zod";
-import { GameSchema, importGamesParams } from "../Schemas/games.schema";
+import {
+  GameSchema,
+  importGamesParams,
+  searchGamesParamsSchema,
+} from "../Schemas/games.schema";
 import { PlatformType, ResultType } from "../Config/constants";
 
 export type Game = z.infer<typeof GameSchema>;
@@ -103,3 +107,4 @@ export interface GameSearchParams {
 
   limit?: number;
 }
+

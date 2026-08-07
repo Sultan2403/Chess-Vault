@@ -1,6 +1,14 @@
 import { Response } from "express";
 
-export const internalError = (res: Response, error: unknown) => {
+export const internalError = ({
+  res,
+  error,
+  message,
+}: {
+  res: Response;
+  error: unknown;
+  message?: string;
+}) => {
   console.error(error);
-  return res.status(500).json({ error: "Internal server error" });
+  return res.status(500).json({ message: message || "Something went wrong." });
 };

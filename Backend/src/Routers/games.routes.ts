@@ -1,9 +1,24 @@
 import { Router } from "express";
 import validate from "express-zod-safe";
-import { importGamesController } from "../Controllers/games.controller";
-import { importGamesParams } from "../Schemas/games.schema";
+import requireAuth from "../Middlewares/Auth/users.auth";
+import {
+  importGamesController,
+  searchGamesController,
+} from "../Controllers/games.controller";
+import {
+  importGamesParams,
+  searchGamesQuery,
+} from "../Schemas/games.schema";
 
 const router = Router();
+
+router.use(requireAuth);
+
+router.get(
+  "/",
+  validate({ query: searchGamesQuery }) as any,
+  searchGamesController,
+);
 
 router.post(
   "/import",
@@ -12,3 +27,4 @@ router.post(
 );
 
 export default router;
+
