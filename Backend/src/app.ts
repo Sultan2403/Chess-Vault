@@ -5,6 +5,7 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
 
+// Routers
 import webhookRoutes from "./Routers/webhooks.routes";
 import apiRouter from "./Routers";
 
