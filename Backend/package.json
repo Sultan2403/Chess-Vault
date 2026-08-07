@@ -1,7 +1,7 @@
 {
   "name": "chess-vault-backend",
   "version": "1.0.0",
-  "description": "A chat app, nothing much",
+  "description": "Chess game vault & analysis backend service",
   "main": "./src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

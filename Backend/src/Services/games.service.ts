@@ -1,5 +1,6 @@
 import chessComApi from "../Api/chess_com.api";
 import ndjson from "ndjson";
+import mongoose from "mongoose";
 import Games from "../DB/Models/games.model";
 import { normalizeChessComGame, normalizeLichessGame } from "../Helpers";
 import {
@@ -65,7 +66,7 @@ export const importGames = async ({
 
       // 4. Reverse the individual games array to get the newest games first
       const monthlyGames = monthlyData.games.reverse();
-      const gamesToInsert = [];
+      const gamesToInsert: Game[] = [];
 
       for (const game of monthlyGames) {
         
@@ -89,18 +90,34 @@ export const importGames = async ({
         totalImported++;
       }
 
-      // 5. Bulk dump the month's chunk into MongoDB to minimize roundtrips
+      // 5. Bulk dump the month's chunk into MongoDB with upserts to skip duplicates
       if (gamesToInsert.length > 0) {
-        console.log("Inserting games to db...")
-        await Games.insertMany(gamesToInsert);
+        console.log("Inserting games to db...");
+        const ops = gamesToInsert.map((game) => ({
+          updateOne: {
+            filter: {
+              userId: game.userId,
+              platform: game.platform,
+              platformGameId: game.platformGameId,
+            },
+            update: {
+              $setOnInsert: {
+                ...game,
+                folderId: new mongoose.Types.ObjectId(game.folderId),
+              },
+            },
+            upsert: true,
+          },
+        }));
+        const res = await Games.bulkWrite(ops as any);
         console.log(
-          `✅ Batched ${gamesToInsert.length} games into DB. (Running Total: ${totalImported})`,
+          `✅ Upserted ${res.upsertedCount} new games into DB (Ignored ${res.matchedCount} existing duplicates). (Running Total: ${totalImported})`,
         );
       }
     }
 
     console.log(
-      `🎉 Success! Capped import finished. Total saved: ${totalImported}`,
+      `🎉 Success! Capped import finished. Total processed: ${totalImported}`,
     );
     return {
       success: true,
@@ -139,14 +156,29 @@ export const importGames = async ({
             // Once the stream terminates, we hit the DB exactly once
             if (gamesBuffer.length > 0) {
               console.log(
-                `📥 Stream ended. Bulk inserting ${gamesBuffer.length} games...`,
+                `📥 Stream ended. Bulk upserting ${gamesBuffer.length} games...`,
               );
-              console.log("Inserting games into DB...");
-              // await Games.insertMany(gamesBuffer);
-              console.log("🎉 Lichess sync perfectly completed using NDJSON!");
+              const ops = gamesBuffer.map((game) => ({
+                updateOne: {
+                  filter: {
+                    userId: game.userId,
+                    platform: game.platform,
+                    platformGameId: game.platformGameId,
+                  },
+                  update: {
+                    $setOnInsert: {
+                      ...game,
+                      folderId: new mongoose.Types.ObjectId(game.folderId),
+                    },
+                  },
+                  upsert: true,
+                },
+              }));
+              const res = await Games.bulkWrite(ops as any);
+              console.log(`🎉 Lichess sync completed! Upserted ${res.upsertedCount} new games.`);
               resolve({
                 success: true,
-                message: `Imported ${gamesBuffer.length} games from Lichess`,
+                message: `Imported ${res.upsertedCount} new games from Lichess (${res.matchedCount} duplicates skipped)`,
               });
             } else {
               resolve({
