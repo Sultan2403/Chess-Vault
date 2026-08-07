@@ -258,10 +258,14 @@ export const searchGames = async ({
       .lean()
       .transform((games) =>
         games.map((game: any) => {
+          const { _id, __v, folderId, ...rest } = game;
+
           const normalized: Game = {
-            ...game,
-            folderId: game.folderId.toString(),
+            id: _id.toString(),
+            folderId: folderId.toString(),
+            ...rest,
           };
+
           return normalized;
         }),
       ),
