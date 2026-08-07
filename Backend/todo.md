@@ -1,3 +1,3 @@
 Next session: 
-- Finalize product direction
+ - Finalize product direction
  - Implement billing and payment integrations
