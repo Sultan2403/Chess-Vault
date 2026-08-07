@@ -222,6 +222,7 @@ export const importGames = async ({
 export const searchGames = async ({
   page = 1,
   limit = 15,
+  search,
   ...params
 }: GameSearchParams): Promise<{
   success: boolean;
@@ -236,8 +237,21 @@ export const searchGames = async ({
 }> => {
   const skip = (page - 1) * limit;
 
+  const query = {
+    ...params,
+    ...(search && {
+      $or: [
+        { title: { $regex: search, $options: "i" } },
+        { "whitePlayer.username": { $regex: search, $options: "i" } },
+        { "blackPlayer.username": { $regex: search, $options: "i" } },
+        { notes: { $regex: search, $options: "i" } },
+        { tags: { $regex: search, $options: "i" } },
+      ],
+    }),
+  };
+
   const [games, count] = await Promise.all([
-    Games.find(params)
+    Games.find(query)
       .sort({ playedAt: -1 })
       .skip(skip)
       .limit(limit)
@@ -252,7 +266,7 @@ export const searchGames = async ({
         }),
       ),
 
-    Games.countDocuments(params),
+    Games.countDocuments(query),
   ]);
 
   return {
