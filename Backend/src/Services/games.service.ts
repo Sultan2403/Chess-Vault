@@ -69,7 +69,6 @@ export const importGames = async ({
       const gamesToInsert: Game[] = [];
 
       for (const game of monthlyGames) {
-        
         if (totalImported >= MAX_GAMES_PER_USER) {
           console.log(
             `🛑 Hard limit of ${MAX_GAMES_PER_USER} games hit mid-archive.`,
@@ -85,7 +84,7 @@ export const importGames = async ({
         });
 
         console.log("Normalized game ready for insertion: ");
-       
+
         gamesToInsert.push(normalizedGame);
         totalImported++;
       }
@@ -115,7 +114,6 @@ export const importGames = async ({
         );
       }
     }
-
     console.log(
       `🎉 Success! Capped import finished. Total processed: ${totalImported}`,
     );
@@ -130,69 +128,71 @@ export const importGames = async ({
     folderId,
     username,
   }: ImportGameParams): Promise<ImportResult> => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        console.log("Starting lichess import...");
-        const response = await lichessApi.getUserGames(username);
+    console.log("Starting lichess import...");
 
-        console.log("Lichess server responded with games:", response);
+    const response = await lichessApi.getUserGames(username);
 
-        const gamesBuffer: Game[] = [];
+    console.log("Lichess server responded with games stream");
 
-        // Pipe the raw network stream directly into the ndjson parser
-        response
-          .pipe(ndjson.parse())
-          .on("data", (rawGame: Lichess_Game) => {
-            // This fires automatically for every fully formed JSON object
-            const normalized = normalizeLichessGame({
-              game: rawGame,
-              userId,
-              folderId,
-            });
-            console.log("New game normalized", normalized);
-            gamesBuffer.push(normalized);
-          })
-          .on("end", async () => {
-            // Once the stream terminates, we hit the DB exactly once
-            if (gamesBuffer.length > 0) {
-              console.log(
-                `📥 Stream ended. Bulk upserting ${gamesBuffer.length} games...`,
-              );
-              const ops = gamesBuffer.map((game) => ({
-                updateOne: {
-                  filter: {
-                    userId: game.userId,
-                    platform: game.platform,
-                    platformGameId: game.platformGameId,
-                  },
-                  update: {
-                    $setOnInsert: {
-                      ...game,
-                      folderId: new mongoose.Types.ObjectId(game.folderId),
-                    },
-                  },
-                  upsert: true,
-                },
-              }));
-              const res = await Games.bulkWrite(ops as any);
-              console.log(`🎉 Lichess sync completed! Upserted ${res.upsertedCount} new games.`);
-              resolve({
+    return new Promise<ImportResult>((resolve, reject) => {
+      const gamesBuffer: Game[] = [];
+
+      response
+        .pipe(ndjson.parse())
+        .on("data", (rawGame: Lichess_Game) => {
+          const normalized = normalizeLichessGame({
+            game: rawGame,
+            userId,
+            folderId,
+          });
+
+          gamesBuffer.push(normalized);
+        })
+        .on("end", async () => {
+          try {
+            if (gamesBuffer.length === 0) {
+              return resolve({
                 success: true,
-                message: `Imported ${res.upsertedCount} new games from Lichess (${res.matchedCount} duplicates skipped)`,
-              });
-            } else {
-              resolve({
-                success: false,
                 message: "No games found for Lichess user",
               });
             }
-          })
-          .on("error", (err: any) => {
+
+            console.log(
+              `📥 Stream ended. Bulk upserting ${gamesBuffer.length} games...`,
+            );
+
+            const ops = gamesBuffer.map((game) => ({
+              updateOne: {
+                filter: {
+                  userId: game.userId,
+                  platform: game.platform,
+                  platformGameId: game.platformGameId,
+                },
+                update: {
+                  $setOnInsert: {
+                    ...game,
+                    folderId: new mongoose.Types.ObjectId(game.folderId),
+                  },
+                },
+                upsert: true,
+              },
+            }));
+
+            const res = await Games.bulkWrite(ops as any);
+
+            console.log(
+              `🎉 Lichess sync completed! Upserted ${res.upsertedCount} new games.`,
+            );
+
+            resolve({
+              success: true,
+              message: `Imported ${res.upsertedCount} new games from Lichess (${res.matchedCount} duplicates skipped)`,
+            });
+          } catch (err) {
             reject(err);
-          });
-      } catch (err) {
-        reject(err);
-      }
+          }
+        })
+        .on("error", reject);
     });
   };
 
