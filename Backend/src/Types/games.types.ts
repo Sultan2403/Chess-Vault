@@ -1,6 +1,6 @@
 import z from "zod";
 import { GameSchema, importGamesParams } from "../Schemas/games.schema";
-import { PlatformType } from "../Config/constants";
+import { PlatformType, ResultType } from "../Config/constants";
 
 export type Game = z.infer<typeof GameSchema>;
 
@@ -87,4 +87,19 @@ export interface Lichess_Game {
     increment: number;
     totalTime: number;
   };
+}
+
+export interface GameSearchParams {
+  userId: string
+  search?: string;
+  folderId?: string;
+
+  platform?: PlatformType;
+  result?: ResultType;
+  isRated?: boolean;
+  timeClass?: string;
+
+  page?: number;
+
+  limit?: number;
 }

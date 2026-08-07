@@ -14,6 +14,7 @@ import {
   Lichess_Game,
   Game,
   ImportResult,
+  GameSearchParams,
 } from "../Types/games.types";
 import lichessApi from "../Api/lichess.api";
 
@@ -216,4 +217,54 @@ export const importGames = async ({
     console.error("❌ Import failed:", error?.message);
     return { success: false, message: "Something went wrong" };
   }
+};
+
+export const searchGames = async ({
+  page = 1,
+  limit = 15,
+  ...params
+}: GameSearchParams): Promise<{
+  success: boolean;
+  message: string;
+  games: Game[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}> => {
+  const skip = (page - 1) * limit;
+
+  const [games, count] = await Promise.all([
+    Games.find(params)
+      .sort({ playedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+      .transform((games) =>
+        games.map((game: any) => {
+          const normalized: Game = {
+            ...game,
+            folderId: game.folderId.toString(),
+          };
+          return normalized;
+        }),
+      ),
+
+    Games.countDocuments(params),
+  ]);
+
+  return {
+    success: true,
+    message: "Games fetched successfully",
+    games,
+
+    pagination: {
+      page,
+      limit,
+      total: count,
+      totalPages: Math.ceil(count / limit),
+    },
+  };
 };

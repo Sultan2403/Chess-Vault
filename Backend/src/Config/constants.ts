@@ -7,6 +7,8 @@ export type PlatformType = (typeof Platforms)[keyof typeof Platforms];
 
 export const Results = ["white", "black", "draw"] as const;
 
+export type ResultType = typeof Results[number];
+
 export const MAX_GAMES_PER_USER = 1000;
 
 export const PLANS_CONFIG = {

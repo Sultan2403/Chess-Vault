@@ -42,6 +42,9 @@ export const GameSchema = z.object({
 
   notes: z.string().trim().max(1000).optional(),
   tags: z.string().trim().max(20).optional(),
+
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional(),
 });
 
 

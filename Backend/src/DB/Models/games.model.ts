@@ -77,7 +77,7 @@ const gameSchema = new mongoose.Schema(
 
     isRated: {
       type: Boolean,
-      required: true
+      required: true,
     },
 
     timeClass: {
@@ -129,10 +129,37 @@ gameSchema.index(
   },
 );
 
-// Fast folder lookups
+// Folder lookups
 gameSchema.index({
   userId: 1,
   folderId: 1,
+});
+
+// Default listing (newest first)
+gameSchema.index({
+  userId: 1,
+  playedAt: -1,
+});
+
+// Common filter combinations
+gameSchema.index({
+  userId: 1,
+  result: 1,
+});
+
+gameSchema.index({
+  userId: 1,
+  timeClass: 1,
+});
+
+gameSchema.index({
+  userId: 1,
+  platform: 1,
+});
+
+gameSchema.index({
+  userId: 1,
+  isRated: 1,
 });
 
 gameSchema.set("toJSON", {
