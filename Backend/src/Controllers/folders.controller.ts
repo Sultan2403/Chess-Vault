@@ -20,7 +20,7 @@ export const listFoldersController = async (req: Request, res: Response) => {
     const pagination = await getUserFolders(userId, page, limit);
     return res.status(200).json({ success: true, ...pagination });
   } catch (error) {
-    return internalError(res, error);
+    return internalError({ res, error });
   }
 };
 
@@ -32,7 +32,7 @@ export const createFolderController = async (req: Request, res: Response) => {
     const folder = await createFolder({ name, description, userId });
     return res.status(201).json({ success: true, folder });
   } catch (error) {
-    return internalError(res, error);
+    return internalError({ res, error });
   }
 };
 
@@ -43,11 +43,13 @@ export const getFolderController = async (req: Request, res: Response) => {
   try {
     const folder = await getFolderById(id, userId);
     if (!folder) {
-      return res.status(404).json({ error: "Folder not found" });
+      return res
+        .status(404)
+        .json({ success: true, message: "Folder not found" });
     }
     return res.status(200).json({ success: true, folder });
   } catch (error) {
-    return internalError(res, error);
+    return internalError({ res, error });
   }
 };
 
@@ -63,7 +65,7 @@ export const updateFolderController = async (req: Request, res: Response) => {
     }
     return res.status(200).json({ success: true, folder });
   } catch (error) {
-    return internalError(res, error);
+    return internalError({ res, error });
   }
 };
 
@@ -78,6 +80,6 @@ export const deleteFolderController = async (req: Request, res: Response) => {
     }
     return res.status(200).json({ success: true });
   } catch (error) {
-    return internalError(res, error);
+    return internalError({ res, error });
   }
 };
