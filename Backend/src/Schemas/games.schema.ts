@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Platforms, Results } from "../Config/constants";
+import { Platforms, Results, TimeClasses } from "../Config/constants";
 import { isValidMongoId } from "../Utils";
 
 const PlatformValues = Object.values(Platforms);
@@ -35,7 +35,7 @@ export const GameSchema = z.object({
 
   isRated: z.boolean(),
 
-  timeClass: z.string().trim().min(1),
+  timeClass: z.enum(TimeClasses),
 
   playedAt: z.coerce.date(),
   pgn: z.string().min(1),
@@ -58,7 +58,7 @@ export const searchGamesQuery = z.object({
 
   platform: z.enum(PlatformValues).optional(),
   result: z.enum(Results).optional(),
-  timeClass: z.string().trim().optional(),
+  timeClass: z.enum(TimeClasses).optional(),
 
   isRated: z
     .preprocess((val) => {

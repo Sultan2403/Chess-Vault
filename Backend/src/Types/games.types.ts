@@ -4,7 +4,7 @@ import {
   importGamesParams,
   searchGamesParamsSchema,
 } from "../Schemas/games.schema";
-import { PlatformType, ResultType } from "../Config/constants";
+import { PlatformType, ResultType, TimeClassType } from "../Config/constants";
 
 export type Game = z.infer<typeof GameSchema>;
 
@@ -101,7 +101,7 @@ export interface GameSearchParams {
   platform?: PlatformType;
   result?: ResultType;
   isRated?: boolean;
-  timeClass?: string;
+  timeClass?: TimeClassType;
 
   page?: number;
 

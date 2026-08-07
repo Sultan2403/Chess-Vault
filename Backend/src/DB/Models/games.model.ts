@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Platforms, Results } from "../../Config/constants";
+import { Platforms, Results, TimeClasses } from "../../Config/constants";
 
 const PlatformValues = Object.values(Platforms);
 
@@ -82,6 +82,7 @@ const gameSchema = new mongoose.Schema(
 
     timeClass: {
       type: String,
+      enum: TimeClasses,
       required: true,
       trim: true,
     },
