@@ -19,13 +19,12 @@ app.use(
 
 app.use("/webhooks", webhookRoutes);
 
-
 app.use(clerkMiddleware());
 app.use(express.json());
 
 // Routes
 
-app.use("/api", apiRouter)
+app.use("/api", apiRouter);
 
 app.get("/", (req: Request, res: Response) => {
   res
@@ -35,6 +34,13 @@ app.get("/", (req: Request, res: Response) => {
 
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({ success: true, message: "Server says heyyy :)" });
+});
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
 });
 
 export default app;
