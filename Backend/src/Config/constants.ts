@@ -9,7 +9,15 @@ export const Results = ["white", "black", "draw"] as const;
 
 export type ResultType = typeof Results[number];
 
-export const TimeClasses = ["bullet", "blitz", "rapid", "daily"] as const;
+export const TimeClasses = [
+  "ultraBullet",
+  "bullet",
+  "blitz",
+  "rapid",
+  "classical",
+  "daily",
+  "correspondence",
+] as const;
 
 export type TimeClassType = typeof TimeClasses[number];
 

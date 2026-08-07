@@ -1,3 +1,4 @@
+import { TimeClassType } from "../Config/constants";
 import { Chess_Com_Game, Game, Lichess_Game } from "../Types/games.types";
 
 export const normalizeLichessGame = ({
@@ -26,7 +27,7 @@ export const normalizeLichessGame = ({
       rating: game.players.black.rating,
     },
     result: game.winner || "draw",
-    timeClass: game.speed,
+    timeClass: game.speed as TimeClassType,
     playedAt: new Date(game.createdAt * 1000),
     pgn: game.pgn,
     isRated: game.rated,
@@ -66,7 +67,7 @@ export const normalizeChessComGame = ({
       rating: game.black.rating,
     },
     result,
-    timeClass: game.time_class,
+    timeClass: game.time_class as TimeClassType,
     playedAt: new Date(game.end_time * 1000),
     pgn: game.pgn,
     isRated: game.rated,
