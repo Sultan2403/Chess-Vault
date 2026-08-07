@@ -2,7 +2,7 @@ import z from "zod";
 import {
   GameSchema,
   importGamesParams,
-  searchGamesParamsSchema,
+  searchGamesQuery,
 } from "../Schemas/games.schema";
 import { PlatformType, ResultType, TimeClassType } from "../Config/constants";
 
@@ -93,18 +93,6 @@ export interface Lichess_Game {
   };
 }
 
-export interface GameSearchParams {
+export type GameSearchParams = z.infer<typeof searchGamesQuery> & {
   userId: string
-  search?: string;
-  folderId?: string;
-
-  platform?: PlatformType;
-  result?: ResultType;
-  isRated?: boolean;
-  timeClass?: TimeClassType;
-
-  page?: number;
-
-  limit?: number;
-}
-
+};

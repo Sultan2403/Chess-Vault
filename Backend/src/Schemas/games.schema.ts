@@ -71,9 +71,3 @@ export const searchGamesQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(15),
 });
 
-export const searchGamesParamsSchema = searchGamesQuery.extend({
-  userId: z.string().trim().min(1),
-});
-
-
-
