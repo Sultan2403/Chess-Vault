@@ -11,4 +11,10 @@ export default defineConfig([
     languageOptions: { globals: globals.node },
   },
   tseslint.configs.recommended,
+  {
+    rules: {
+      // `any` is intentional in this project.
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
 ]);
