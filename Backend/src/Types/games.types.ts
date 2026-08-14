@@ -4,7 +4,7 @@ import {
   importGamesParams,
   searchGamesQuery,
 } from "../Schemas/games.schema";
-import { PlatformType, ResultType, TimeClassType } from "../Config/constants";
+import { PlatformType } from "../Config/constants";
 
 export type Game = z.infer<typeof GameSchema>;
 
@@ -94,5 +94,5 @@ export interface Lichess_Game {
 }
 
 export type GameSearchParams = z.infer<typeof searchGamesQuery> & {
-  userId: string
+  userId: string;
 };

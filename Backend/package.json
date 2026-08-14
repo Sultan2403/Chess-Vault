@@ -8,8 +8,8 @@
     "dev": "tsx watch --clear-screen=false --include ./src src/server.ts",
     "build": "tsc",
     "start": "node ./dist/server.js",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix"
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +20,7 @@
     "axios": "^1.18.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
+    "eslint": "^10.8.1",
     "express": "^5.2.1",
     "express-zod-safe": "^3.2.1",
     "ioredis": "^6.0.0",
@@ -29,10 +30,12 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.5",
-    "globals": "^17.9.0",
+    "globals": "^17.11.0",
     "tsx": "^4.23.1",
-    "typescript": "^7.0.2"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.67.0"
   }
 }

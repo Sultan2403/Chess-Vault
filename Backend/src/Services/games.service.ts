@@ -5,7 +5,6 @@ import Games from "../DB/Models/games.model";
 import { normalizeChessComGame, normalizeLichessGame } from "../Helpers";
 import {
   Platforms,
-  type PlatformType,
   MAX_GAMES_PER_USER,
 } from "../Config/constants";
 import {
