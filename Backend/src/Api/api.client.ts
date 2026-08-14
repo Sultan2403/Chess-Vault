@@ -7,20 +7,18 @@ const lichess_url = "https://lichess.org/api";
 const chess_com_api = axios.create({
   baseURL: chess_com_url,
   timeout: 5000,
+  headers: {
+    "User-Agent": `Chess-Vault-Backend/1.0 (contact: ${env.DEV_EMAIL})`,
+  },
 });
 
 const lichess_api = axios.create({
   baseURL: lichess_url,
   timeout: 3000,
-});
-
-chess_com_api.interceptors.request.use((config) => {
-  config.headers.set(
-    "User-Agent",
-    `Chess-Vault-Backend/1.0 (contact: ${env.DEV_EMAIL})`,
-  );
-
-  return config;
+  headers: {
+    Accept: "application/x-ndjson",
+    "User-Agent": `Chess-Vault-Backend/1.0 (contact: ${env.DEV_EMAIL})`,
+  },
 });
 
 chess_com_api.interceptors.response.use((res) => res.data);
