@@ -1,5 +1,4 @@
 import { MAX_GAMES_PER_USER } from "../Config/constants";
-import { Lichess_Game } from "../Types/games.types";
 import { lichess_api } from "./api.client";
 import { Readable } from "stream";
 
