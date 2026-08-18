@@ -1,0 +1,9 @@
+{
+  "name": "chess-vault",
+  "private": true,
+  "workspaces": [
+    "Backend",
+    "web",
+    "shared"
+  ]
+}
