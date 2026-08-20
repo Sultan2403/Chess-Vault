@@ -1,0 +1,98 @@
+import { z } from "zod";
+import {
+  GameSchema,
+  importGamesParams,
+  searchGamesQuery,
+} from "../schemas/games.schema.js";
+import { PlatformType } from "../constants/platforms.js";
+
+export type Game = z.infer<typeof GameSchema>;
+
+export interface ImportResult {
+  success: boolean;
+  message?: string;
+}
+
+export type ImportGameParams = {
+  userId: string;
+} & z.infer<typeof importGamesParams>;
+
+export type ImportGamesParams = {
+  userId: string;
+  platform: PlatformType;
+} & z.infer<typeof importGamesParams>;
+
+export interface Chess_Com_Player {
+  rating: number;
+  result: string;
+  "@id": string;
+  username: string;
+  uuid: string;
+}
+
+export type Chess_Com_Game = {
+  url: string;
+  pgn: string;
+  time_control: string;
+  end_time: number;
+  rated: boolean;
+  tcn: string;
+  uuid: string;
+  initial_setup: string;
+  fen: string;
+  time_class: string;
+  rules: string;
+  white: Chess_Com_Player;
+  black: Chess_Com_Player;
+  eco?: string;
+};
+
+export interface Lichess_Game {
+  id: string;
+  rated: boolean;
+
+  variant: string;
+  speed: string;
+  perf: string;
+
+  createdAt: number;
+  lastMoveAt: number;
+
+  status: string;
+  source: string;
+
+  winner?: "white" | "black";
+
+  players: {
+    white: {
+      user: {
+        id: string;
+        name: string;
+      };
+      rating: number;
+      ratingDiff: number;
+    };
+
+    black: {
+      user: {
+        id: string;
+        name: string;
+      };
+      rating: number;
+      ratingDiff: number;
+    };
+  };
+
+  moves: string;
+  pgn: string;
+
+  clock: {
+    initial: number;
+    increment: number;
+    totalTime: number;
+  };
+}
+
+export type GameSearchParams = z.infer<typeof searchGamesQuery> & {
+  userId: string;
+};
