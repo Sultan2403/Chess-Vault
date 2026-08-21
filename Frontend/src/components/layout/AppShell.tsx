@@ -1,0 +1,9 @@
+import { BookOpen, Library, Search, UserRound } from "lucide-react";
+import { Link, NavLink } from "react-router-dom";
+import logo from "../../assets/logo.png";
+import type { ReactNode } from "react";
+
+const navItems = [{ to: "/dashboard", label: "Library", icon: Library }, { to: "/library", label: "Folders", icon: BookOpen }, { to: "/settings", label: "Account", icon: UserRound }];
+export function AppShell({ children }: { children: ReactNode }) {
+ return <div className="min-h-screen bg-vault-canvas text-vault-ink"><header className="border-b border-vault-line"><div className="mx-auto flex h-24 max-w-[1120px] items-center justify-between px-6"><Link to="/dashboard" className="flex items-center gap-3"><img src={logo} className="h-11 w-11 rounded-vault object-cover" alt="Chess Vault"/><span className="font-display text-3xl font-bold italic sm:text-4xl">Chess Vault</span></Link><nav className="hidden items-center gap-8 md:flex">{navItems.map(({to,label}) => <NavLink key={to} to={to} className={({isActive}) => `border-b-2 py-2 text-sm font-bold uppercase tracking-[.18em] transition ${isActive ? "border-vault-gold text-vault-goldDark" : "border-transparent hover:text-vault-goldDark"}`}>{label}</NavLink>)}</nav><div className="flex items-center gap-4"><Search size={20}/><div className="grid h-11 w-11 place-items-center rounded-full border border-vault-line bg-vault-surface text-sm font-bold">A</div></div></div></header><main>{children}</main><footer className="mt-20 border-t border-vault-line bg-vault-muted"><div className="mx-auto flex max-w-[1120px] flex-col gap-4 px-6 py-8 text-sm text-vault-secondary sm:flex-row sm:items-center sm:justify-between"><strong className="text-base text-vault-ink">Chess Vault</strong><span>© 2024 Chess Vault. A curated history of every move.</span><div className="flex gap-5"><a href="#terms">Terms</a><a href="#privacy">Privacy</a><a href="#support">Archive Support</a></div></div></footer></div>;
+}
