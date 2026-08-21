@@ -1,13 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Karla:wght@400;500;600;700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@layer base {
-  body {
-    @apply min-h-screen bg-slate-950 text-slate-100 antialiased;
-  }
-
-  #root {
-    @apply min-h-screen;
-  }
-}
+@layer base { * { @apply box-border; } html { @apply bg-vault-canvas; } body { @apply m-0 min-h-screen bg-vault-canvas font-body text-vault-ink antialiased; } button,input { font: inherit; } }
+@layer utilities { .bg-paper { background-image: radial-gradient(rgba(60,42,33,.035) 1px,transparent 1px); background-size: 5px 5px; } }

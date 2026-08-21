@@ -1,48 +1,5 @@
-import { useAuth } from "@clerk/react";
+import { ArrowRight, BookOpen, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
-
-export default function HomePage() {
-  const { isLoaded, isSignedIn } = useAuth();
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-12 text-slate-100 sm:px-6 lg:px-8">
-      <div className="w-full max-w-2xl rounded-3xl border border-white/10 bg-slate-900/80 p-8 text-center shadow-2xl shadow-black/30 backdrop-blur">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-blue-400">
-          Chess Vault
-        </p>
-        <h1 className="text-4xl font-semibold sm:text-5xl">Your chess world, organized.</h1>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-slate-300">
-          Keep your notes, games, and training plans in one place with a simple, secure workspace.
-        </p>
-
-        <div className="mt-8 flex flex-wrap justify-center gap-4">
-          {!isLoaded ? (
-            <p className="text-sm text-slate-400">Loading…</p>
-          ) : isSignedIn ? (
-            <Link
-              className="rounded-full bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-500"
-              to="/dashboard"
-            >
-              Open dashboard
-            </Link>
-          ) : (
-            <>
-              <Link
-                className="rounded-full bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-500"
-                to="/sign-in"
-              >
-                Sign in
-              </Link>
-              <Link
-                className="rounded-full border border-white/15 px-6 py-3 font-semibold text-slate-200 transition hover:bg-white/10"
-                to="/sign-up"
-              >
-                Create account
-              </Link>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+import { Button } from "../components/ui/Button";
+import logo from "../assets/logo.png";
+export default function HomePage() { return <div className="min-h-screen bg-vault-canvas text-vault-ink"><header className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-5"><div className="flex items-center gap-3"><img src={logo} className="h-9 w-9"/><span className="font-display text-3xl font-bold italic">Chess Vault</span></div><nav className="hidden gap-7 text-xs font-bold uppercase tracking-[.16em] sm:flex"><a href="#process">Features</a><a href="#archive">How it works</a><Link to="/sign-in">Sign in</Link></nav><Link to="/dashboard"><Button className="hidden sm:inline-flex">Start archiving</Button></Link></header><main><section className="mx-auto grid max-w-[1120px] gap-16 px-6 pb-28 pt-20 md:grid-cols-2 md:items-center"><div className="animate-rise-in"><p className="font-display text-5xl font-bold leading-[1.08] sm:text-7xl">Keep the games worth remembering.</p><p className="mt-7 max-w-md leading-7 text-vault-secondary">A digital sanctuary for your intellectual pursuit of chess. Curate your finest brilliancies and hardest-fought blunders in a beautifully crafted personal archive.</p><div className="mt-8 flex gap-3"><Link to="/dashboard"><Button>Open your vault <ArrowRight size={16}/></Button></Link><Link to="/library"><Button variant="secondary">Explore the archive</Button></Link></div><p className="mt-9 text-xs text-vault-secondary">↯ Chess.com &nbsp;&nbsp; ↯ Lichess.org</p></div><div className="animate-paper-shift rounded-vault border border-vault-line bg-vault-surface p-5"><div className="rounded-vault border border-vault-line bg-vault-canvas p-4"><p className="text-xs text-vault-secondary">Immortal Game Candidate</p><h2 className="font-display text-2xl">Kasparov vs. Topalov</h2><div className="mt-5 aspect-square bg-[conic-gradient(#93602c_25%,#f6deb0_0_50%,#93602c_0_75%,#f6deb0_0)] bg-[length:25%_25%]"/></div><p className="mt-4 border border-vault-line bg-white px-3 py-2 text-xs">24. &nbsp; Rxd4 cxd4 &nbsp; 25. Re7+ Kb6 &nbsp; 26. Qxd4+</p></div></section><section id="process" className="border-y border-vault-line bg-vault-surface"><div className="mx-auto max-w-[1120px] px-6 py-20"><div className="text-center"><p className="font-display text-xl">A Curated Process</p><p className="mt-3 text-sm text-vault-secondary">Treat your chess history with the respect of a physical library.</p></div><div className="mt-10 grid gap-6 md:grid-cols-3">{[[Upload,"I. Import","Connect your Lichess or Chess.com accounts, or upload standard PGN files."],[BookOpen,"II. Organize","File games into distinct, searchable folders. Add your marginalia."],[ArrowRight,"III. Revisit","Study your games in an editorial layout designed for deep focus."]].map(([Icon,title,text]) => { const Glyph = Icon as typeof Upload; return <article key={title as string} className="rounded-vault border border-vault-line bg-[#faf7ef] p-7"><Glyph size={20}/><h3 className="mt-6 font-display text-xl">{title as string}</h3><p className="mt-3 text-sm leading-6 text-vault-secondary">{text as string}</p></article>})}</div></div></section></main></div>; }
