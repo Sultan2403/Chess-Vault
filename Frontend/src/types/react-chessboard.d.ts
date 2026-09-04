@@ -3,7 +3,11 @@ declare module "react-chessboard" {
 
   export interface ChessboardProps {
     position?: string;
-    onPieceDrop?: (sourceSquare: string, targetSquare: string, piece: string) => boolean;
+    onPieceDrop?: (
+      sourceSquare: string,
+      targetSquare: string,
+      piece: string,
+    ) => boolean;
     boardWidth?: number;
     boardOrientation?: "white" | "black";
     arePiecesDraggable?: boolean;

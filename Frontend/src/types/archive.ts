@@ -15,5 +15,13 @@ export type ArchiveGame = {
   source: "Chess.com" | "Lichess";
 };
 
-export type PlatformConnection = Pick<LinkedAccount, "id" | "platform" | "username" | "lastSyncedAt"> & { connected: boolean };
-export type Collection = { title: string; entries: number; description: string; variant: "feature" | "compact" | "dark" };
+export type PlatformConnection = Pick<
+  LinkedAccount,
+  "id" | "platform" | "username" | "lastSyncedAt"
+> & { connected: boolean };
+export type Collection = {
+  title: string;
+  entries: number;
+  description: string;
+  variant: "feature" | "compact" | "dark";
+};
