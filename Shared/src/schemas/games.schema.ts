@@ -73,3 +73,12 @@ export const searchGamesQuery = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(15),
 });
+
+export const gameParams = z.object({
+  id: z
+    .string()
+    .trim()
+    .min(1, "Game ID is required")
+    .refine(isValidMongoId, { message: "Invalid game id" }),
+});
+

@@ -22,12 +22,21 @@ export interface SearchGamesResponse {
   };
 }
 
+export interface GameResponse {
+  success: boolean;
+  game: Game;
+}
+
 const gamesApi = {
   getGames: (params?: SearchGamesParams): Promise<SearchGamesResponse> =>
     api.get("/api/games", { params }),
+
+  getGame: (id: string): Promise<GameResponse> =>
+    api.get(`/api/games/${id}`),
 
   importGames: (data: ImportGamesPayload): Promise<ImportResult> =>
     api.post("/api/games/import", data),
 };
 
 export default gamesApi;
+

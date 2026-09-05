@@ -283,3 +283,19 @@ export const searchGames = async ({
     },
   };
 };
+
+export const getGameById = async (
+  id: string,
+  userId: string,
+): Promise<Game | null> => {
+  const game = await Games.findOne({ _id: id, userId }).lean();
+  if (!game) return null;
+
+  const { _id, __v, folderId, ...rest } = game as any;
+  return {
+    id: _id.toString(),
+    folderId: folderId.toString(),
+    ...rest,
+  };
+};
+

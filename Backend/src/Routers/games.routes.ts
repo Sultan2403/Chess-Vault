@@ -2,10 +2,12 @@ import { Router } from "express";
 import validate from "express-zod-safe";
 import requireAuth from "../Middlewares/Auth/users.auth";
 import {
+  getGameController,
   importGamesController,
   searchGamesController,
 } from "../Controllers/games.controller";
 import {
+  gameParams,
   importGamesParams,
   searchGamesQuery,
 } from "../Schemas/games.schema";
@@ -18,6 +20,12 @@ router.get(
   searchGamesController,
 );
 
+router.get(
+  "/:id",
+  validate({ params: gameParams }),
+  getGameController,
+);
+
 router.post(
   "/import",
   validate({ body: importGamesParams }),
@@ -25,4 +33,5 @@ router.post(
 );
 
 export default router;
+
 

@@ -3,11 +3,31 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
 import { ClerkProvider } from "@clerk/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes fresh
+      gcTime: 1000 * 60 * 30, // Keep in garbage collection cache for 30 minutes
+      refetchOnWindowFocus: false, // Prevents refetch spam when switching tabs/windows
+      retry: (failureCount, error: any) => {
+        // Don't retry on 401 (unauthorized) or 404 (not found)
+        const status = error?.response?.status;
+        if (status === 401 || status === 404) return false;
+        return failureCount < 2;
+      },
+    },
+  },
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-      <App />
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
     </ClerkProvider>
   </StrictMode>,
 );
+
