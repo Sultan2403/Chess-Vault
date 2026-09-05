@@ -3,14 +3,12 @@ import ndjson from "ndjson";
 import mongoose from "mongoose";
 import Games from "../DB/Models/games.model";
 import { normalizeChessComGame, normalizeLichessGame } from "../Helpers";
-import {
-  Platforms,
-  MAX_GAMES_PER_USER,
-} from "../Config/constants";
+import { Platforms, MAX_GAMES_PER_USER } from "../Config/constants";
 import {
   ImportGamesParams,
   ImportGameParams,
   Lichess_Game,
+  CreateGame,
   Game,
   ImportResult,
   GameSearchParams,
@@ -66,7 +64,7 @@ export const importGames = async ({
 
       // 4. Reverse the individual games array to get the newest games first
       const monthlyGames = monthlyData.games.reverse();
-      const gamesToInsert: Game[] = [];
+      const gamesToInsert: CreateGame[] = [];
 
       for (const game of monthlyGames) {
         if (totalImported >= MAX_GAMES_PER_USER) {
@@ -135,7 +133,7 @@ export const importGames = async ({
     console.log("Lichess server responded with games stream");
 
     return new Promise<ImportResult>((resolve, reject) => {
-      const gamesBuffer: Game[] = [];
+      const gamesBuffer: CreateGame[] = [];
 
       response
         .pipe(ndjson.parse())

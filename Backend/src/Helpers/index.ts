@@ -1,5 +1,5 @@
 import { TimeClassType } from "../Config/constants";
-import { Chess_Com_Game, Game, Lichess_Game } from "../Types/games.types";
+import { Chess_Com_Game, CreateGame, Lichess_Game } from "../Types/games.types";
 
 export const normalizeLichessGame = ({
   game,
@@ -9,7 +9,7 @@ export const normalizeLichessGame = ({
   game: Lichess_Game;
   userId: string;
   folderId: string;
-}): Game => {
+}): CreateGame => {
   const sourceUrl = `https://lichess.org/${game.id}`;
   return {
     userId,
@@ -42,7 +42,7 @@ export const normalizeChessComGame = ({
   game: Chess_Com_Game;
   userId: string;
   folderId: string;
-}): Game => {
+}): CreateGame => {
   const title = `${game.white.username} vs ${game.black.username}`;
   const result =
     game.white.result === "win"

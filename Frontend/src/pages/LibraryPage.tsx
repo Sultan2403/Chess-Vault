@@ -2,48 +2,7 @@ import { Filter, Plus, Search } from "lucide-react";
 import { AppShell } from "../components/layout/AppShell";
 import { Button } from "../components/ui/Button";
 import { GameCard } from "../components/library/GameCard";
-import type { ArchiveGame } from "../types/archive";
-const games: ArchiveGame[] = [
-  {
-    id: "1",
-    createdAt: "Oct 12, 2023",
-    opening: "Caro-Kann Defense",
-    variation: "Advance Variation",
-    opponent: "Opponent",
-    playerRating: 1850,
-    opponentRating: 1820,
-    result: "win",
-    timeClass: "Classical",
-    moveCount: 42,
-    source: "Lichess",
-  },
-  {
-    id: "2",
-    createdAt: "Oct 10, 2023",
-    opening: "Sicilian Defense",
-    variation: "Najdorf Variation",
-    opponent: "Opponent",
-    playerRating: 1865,
-    opponentRating: 1910,
-    result: "loss",
-    timeClass: "Rapid",
-    moveCount: 38,
-    source: "Chess.com",
-  },
-  {
-    id: "3",
-    createdAt: "Oct 08, 2023",
-    opening: "Queen's Gambit",
-    variation: "Declined",
-    opponent: "Anonymous",
-    playerRating: 1840,
-    opponentRating: 1800,
-    result: "win",
-    timeClass: "Blitz",
-    moveCount: 51,
-    source: "Lichess",
-  },
-];
+import { currentPlatformUsernames, mockGames } from "../data/mock-games";
 export default function LibraryPage() {
   return (
     <AppShell>
@@ -83,8 +42,12 @@ export default function LibraryPage() {
           </button>
         </section>
         <div className="mt-15 grid gap-6 md:grid-cols-3">
-          {games.map((game) => (
-            <GameCard key={game.id} game={game} />
+          {mockGames.map((game) => (
+            <GameCard
+              key={game.id}
+              game={game}
+              platformUsernames={currentPlatformUsernames}
+            />
           ))}
         </div>
       </div>

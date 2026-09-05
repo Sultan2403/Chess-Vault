@@ -1,0 +1,58 @@
+import type { Game } from "@chess-vault/shared";
+
+export const currentPlatformUsernames = {
+  "chess.com": "ArchiveAlex",
+  lichess: "ArchiveAlex",
+} as const;
+
+export const mockGames: Game[] = [
+  {
+    id: "game-1",
+    userId: "user-1",
+    folderId: "folder-1",
+    platform: "lichess",
+    platformGameId: "abc123",
+    sourceUrl: "https://lichess.org/abc123",
+    title: "Caro-Kann Defense: Advance Variation",
+    whitePlayer: { username: "ArchiveAlex", rating: 1850 },
+    blackPlayer: { username: "Opponent", rating: 1820 },
+    result: "white",
+    isRated: true,
+    timeClass: "classical",
+    playedAt: new Date("2023-10-12"),
+    pgn: "1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nf3 e6 5. Be2",
+    notes: "Solid positional win.",
+  },
+  {
+    id: "game-2",
+    userId: "user-1",
+    folderId: "folder-1",
+    platform: "chess.com",
+    platformGameId: "def456",
+    sourceUrl: "https://www.chess.com/game/live/def456",
+    title: "Sicilian Defense: Najdorf Variation",
+    whitePlayer: { username: "Opponent", rating: 1910 },
+    blackPlayer: { username: "ArchiveAlex", rating: 1865 },
+    result: "white",
+    isRated: true,
+    timeClass: "rapid",
+    playedAt: new Date("2023-10-10"),
+    pgn: "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6",
+  },
+  {
+    id: "game-3",
+    userId: "user-1",
+    folderId: "folder-1",
+    platform: "lichess",
+    platformGameId: "ghi789",
+    sourceUrl: "https://lichess.org/ghi789",
+    title: "Queen's Gambit Declined",
+    whitePlayer: { username: "ArchiveAlex", rating: 1840 },
+    blackPlayer: { username: "Anonymous", rating: 1800 },
+    result: "draw",
+    isRated: false,
+    timeClass: "blitz",
+    playedAt: new Date("2023-10-08"),
+    pgn: "1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7",
+  },
+];
