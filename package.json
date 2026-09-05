@@ -5,5 +5,9 @@
     "Backend",
     "Frontend",
     "Shared"
-  ]
+  ],
+  "scripts": {
+    "dev:backend": "bun --cwd Backend dev",
+    "dev:frontend": "bun --cwd Frontend dev"
+  }
 }
