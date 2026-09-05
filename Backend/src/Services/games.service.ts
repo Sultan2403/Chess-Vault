@@ -8,7 +8,7 @@ import {
   ImportGamesParams,
   ImportGameParams,
   Lichess_Game,
-  CreateGame,
+  NormalizedGame,
   Game,
   ImportResult,
   GameSearchParams,
@@ -64,7 +64,7 @@ export const importGames = async ({
 
       // 4. Reverse the individual games array to get the newest games first
       const monthlyGames = monthlyData.games.reverse();
-      const gamesToInsert: CreateGame[] = [];
+      const gamesToInsert: NormalizedGame[] = [];
 
       for (const game of monthlyGames) {
         if (totalImported >= MAX_GAMES_PER_USER) {
@@ -133,7 +133,7 @@ export const importGames = async ({
     console.log("Lichess server responded with games stream");
 
     return new Promise<ImportResult>((resolve, reject) => {
-      const gamesBuffer: CreateGame[] = [];
+      const gamesBuffer: NormalizedGame[] = [];
 
       response
         .pipe(ndjson.parse())

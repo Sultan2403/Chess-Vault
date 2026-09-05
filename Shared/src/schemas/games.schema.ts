@@ -51,8 +51,6 @@ export const GameSchema = z.object({
   updatedAt: z.coerce.date().optional(),
 });
 
-export const CreateGameSchema = GameSchema.omit({ id: true });
-
 export const searchGamesQuery = z.object({
   folderId: z
     .string()
