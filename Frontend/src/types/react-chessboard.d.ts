@@ -1,16 +1,20 @@
 declare module "react-chessboard" {
-  import React from "react";
+  import type { CSSProperties, FC } from "react";
 
   export interface ChessboardProps {
     position?: string;
-    onPieceDrop?: (sourceSquare: string, targetSquare: string, piece: string) => boolean;
+    onPieceDrop?: (
+      sourceSquare: string,
+      targetSquare: string,
+      piece: string,
+    ) => boolean;
     boardWidth?: number;
     boardOrientation?: "white" | "black";
     arePiecesDraggable?: boolean;
-    customBoardStyle?: React.CSSProperties;
-    [key: string]: any;
+    customBoardStyle?: CSSProperties;
+    [key: string]: unknown;
   }
 
-  export const Chessboard: React.FC<ChessboardProps>;
+  export const Chessboard: FC<ChessboardProps>;
   export default Chessboard;
 }

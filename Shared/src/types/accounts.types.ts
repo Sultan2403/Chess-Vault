@@ -1,5 +1,5 @@
-import { PlatformType } from "../constants/platforms.js";
-import { PlanType } from "../constants/plans.js";
+import type { PlatformType } from "../constants/platforms.js";
+import type { PlanType } from "../constants/plans.js";
 
 export type AccountPlan = {
   tier: PlanType;

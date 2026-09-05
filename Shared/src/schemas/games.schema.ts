@@ -5,9 +5,13 @@ import { isValidMongoId } from "../utils/index.js";
 const PlatformValues = Object.values(Platforms);
 
 export const importGamesParams = z.object({
-  folderId: z.string().trim().min(1, "Folder ID is required").refine(isValidMongoId, {
-    message: "Invalid folder id",
-  }),
+  folderId: z
+    .string()
+    .trim()
+    .min(1, "Folder ID is required")
+    .refine(isValidMongoId, {
+      message: "Invalid folder id",
+    }),
   platform: z.enum(PlatformValues),
   username: z.string().trim().min(1, "Username is required"),
 });
@@ -18,6 +22,7 @@ export const playerInputSchema = z.object({
 });
 
 export const GameSchema = z.object({
+  id: z.string().trim().min(1),
   userId: z.string().trim().min(1),
   folderId: z.string().trim().min(1),
 
@@ -59,12 +64,11 @@ export const searchGamesQuery = z.object({
   result: z.enum(Results).optional(),
   timeClass: z.enum(TimeClasses).optional(),
 
-  isRated: z
-    .preprocess((val: unknown) => {
-      if (val === "true") return true;
-      if (val === "false") return false;
-      return val;
-    }, z.boolean().optional()),
+  isRated: z.preprocess((val: unknown) => {
+    if (val === "true") return true;
+    if (val === "false") return false;
+    return val;
+  }, z.boolean().optional()),
 
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(15),
