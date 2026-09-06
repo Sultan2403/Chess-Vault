@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tsx watch --clear-screen=false --include ./src src/server.ts",
-    "build": "tsc",
+    "build": "tsc && echo \"✅ Build completed successfully\"",
     "start": "node ./dist/server.js",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix"
