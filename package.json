@@ -8,6 +8,11 @@
   ],
   "scripts": {
     "dev:backend": "bun --cwd Backend dev",
-    "dev:frontend": "bun --cwd Frontend dev"
+    "dev:frontend": "bun --cwd Frontend dev",
+    "build:shared": "npm run build --workspace=@chess-vault/shared",
+    "build:backend": "npm run build --workspace=chess-vault-backend",
+    "build:frontend": "npm run build --workspace=chess-vault-frontend",
+    "deploy:backend": "npm run build:shared && npm run build:backend",
+    "deploy:frontend": "npm run build:shared && npm run build:frontend"
   }
 }
