@@ -13,7 +13,7 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc && echo \"✅ Shared build completed successfully\""
   },
   "dependencies": {
     "zod": "^4.4.3"
