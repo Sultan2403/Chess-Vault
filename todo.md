@@ -24,3 +24,11 @@
 - Ensure import calls pass `{ platform, username, folderId }` (no `any` casts).
 - Verify backend accepts the folder id and imports games into the correct folder.
 - Remove temporary placeholder and add tests for import flow.
+
+
+### Later taks (Project maintenance):
+- Do proper safeguards like linting all over including the shared folder
+- Tests and stuff
+- Proper ci
+- Self healing deps maybe
+- More ideas will be added as they land in my head
