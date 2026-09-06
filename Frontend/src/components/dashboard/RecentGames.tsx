@@ -62,7 +62,7 @@ function RecentGameRow({ game }: { game: Game }) {
 }
 
 export function RecentGames() {
-  const { data, isLoading } = useGames({ limit: 6, sort: "-playedAt" });
+  const { data, isLoading } = useGames({ limit: 6 });
   const games = data?.games ?? [];
 
   return (

@@ -112,12 +112,14 @@ export default function LibraryPage() {
           // Call the backend import endpoint once per platform username provided.
           setIsOnboardingOpen(false);
           setIsBuildingOpen(true);
+
+          // TODO: Find a way to pass a folderId and stop using as any so frontend is accurate to the types 
           try {
             if (platforms.chessComUsername) {
-              await importMutation.mutateAsync({ platform: "chess.com", username: platforms.chessComUsername });
+              await importMutation.mutateAsync({ platform: "chess.com", username: platforms.chessComUsername } as any);
             }
             if (platforms.lichessUsername) {
-              await importMutation.mutateAsync({ platform: "lichess", username: platforms.lichessUsername });
+              await importMutation.mutateAsync({ platform: "lichess", username: platforms.lichessUsername } as any);
             }
           } catch (err) {
             // swallow; user will see error via BuildingVaultModal or global error handling
