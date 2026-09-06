@@ -1,18 +1,15 @@
 import { ArrowRight, History } from "lucide-react";
 import type { Game } from "@chess-vault/shared";
 import { Link } from "react-router-dom";
-import { currentPlatformUsernames, mockGames } from "../../data/mock-games";
-import {
-  getGameDate,
-  getMoveCount,
-  getPlayerPerspective,
-} from "../../utils/game";
+import { useGames } from "../../hooks/useGames";
+import { getGameDate, getMoveCount, getPlayerPerspective } from "../../utils/game";
 
 const resultLabel = { win: "W", loss: "L", draw: "D" };
 const scoreLabel = { win: "1-0", loss: "0-1", draw: "½-½" };
 
 function RecentGameRow({ game }: { game: Game }) {
-  const perspective = getPlayerPerspective(game, currentPlatformUsernames);
+  // No platform username context available yet; pass empty map.
+  const perspective = getPlayerPerspective(game, {});
 
   // Derive contextual tag if any
   const tag =
@@ -65,6 +62,9 @@ function RecentGameRow({ game }: { game: Game }) {
 }
 
 export function RecentGames() {
+  const { data, isLoading } = useGames({ limit: 6, sort: "-playedAt" });
+  const games = data?.games ?? [];
+
   return (
     <section className="mt-14">
       <div className="flex items-center justify-between border-b border-vault-outline-variant/60 pb-3 mb-2">
@@ -79,9 +79,11 @@ export function RecentGames() {
         </Link>
       </div>
       <div className="divide-y divide-vault-outline-variant/40">
-        {mockGames.map((game) => (
-          <RecentGameRow game={game} key={game.id} />
-        ))}
+        {isLoading ? (
+          <div className="py-4">Loading…</div>
+        ) : (
+          games.map((game) => <RecentGameRow game={game} key={game.id} />)
+        )}
       </div>
     </section>
   );

@@ -7,6 +7,17 @@ export const useGames = (params?: SearchGamesParams) => {
   return useQuery({
     queryKey: QUERY_KEYS.games.list(params),
     queryFn: () => gamesApi.getGames(params),
+    // Normalize API shapes: convert playedAt ISO strings -> Date objects
+    select: (data: any) => {
+      if (!data) return data;
+      return {
+        ...data,
+        games: (data.games ?? []).map((g: any) => ({
+          ...g,
+          playedAt: g.playedAt ? new Date(g.playedAt) : g.playedAt,
+        })),
+      };
+    },
   });
 };
 
@@ -30,6 +41,15 @@ export const useGame = (id: string) => {
         }
       }
       return undefined;
+    },
+    // Ensure single-game result has normalized playedAt as a Date
+    select: (data: any) => {
+      if (!data) return data;
+      const game = data.game;
+      if (game && game.playedAt && typeof game.playedAt === "string") {
+        return { ...data, game: { ...game, playedAt: new Date(game.playedAt) } };
+      }
+      return data;
     },
   });
 };

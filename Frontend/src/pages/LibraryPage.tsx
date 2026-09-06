@@ -3,19 +3,26 @@ import { Filter, Plus, Search } from "lucide-react";
 import { AppShell } from "../components/layout/AppShell";
 import { Button } from "../components/ui/Button";
 import { GameCard } from "../components/library/GameCard";
-import { currentPlatformUsernames, mockGames } from "../data/mock-games";
-import { useGames } from "../hooks/useGames";
+import { useGames, useImportGames } from "../hooks/useGames";
 import { OnboardingModal } from "../components/onboarding/OnboardingModal";
 import { BuildingVaultModal } from "../components/onboarding/BuildingVaultModal";
+import { Spinner } from "../components/ui/Spinner";
+import { ErrorBanner } from "../components/ui/ErrorBanner";
+import { EmptyState } from "../components/ui/EmptyState";
 
 export default function LibraryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isBuildingOpen, setIsBuildingOpen] = useState(false);
 
-  // Hook into TanStack Query with fallback to mock data
-  const { data: gamesData } = useGames({ search: searchTerm || undefined });
-  const gamesList = gamesData?.games && gamesData.games.length > 0 ? gamesData.games : mockGames;
+  // Hook into TanStack Query (live-only)
+  const { data: gamesData, isLoading, isError, error, refetch } = useGames({
+    search: searchTerm || undefined,
+  });
+
+  const importMutation = useImportGames();
+
+  const gamesList = gamesData?.games ?? [];
 
   const filteredGames = gamesList.filter((game) => {
     if (!searchTerm) return true;
@@ -73,14 +80,26 @@ export default function LibraryPage() {
         </section>
 
         {/* Games Grid */}
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredGames.map((game) => (
-            <GameCard
-              key={game.id}
-              game={game}
-              platformUsernames={currentPlatformUsernames}
+        <div className="mt-10">
+          {isLoading ? (
+            <div className="py-20">
+              <Spinner />
+            </div>
+          ) : isError ? (
+            <ErrorBanner message={(error as any)?.message ?? "Unable to load games."} onRetry={() => refetch()} />
+          ) : gamesList.length === 0 ? (
+            <EmptyState
+              title="No games yet"
+              description="You don't have any games stored. Connect your accounts to import games."
+              action={<Button onClick={() => setIsOnboardingOpen(true)}>Sync Accounts</Button>}
             />
-          ))}
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredGames.map((game) => (
+                <GameCard key={game.id} game={game} platformUsernames={{}} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -88,9 +107,23 @@ export default function LibraryPage() {
       <OnboardingModal
         isOpen={isOnboardingOpen}
         onClose={() => setIsOnboardingOpen(false)}
-        onBeginSync={() => {
+        onBeginSync={async (platforms) => {
+          // Start import flow and show building modal while it's running.
+          // Call the backend import endpoint once per platform username provided.
           setIsOnboardingOpen(false);
           setIsBuildingOpen(true);
+          try {
+            if (platforms.chessComUsername) {
+              await importMutation.mutateAsync({ platform: "chess.com", username: platforms.chessComUsername });
+            }
+            if (platforms.lichessUsername) {
+              await importMutation.mutateAsync({ platform: "lichess", username: platforms.lichessUsername });
+            }
+          } catch (err) {
+            // swallow; user will see error via BuildingVaultModal or global error handling
+          } finally {
+            setIsBuildingOpen(false);
+          }
         }}
       />
 
@@ -103,4 +136,5 @@ export default function LibraryPage() {
     </AppShell>
   );
 }
+
 

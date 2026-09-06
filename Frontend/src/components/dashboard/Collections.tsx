@@ -1,8 +1,11 @@
 import { BookOpen, Bookmark, ChevronRight, Folder, Star, Trophy } from "lucide-react";
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
+import { useFolders } from "../../hooks/useFolders";
 
 export function Collections() {
+  const { data: foldersData } = useFolders();
+  const totalFolders = foldersData?.total ?? foldersData?.folders?.length ?? 0;
   return (
     <section className="mt-14">
       <div className="mb-6 flex items-center justify-between">
@@ -41,7 +44,7 @@ export function Collections() {
 
             <div className="relative z-10 mt-6">
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-vault-text-secondary">
-                48 ENTRIES
+                {totalFolders} ENTRIES
               </span>
             </div>
           </motion.article>
