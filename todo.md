@@ -19,6 +19,7 @@
 
 ### TODO: Wire onboarding imports to send real Game Bank `folderId`
 
+- Relavnt file: Frontend/src/components/onboarding/ImportGames.tsx 
 - Update onboarding flow to fetch user's folders and select/create the Game Bank folder.
 - Ensure import calls pass `{ platform, username, folderId }` (no `any` casts).
 - Verify backend accepts the folder id and imports games into the correct folder.
