@@ -14,8 +14,8 @@
     "skipLibCheck": true,
 
     /* Pathing */
-    "rootDir": "./src",
-    "outDir": "./dist",
+    "rootDir": "src",
+    "outDir": "dist",
 
     /* Interop & Modern Syntax */
     "esModuleInterop": true,
