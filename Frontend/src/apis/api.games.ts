@@ -8,9 +8,10 @@ import api from "./api.client";
 
 export type ImportGamesPayload = Omit<ImportGamesParams, "userId">;
 
-export type SearchGamesParams = Omit<GameSearchParams, "userId">;
+export type SearchGamesParams = Partial<Omit<GameSearchParams, "userId">>;
 
 export interface SearchGamesResponse {
+
   success: boolean;
   message: string;
   games: Game[];

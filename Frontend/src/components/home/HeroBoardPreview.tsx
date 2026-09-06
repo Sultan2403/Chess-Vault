@@ -1,7 +1,12 @@
 import { Bookmark } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
-const squares = Array.from({ length: 16 }, (_, index) => index);
+const rows = [
+  [0, 1, 0, 1, 0, 1, 0, 1],
+  [1, 0, 1, 0, 1, 0, 1, 0],
+  [0, 1, 0, 1, 0, 1, 0, 1],
+  [1, 0, 1, 0, 1, 0, 1, 0],
+];
 
 export function HeroBoardPreview() {
   const shouldReduceMotion = useReducedMotion();
@@ -9,59 +14,62 @@ export function HeroBoardPreview() {
   return (
     <motion.article
       animate={shouldReduceMotion ? undefined : { y: [0, -4, 0] }}
-      className="border border-vault-outline-variant bg-vault-surface-soft p-4"
+      className="rounded-vault border border-vault-outline-variant/80 bg-vault-surface-soft p-5 shadow-xs"
       transition={{ duration: 5, ease: "easeInOut", repeat: Infinity }}
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[10px] text-vault-text-secondary">
+          <p className="text-[11px] font-medium tracking-wide text-vault-text-secondary">
             Immortal Game Candidate
           </p>
-          <h2 className="mt-1 font-display text-xl">Kasparov vs. Topalov</h2>
-          <p className="mt-1 text-[10px] text-vault-text-secondary">
-            Wijk aan Zee, 1999 · Round 4
+          <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-vault-primary">
+            Kasparov vs. Topalov
+          </h2>
+          <p className="mt-0.5 text-xs text-vault-text-secondary">
+            Wijk aan Zee, 1999 • Round 4
           </p>
         </div>
-        <span className="border border-vault-outline-variant bg-vault-surface-container-lowest px-2 py-1 text-[9px]">
-          1–0
+        <span className="rounded-vault border border-vault-outline-variant bg-white px-2 py-0.5 text-[10px] font-semibold text-vault-primary shadow-xs">
+          1-0
         </span>
       </div>
 
-      <div className="relative mt-5 aspect-[1.04] border border-vault-outline">
-        <div className="grid h-1/2 grid-cols-8">
-          {squares.map((square) => (
-            <span
-              className={
-                square % 2 === 0
-                  ? "bg-vault-secondary-fixed"
-                  : "bg-vault-secondary"
-              }
-              key={square}
-            />
+      <div className="relative mt-5 aspect-square overflow-hidden border border-vault-outline-variant/70 bg-[#f4ebd9]">
+        {/* Top 4 rows with tiles */}
+        <div className="grid grid-rows-4 h-1/2">
+          {rows.map((row, rIdx) => (
+            <div key={rIdx} className="grid grid-cols-8">
+              {row.map((val, cIdx) => (
+                <span
+                  key={cIdx}
+                  className={
+                    val === 0
+                      ? "bg-[#e5ded0]/90 border-t border-l border-white/20"
+                      : "bg-[#b8a692]/90 border-t border-l border-black/5"
+                  }
+                />
+              ))}
+            </div>
           ))}
         </div>
-        <div className="grid h-1/2 grid-cols-8 opacity-20">
-          {squares.map((square) => (
-            <span
-              className={
-                square % 2 === 0
-                  ? "bg-vault-secondary"
-                  : "bg-vault-secondary-fixed"
-              }
-              key={square}
-            />
-          ))}
+
+        {/* Bottom 4 rows with soft faded cream */}
+        <div className="relative h-1/2 bg-[#efede6]/80 flex items-center justify-center">
+          <Bookmark
+            className="absolute -top-4 text-vault-ochre fill-vault-ochre/20"
+            size={24}
+            strokeWidth={1.75}
+          />
         </div>
-        <Bookmark
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 fill-vault-secondary-container text-vault-secondary"
-          size={23}
-        />
       </div>
 
-      <p className="mt-4 border border-vault-outline-variant bg-vault-surface-container-lowest px-3 py-2 text-[10px] text-vault-text-secondary">
-        24. &nbsp; Rxd4 cxd4 &nbsp; 25. Re7+ Kb6 &nbsp; 26. Qxd4+{" "}
-        <strong className="text-vault-on-background">Kxa5</strong>
-      </p>
+      <div className="mt-4 rounded-vault border border-vault-outline-variant/60 bg-white/90 px-3 py-2 text-[11px] font-mono text-vault-text-secondary shadow-xs">
+        <span className="text-vault-primary font-medium">24.</span> Rxd4 cxd4 &nbsp;
+        <span className="text-vault-primary font-medium">25.</span> Re7+ Kb6 &nbsp;
+        <span className="text-vault-primary font-medium">26.</span> Qxd4+{" "}
+        <strong className="font-bold text-vault-primary font-sans">Kxa5</strong>
+      </div>
     </motion.article>
   );
 }
+

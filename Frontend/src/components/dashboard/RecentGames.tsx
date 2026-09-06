@@ -1,5 +1,6 @@
 import { ArrowRight, History } from "lucide-react";
 import type { Game } from "@chess-vault/shared";
+import { Link } from "react-router-dom";
 import { currentPlatformUsernames, mockGames } from "../../data/mock-games";
 import {
   getGameDate,
@@ -12,43 +13,72 @@ const scoreLabel = { win: "1-0", loss: "0-1", draw: "½-½" };
 
 function RecentGameRow({ game }: { game: Game }) {
   const perspective = getPlayerPerspective(game, currentPlatformUsernames);
+
+  // Derive contextual tag if any
+  const tag =
+    game.id === "game-1"
+      ? "Analysis Saved"
+      : game.id === "game-3"
+      ? "Blunder Noted"
+      : null;
+
   return (
-    <article className="group flex items-center gap-5 border-b border-vault-outline-variant px-0 py-6 transition-colors hover:bg-vault-surface-soft sm:px-4">
-      <div
-        className={`grid h-13 w-13 shrink-0 place-items-center border text-center text-xs ${perspective.result === "win" ? "border-vault-secondary text-vault-secondary" : "border-vault-outline-variant"}`}
-      >
-        <span>
-          {resultLabel[perspective.result]}
-          <br />
-          <small>{scoreLabel[perspective.result]}</small>
-        </span>
-      </div>
-      <div>
-        <h3 className="text-lg font-bold">{game.title ?? "Untitled game"}</h3>
-        <p className="mt-1 text-sm text-vault-text-secondary">
-          vs. {perspective.opponent.username} · {getMoveCount(game)} moves ·{" "}
-          {game.timeClass}
-        </p>
-      </div>
-      <time className="ml-auto text-right text-xs font-bold uppercase tracking-[.14em]">
-        {getGameDate(game, "MMM dd, yyyy")}
-      </time>
-    </article>
+    <Link to={`/game/${game.id}`}>
+      <article className="group flex items-center gap-5 border-b border-vault-outline-variant/60 py-4 transition-colors hover:bg-[#f7f3ea]/80 px-2 rounded-vault">
+        {/* Outcome Box */}
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-vault border border-vault-outline-variant/80 bg-white/90 text-center shadow-xs">
+          <div className="flex flex-col items-center justify-center leading-none">
+            <span className="text-xs font-bold text-vault-primary">
+              {resultLabel[perspective.result]}
+            </span>
+            <span className="text-[10px] font-mono text-vault-text-secondary mt-0.5">
+              {scoreLabel[perspective.result]}
+            </span>
+          </div>
+        </div>
+
+        {/* Game Title & Details */}
+        <div>
+          <h3 className="font-display text-base font-bold text-vault-primary group-hover:text-vault-ochre transition-colors">
+            {game.title ?? "Untitled Game"}
+          </h3>
+          <p className="mt-0.5 text-xs text-vault-text-secondary">
+            vs. {perspective.opponent.username} • {getMoveCount(game)} moves •{" "}
+            <span className="capitalize">{game.timeClass}</span>
+          </p>
+        </div>
+
+        {/* Date and Optional Pill Tag */}
+        <div className="ml-auto flex flex-col items-end gap-1.5 text-right">
+          <time className="text-[10px] font-bold uppercase tracking-[0.16em] text-vault-primary">
+            {getGameDate(game, "MMM dd, yyyy")}
+          </time>
+          {tag && (
+            <span className="rounded-vault border border-vault-outline-variant/60 bg-[#eae4d5]/80 px-2 py-0.5 text-[9px] font-medium text-vault-primary">
+              {tag}
+            </span>
+          )}
+        </div>
+      </article>
+    </Link>
   );
 }
 
 export function RecentGames() {
   return (
-    <section className="mt-16">
-      <div className="flex items-center justify-between border-b border-vault-outline-variant pb-5">
-        <h2 className="flex items-center gap-3 text-xl font-bold">
-          <History className="text-vault-secondary" size={22} /> Recent Games
+    <section className="mt-14">
+      <div className="flex items-center justify-between border-b border-vault-outline-variant/60 pb-3 mb-2">
+        <h2 className="flex items-center gap-2.5 font-display text-lg font-bold text-vault-primary">
+          <History className="text-vault-ochre" size={18} strokeWidth={2} /> Recent Games
         </h2>
-        <button className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.14em] text-vault-secondary">
-          View all <ArrowRight size={15} />
-        </button>
+        <Link
+          to="/library"
+          className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-vault-ochre hover:text-vault-ochre-hover transition-colors"
+        >
+          VIEW ALL <ArrowRight size={13} strokeWidth={2.2} />
+        </Link>
       </div>
-      <div>
+      <div className="divide-y divide-vault-outline-variant/40">
         {mockGames.map((game) => (
           <RecentGameRow game={game} key={game.id} />
         ))}
@@ -56,3 +86,4 @@ export function RecentGames() {
     </section>
   );
 }
+

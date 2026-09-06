@@ -56,6 +56,11 @@ export default {
           "surface-muted": "#e5ded0",
           "text-secondary": "#6d5d51",
           "ink-black": "#1a1412",
+          ochre: "#c5a059",
+          "ochre-hover": "#b08d48",
+          "gold-accent": "#c5a059",
+          "board-wood": "#8b5a2b",
+          "board-cream": "#f0d9b5",
         },
       },
       fontFamily: {

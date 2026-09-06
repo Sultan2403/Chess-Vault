@@ -8,23 +8,24 @@ const benefits = [
 
 export function ArchiveFeature() {
   return (
-    <section className="mt-24 bg-vault-primary text-vault-on-primary">
+    <section className="bg-[#2d221c] text-white">
       <div className="mx-auto grid max-w-content gap-12 px-6 py-16 md:grid-cols-2 md:items-center">
         <MotionReveal>
-          <p className="font-display text-lg">
+          <h2 className="font-display text-2xl font-bold tracking-tight text-[#fdfbf7]">
             A digital home for your chess history.
-          </p>
-          <p className="mt-5 max-w-md text-sm leading-6 text-vault-on-primary-container">
+          </h2>
+          <p className="mt-4 max-w-md text-xs leading-6 text-[#d3c3bd]">
             Chess Vault is a dedicated place to return to, organize, and revisit
             your most important games. Our search tools make it easy to find
             past matches by opponent, opening, or specific moves.
           </p>
-          <ul className="mt-7 space-y-3 text-sm">
+          <ul className="mt-8 space-y-3.5 text-xs font-medium text-[#eae8e4]">
             {benefits.map((benefit) => (
-              <li className="flex gap-3" key={benefit}>
+              <li className="flex items-center gap-3" key={benefit}>
                 <CheckCircle2
-                  className="shrink-0 text-vault-secondary-fixed"
-                  size={18}
+                  className="shrink-0 text-vault-ochre"
+                  size={16}
+                  strokeWidth={2}
                 />
                 {benefit}
               </li>
@@ -32,14 +33,17 @@ export function ArchiveFeature() {
           </ul>
         </MotionReveal>
         <MotionReveal delay={0.16}>
-          <div className="relative aspect-[1.36] overflow-hidden border border-vault-on-primary-container bg-[radial-gradient(circle_at_55%_38%,rgba(255,222,165,.55),transparent_9%),radial-gradient(circle_at_35%_58%,rgba(119,90,25,.55),transparent_24%),linear-gradient(135deg,#20110a,#6b3f1b)]">
-            <div className="absolute bottom-[17%] left-[15%] h-[28%] w-[57%] rotate-[-6deg] border border-vault-secondary-fixed/50 bg-vault-primary-container" />
-            <div className="absolute bottom-[26%] left-[37%] h-20 w-9 rounded-full bg-vault-secondary-fixed/80" />
-            <div className="absolute bottom-[26%] left-[52%] h-24 w-10 rounded-full bg-vault-secondary-container/80" />
-            <div className="absolute right-[13%] top-[17%] h-[50%] w-px bg-vault-secondary-fixed/80 shadow-[0_0_26px_8px_rgba(255,222,165,.5)]" />
+          <div className="relative aspect-[4/3] overflow-hidden rounded-vault border border-white/10 shadow-lg">
+            <img
+              src="https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=900&auto=format&fit=crop&q=80"
+              alt="Chess study in library"
+              className="h-full w-full object-cover brightness-90 contrast-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
           </div>
         </MotionReveal>
       </div>
     </section>
   );
 }
+

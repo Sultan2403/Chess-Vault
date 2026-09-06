@@ -1,4 +1,5 @@
 import type { Game } from "@chess-vault/shared";
+import { Link } from "react-router-dom";
 import { getGameDate, getPlayerPerspective } from "../../utils/game";
 
 const labels = { win: "Won", loss: "Lost", draw: "Draw" };
@@ -13,37 +14,51 @@ export function GameCard({ game, platformUsernames }: GameCardProps) {
   const [opening, variation] = (game.title ?? "Untitled game").split(": ");
 
   return (
-    <article className="rounded-vault border border-vault-outline-variant bg-vault-surface-soft p-7 transition-colors duration-300 hover:bg-vault-surface-container">
-      <div className="flex justify-between text-xs font-bold uppercase tracking-[.13em]">
-        <span className="border border-vault-outline-variant bg-vault-surface-container-lowest px-3 py-2 normal-case tracking-normal">
-          {labels[perspective.result]}
-        </span>
-        <time>{getGameDate(game)}</time>
-      </div>
-      <h2 className="mt-8 text-2xl font-bold">{opening}</h2>
-      <p className="mt-2 text-lg text-vault-text-secondary">
-        {variation ?? game.timeClass}
-      </p>
-      <div className="my-6 border-t border-vault-outline-variant" />
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center">
+    <Link to={`/game/${game.id}`}>
+      <article className="group h-full rounded-vault border border-vault-outline-variant/60 bg-[#f7f3ea] p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:bg-white/90 flex flex-col justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[.14em]">White</p>
-          <b>{game.whitePlayer.username}</b>
-          <p>({game.whitePlayer.rating})</p>
+          <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.16em]">
+            <span className={`border px-2.5 py-1 rounded-vault ${
+              perspective.result === "win"
+                ? "border-vault-ochre/50 bg-[#eedaa2]/40 text-[#8c6b2d]"
+                : "border-vault-outline-variant/60 bg-white/70 text-vault-text-secondary"
+            }`}>
+              {labels[perspective.result]}
+            </span>
+            <time className="text-vault-text-secondary">{getGameDate(game)}</time>
+          </div>
+          <h2 className="mt-5 font-display text-xl font-bold text-vault-primary group-hover:text-vault-ochre transition-colors leading-snug">
+            {opening}
+          </h2>
+          <p className="mt-1 text-xs text-vault-text-secondary line-clamp-1">
+            {variation ?? game.timeClass}
+          </p>
         </div>
-        <strong className="font-display text-5xl text-vault-outline-variant">
-          {game.result === "draw"
-            ? "½-½"
-            : game.result === "white"
-              ? "1-0"
-              : "0-1"}
-        </strong>
-        <div className="text-right">
-          <p className="text-xs font-bold uppercase tracking-[.14em]">Black</p>
-          <b>{game.blackPlayer.username}</b>
-          <p>({game.blackPlayer.rating})</p>
+
+        <div>
+          <div className="my-5 border-t border-vault-outline-variant/60" />
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center text-xs">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-vault-text-secondary">White</p>
+              <p className="font-bold text-vault-primary truncate">{game.whitePlayer.username}</p>
+              <p className="text-[11px] font-mono text-vault-text-secondary">({game.whitePlayer.rating})</p>
+            </div>
+            <strong className="font-display text-3xl font-bold text-vault-outline-variant/80 px-3">
+              {game.result === "draw"
+                ? "½-½"
+                : game.result === "white"
+                  ? "1-0"
+                  : "0-1"}
+            </strong>
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-vault-text-secondary">Black</p>
+              <p className="font-bold text-vault-primary truncate">{game.blackPlayer.username}</p>
+              <p className="text-[11px] font-mono text-vault-text-secondary">({game.blackPlayer.rating})</p>
+            </div>
+          </div>
         </div>
-      </div>
-    </article>
+      </article>
+    </Link>
   );
 }
+

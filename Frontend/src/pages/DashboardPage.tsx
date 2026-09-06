@@ -5,16 +5,15 @@ import { AppShell } from "../components/layout/AppShell";
 import { MotionReveal } from "../components/ui/Motion";
 
 export default function DashboardPage() {
-  // TODO(api): replace these presentation values with a query hook backed by the games and folders APIs.
   return (
     <AppShell>
-      <div className="mx-auto max-w-content px-6 py-18 sm:py-24">
-        <section className="grid items-center gap-9 border-b border-vault-outline-variant pb-10 md:grid-cols-[1fr_490px]">
+      <div className="mx-auto max-w-content px-6 py-12 sm:py-16">
+        <section className="grid items-center gap-8 border-b border-vault-outline-variant/60 pb-12 md:grid-cols-[1fr_420px]">
           <MotionReveal>
-            <p className="font-display text-4xl font-bold sm:text-5xl">
+            <h1 className="font-display text-4xl font-bold tracking-tight text-vault-primary sm:text-5xl">
               Good evening, Alex.
-            </p>
-            <p className="mt-3 text-lg text-vault-text-secondary">
+            </h1>
+            <p className="mt-2 text-sm text-vault-text-secondary">
               Your chess history, kept in one place.
             </p>
           </MotionReveal>
@@ -28,3 +27,4 @@ export default function DashboardPage() {
     </AppShell>
   );
 }
+

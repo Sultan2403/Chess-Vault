@@ -22,19 +22,22 @@ export function ProcessCard({
     <MotionReveal delay={delay}>
       <motion.article
         whileHover={{ y: -3 }}
-        className="flex h-full min-h-66 flex-col border border-vault-outline-variant bg-vault-surface-soft p-6"
+        className="flex h-full min-h-[280px] flex-col rounded-vault border border-vault-outline-variant/70 bg-[#f7f3ea] p-6 shadow-xs"
       >
-        <span className="grid h-9 w-9 place-items-center rounded-vault bg-vault-surface-muted text-vault-primary">
-          <Icon size={17} />
+        <span className="grid h-10 w-10 place-items-center rounded-vault bg-[#ebe4d5] text-vault-primary">
+          <Icon size={18} strokeWidth={1.8} />
         </span>
-        <h3 className="mt-5 font-display text-lg">{title}</h3>
-        <p className="mt-3 text-sm leading-5 text-vault-text-secondary">
+        <h3 className="mt-5 font-display text-xl font-bold tracking-tight text-vault-primary">
+          {title}
+        </h3>
+        <p className="mt-2 text-xs leading-5 text-vault-text-secondary">
           {description}
         </p>
-        <div className="mt-auto border-t border-vault-outline-variant pt-4">
+        <div className="mt-auto pt-6">
           {footer}
         </div>
       </motion.article>
     </MotionReveal>
   );
 }
+
