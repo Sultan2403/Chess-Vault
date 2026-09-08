@@ -333,3 +333,19 @@ When making a decision, generally use this order:
 When working on Chess Vault:
 
 > Do not invent what the project has not established. Always notify the user before introducing new dependencies or creating new architectural patterns. Product focus comes first—suggest quality-of-life improvements explicitly without derailing core delivery.
+
+---
+
+## 25. Strict Typing
+
+Chess Vault is a TypeScript codebase. Preserve and enforce strict typing throughout the repository.
+
+- Do not introduce `any`, `as any`, or unnecessary type assertions to silence TypeScript errors.
+- Prefer existing shared types, inferred types, generics, type guards, and proper narrowing over bypassing the type system.
+- Do not weaken types merely to make an implementation compile.
+- When an existing type is insufficient, investigate the actual data flow and established types before changing anything.
+- If a type genuinely needs to change, make the change deliberately and update all affected references.
+- Type assertions are allowed only when they represent a verified fact that TypeScript cannot express directly; they must not be used as a shortcut around uncertainty.
+- Preserve meaningful distinctions such as `null`, `undefined`, and required values according to the established domain contract. Do not introduce optionality or `undefined` merely for convenience.
+
+If strict typing conflicts with a requested implementation, stop and notify the user rather than silently weakening the types.
