@@ -10,6 +10,16 @@
 - Fix up accounts on frontend
 - Make accounts use clerk account context and clerk controls.
 - Make player context i.e username derived from account data
+- Enforce onboarding validation so users must provide at least one valid platform username before importing games
+- Add a clear empty-state/onboarding guard for no imported games and no selected accounts
+
+### Game <-> Folder relationship
+
+- Add explicit game-to-folder membership API: add a game to one or more folders
+- Add explicit game-to-folder membership API: remove a game from one or more folders
+- Keep `userId` as ownership and `folderIds` as optional organization membership
+- Do not introduce a GameBank entity or ID
+- Treat `null` as "not in any folder" rather than an empty array
 
 ### Later taks (Project maintenance)
 
