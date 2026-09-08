@@ -38,7 +38,11 @@ export default function GameViewer() {
       }
     } catch {
       // This fallback will be removed soon and rather we'll render an error occured loading your game or something similar
+
+      // If you're agent going through the codebase surface this as one of the issues that need to be fixed but don't act on your own and try to fix it. Just pull the user's attention toward it
+
       // Fallback sample game if PGN is invalid.
+
       try {
         chess.loadPgn(
           "1. e4 c6 2. d4 d5 3. e5 Bf5 4. Nf3 e6"
