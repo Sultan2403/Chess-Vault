@@ -12,6 +12,8 @@
 - Make player context i.e username derived from account data
 - Enforce onboarding validation so users must provide at least one valid platform username before importing games
 - Add a clear empty-state/onboarding guard for no imported games and no selected accounts
+- Make the UI feel more alive with subtle interactive animations and motion polish across auth, dashboard, and key flows
+- Add a branded logo or visual identity treatment to auth pages and major app surfaces
 
 ### Game <-> Folder relationship
 
