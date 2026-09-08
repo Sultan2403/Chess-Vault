@@ -37,6 +37,7 @@ export default function GameViewer() {
         chess.loadPgn(pgn);
       }
     } catch {
+      // This fallback will be removed soon and rather we'll render an error occured loading your game or something similar
       // Fallback sample game if PGN is invalid.
       try {
         chess.loadPgn(
