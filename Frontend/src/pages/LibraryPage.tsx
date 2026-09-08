@@ -1,11 +1,16 @@
 import { useState } from "react";
+import { Platforms } from "@chess-vault/shared";
 import { Filter, Plus, Search } from "lucide-react";
 import { AppShell } from "../components/layout/AppShell";
 import { Button } from "../components/ui/Button";
 import { GameCard } from "../components/library/GameCard";
-import { useGames, useImportGames } from "../hooks/useGames";
+import { useGames } from "../hooks/useGames";
+import {
+  useConnectLinkedAccounts,
+  usePlatformUsernames,
+  useVerifyLinkedAccount,
+} from "../hooks/useAccount";
 import { OnboardingModal } from "../components/onboarding/OnboardingModal";
-import { BuildingVaultModal } from "../components/onboarding/BuildingVaultModal";
 import { Spinner } from "../components/ui/Spinner";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -13,14 +18,15 @@ import { EmptyState } from "../components/ui/EmptyState";
 export default function LibraryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-  const [isBuildingOpen, setIsBuildingOpen] = useState(false);
 
   // Hook into TanStack Query (live-only)
   const { data: gamesData, isLoading, isError, error, refetch } = useGames({
     search: searchTerm || undefined,
   });
 
-  const importMutation = useImportGames();
+  const connectMutation = useConnectLinkedAccounts();
+  const verificationMutation = useVerifyLinkedAccount();
+  const platformUsernames = usePlatformUsernames();
 
   const gamesList = gamesData?.games ?? [];
 
@@ -47,7 +53,7 @@ export default function LibraryPage() {
             </p>
           </div>
           <Button onClick={() => setIsOnboardingOpen(true)}>
-            <Plus size={16} strokeWidth={2.2} /> Sync Accounts
+            <Plus size={16} strokeWidth={2.2} /> Connect Accounts
           </Button>
         </div>
 
@@ -91,12 +97,12 @@ export default function LibraryPage() {
             <EmptyState
               title="No games yet"
               description="You don't have any games stored. Connect your accounts to import games."
-              action={<Button onClick={() => setIsOnboardingOpen(true)}>Sync Accounts</Button>}
+              action={<Button onClick={() => setIsOnboardingOpen(true)}>Connect Accounts</Button>}
             />
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {filteredGames.map((game) => (
-                <GameCard key={game.id} game={game} platformUsernames={{}} />
+                <GameCard key={game.id} game={game} platformUsernames={platformUsernames} />
               ))}
             </div>
           )}
@@ -107,40 +113,38 @@ export default function LibraryPage() {
       <OnboardingModal
         isOpen={isOnboardingOpen}
         onClose={() => setIsOnboardingOpen(false)}
+        onVerifyAccount={(account) => verificationMutation.mutateAsync(account)}
         onBeginSync={async (platforms) => {
-          // Start import flow and show building modal while it's running.
-          // Call the backend import endpoint once per platform username provided.
-          setIsOnboardingOpen(false);
-          setIsBuildingOpen(true);
+          const accounts: Array<{
+            platform: (typeof Platforms)[keyof typeof Platforms];
+            username: string;
+          }> = [];
 
-          try {
-            if (platforms.chessComUsername) {
-              await importMutation.mutateAsync({
-                platform: "chess.com",
-                username: platforms.chessComUsername,
-                folderIds: null,
-              });
-            }
-            if (platforms.lichessUsername) {
-              await importMutation.mutateAsync({
-                platform: "lichess",
-                username: platforms.lichessUsername,
-                folderIds: null,
-              });
-            }
-          } catch (err) {
-            // swallow; user will see error via BuildingVaultModal or global error handling
-          } finally {
-            setIsBuildingOpen(false);
+          if (platforms.chessComUsername) {
+            accounts.push({
+              platform: Platforms.CHESS_COM,
+              username: platforms.chessComUsername,
+            });
           }
-        }}
-      />
+          if (platforms.lichessUsername) {
+            accounts.push({
+              platform: Platforms.LICHESS,
+              username: platforms.lichessUsername,
+            });
+          }
 
-      {/* Vault Building Progress Modal (Screenshot 5) */}
-      <BuildingVaultModal
-        isOpen={isBuildingOpen}
-        onCancel={() => setIsBuildingOpen(false)}
-        onComplete={() => setIsBuildingOpen(false)}
+          const result = await connectMutation.mutateAsync({ accounts });
+          if (!result.success) {
+            throw new Error(
+              result.results
+                .map((connection) => connection.message)
+                .filter(Boolean)
+                .join(" ") || result.message,
+            );
+          }
+
+          setIsOnboardingOpen(false);
+        }}
       />
     </AppShell>
   );

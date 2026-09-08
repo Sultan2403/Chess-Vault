@@ -1,6 +1,7 @@
 import { Compass, Search } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { useUser } from "@clerk/react";
 
 
 const navItems = [
@@ -10,6 +11,9 @@ const navItems = [
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { user } = useUser();
+  const profileName = user?.firstName ?? user?.username ?? "Account";
+
   return (
     <div className="min-h-screen bg-vault-background text-vault-on-background">
       <header className="border-b border-vault-outline-variant/60 bg-vault-background/90 backdrop-blur-sm sticky top-0 z-30">
@@ -48,14 +52,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="grid h-9 w-9 place-items-center overflow-hidden rounded-full border border-vault-outline-variant bg-vault-surface-soft text-xs font-semibold text-vault-primary shadow-inner"
             >
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                alt="Profile"
+                src={user?.imageUrl}
+                alt={profileName}
                 className="h-full w-full object-cover"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = "none";
                 }}
               />
-              <span>A</span>
+              <span>{profileName.slice(0, 1).toUpperCase()}</span>
             </Link>
           </div>
         </div>

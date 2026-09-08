@@ -2,6 +2,12 @@ import { Chess_Com_Game } from "../Types/games.types";
 import { chess_com_api } from "./api.client";
 
 const chessComApi = {
+  getPlayerProfile: (username: string) =>
+    chess_com_api.get<
+      any,
+      { username: string; url: string; avatar?: string; player_id: number }
+    >(`/player/${username}`),
+
   getPlayerGamesForMonth: ({
     username,
     year,

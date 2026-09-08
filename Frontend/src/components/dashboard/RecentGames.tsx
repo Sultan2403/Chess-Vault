@@ -3,13 +3,14 @@ import type { Game } from "@chess-vault/shared";
 import { Link } from "react-router-dom";
 import { useGames } from "../../hooks/useGames";
 import { getGameDate, getMoveCount, getPlayerPerspective } from "../../utils/game";
+import { usePlatformUsernames } from "../../hooks/useAccount";
 
 const resultLabel = { win: "W", loss: "L", draw: "D" };
 const scoreLabel = { win: "1-0", loss: "0-1", draw: "½-½" };
 
 function RecentGameRow({ game }: { game: Game }) {
-  // No platform username context available yet; pass empty map.
-  const perspective = getPlayerPerspective(game, {});
+  const platformUsernames = usePlatformUsernames();
+  const perspective = getPlayerPerspective(game, platformUsernames);
 
   // Derive contextual tag if any
   const tag =

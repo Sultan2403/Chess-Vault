@@ -1,12 +1,18 @@
 import { motion } from "motion/react";
-
-const stats = [
-  { value: "1,240", label: "GAMES" },
-  { value: "12", label: "COLLECTIONS" },
-  { value: "48", label: "FAVORITES" },
-];
+import { useGames } from "../../hooks/useGames";
+import { useFolders } from "../../hooks/useFolders";
+import { useAccountBootstrap } from "../../hooks/useAccount";
 
 export function StatSummary() {
+  const { data: gamesData } = useGames({ limit: 1 });
+  const { data: foldersData } = useFolders({ limit: 1 });
+  const { data: accountData } = useAccountBootstrap();
+  const stats = [
+    { value: gamesData?.pagination.total ?? 0, label: "GAMES" },
+    { value: foldersData?.total ?? 0, label: "COLLECTIONS" },
+    { value: accountData?.linkedAccounts.length ?? 0, label: "CONNECTED" },
+  ];
+
   return (
     <section
       aria-label="Archive summary"
@@ -23,7 +29,7 @@ export function StatSummary() {
           }`}
         >
           <p className="font-display text-3xl font-bold tracking-tight text-[#8c6b2d] sm:text-[44px] leading-none">
-            {stat.value}
+            {stat.value.toLocaleString()}
           </p>
           <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-vault-text-secondary">
             {stat.label}

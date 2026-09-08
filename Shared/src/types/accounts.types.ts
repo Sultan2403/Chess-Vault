@@ -1,5 +1,10 @@
 import type { PlatformType } from "../constants/platforms.js";
 import type { PlanType } from "../constants/plans.js";
+import type {
+  connectLinkedAccountsBody,
+  linkedAccountParams,
+} from "../schemas/accounts.schema.js";
+import { z } from "zod";
 
 export type AccountPlan = {
   tier: PlanType;
@@ -26,4 +31,36 @@ export type LinkedAccount = {
   lastSyncedAt?: Date | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
+};
+
+export type ConnectLinkedAccountsInput = z.infer<
+  typeof connectLinkedAccountsBody
+>;
+
+export type LinkedAccountParams = z.infer<typeof linkedAccountParams>;
+
+export type AccountBootstrap = {
+  account: Account;
+  linkedAccounts: LinkedAccount[];
+  needsOnboarding: boolean;
+};
+
+export type LinkedAccountConnectionResult = {
+  platform: PlatformType;
+  username: string;
+  success: boolean;
+  message?: string;
+};
+
+export type ConnectLinkedAccountsResult = {
+  success: boolean;
+  message: string;
+  results: LinkedAccountConnectionResult[];
+  linkedAccounts: LinkedAccount[];
+};
+
+export type VerifyLinkedAccountResult = {
+  success: boolean;
+  username: string;
+  message?: string;
 };
