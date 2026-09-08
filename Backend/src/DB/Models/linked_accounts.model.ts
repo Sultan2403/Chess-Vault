@@ -1,3 +1,4 @@
+import { PlatformValues } from "@chess-vault/shared";
 import mongoose from "mongoose";
 
 const linkedAccountSchema = new mongoose.Schema(
@@ -11,7 +12,7 @@ const linkedAccountSchema = new mongoose.Schema(
     platform: {
       type: String,
       required: true,
-      enum: ["chess.com", "lichess"],
+      enum: PlatformValues,
     },
 
     username: {

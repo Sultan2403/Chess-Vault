@@ -2,7 +2,7 @@ import { z } from "zod";
 import { Platforms, Results, TimeClasses } from "../constants/index.js";
 import { isValidMongoId } from "../utils/index.js";
 
-const PlatformValues = Object.values(Platforms);
+export const PlatformValues = Object.values(Platforms);
 
 export const importGamesParams = z.object({
   folderIds: z
