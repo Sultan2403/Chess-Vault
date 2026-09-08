@@ -188,18 +188,19 @@ export default function GameViewer() {
                 <div className="rounded-vault border border-vault-outline-variant/80 bg-[#f7f3ea] p-4 shadow-sm">
                   <div className="aspect-square w-full overflow-hidden rounded-xs border border-[#5c3e21]/40 shadow-inner">
                     <Chessboard
-                      position={
-                        fens[currentMoveIdx] ?? "start"
-                      }
-                      arePiecesDraggable={false}
-                      customBoardStyle={{
-                        borderRadius: "2px",
-                      }}
-                      customDarkSquareStyle={{
-                        backgroundColor: "#8c5a2b",
-                      }}
-                      customLightSquareStyle={{
-                        backgroundColor: "#f0d9b5",
+                      options={{
+                        position: fens[currentMoveIdx] ?? "start",
+                        allowDragging: false,
+                        animationDurationInMs: 220,
+                        boardStyle: {
+                          borderRadius: "2px",
+                        },
+                        darkSquareStyle: {
+                          backgroundColor: "#8c5a2b",
+                        },
+                        lightSquareStyle: {
+                          backgroundColor: "#f0d9b5",
+                        },
                       }}
                     />
                   </div>
