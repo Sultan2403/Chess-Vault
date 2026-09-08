@@ -14,6 +14,7 @@
 - Add a clear empty-state/onboarding guard for no imported games and no selected accounts
 - Make the UI feel more alive with subtle interactive animations and motion polish across auth, dashboard, and key flows
 - Add a branded logo or visual identity treatment to auth pages and major app surfaces
+- In game viewer.tsx add support for keyboard arrow key controls and a board flipping feature that defaults to the perspective of the user's color in the game, and allow users to flip the board manually as well
 
 ### Game <-> Folder relationship
 
