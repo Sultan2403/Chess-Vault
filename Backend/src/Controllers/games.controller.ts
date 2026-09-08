@@ -10,9 +10,9 @@ import { internalError } from "../Utils/responses";
 
 export const importGamesController = async (req: Request, res: Response) => {
   const userId = getUserId(req);
-  const { folderId, platform, username }: ImportGamesParams = req.body;
+  const { folderIds, platform, username }: ImportGamesParams = req.body;
 
-  const result = await importGames({ platform, folderId, username, userId });
+  const result = await importGames({ platform, folderIds, username, userId });
   if (result.success) {
     return res.status(200).json({ success: true, message: result.message });
   }

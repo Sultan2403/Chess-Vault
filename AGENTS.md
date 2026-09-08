@@ -61,7 +61,7 @@ The authoritative Game model is defined as:
     type Game = {
         id: string;
         userId: string;
-        folderId: string;
+        folderIds?: string[] | null;
         platform: "chess.com" | "lichess";
         platformGameId: string;
         sourceUrl: string;

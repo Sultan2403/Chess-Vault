@@ -8,16 +8,16 @@ import {
 export const normalizeLichessGame = ({
   game,
   userId,
-  folderId,
+  folderIds,
 }: {
   game: Lichess_Game;
   userId: string;
-  folderId: string;
+  folderIds?: string[] | null;
 }): NormalizedGame => {
   const sourceUrl = `https://lichess.org/${game.id}`;
   return {
     userId,
-    folderId,
+    folderIds: folderIds ?? null,
     platform: "lichess",
     platformGameId: game.id,
     sourceUrl,
@@ -41,11 +41,11 @@ export const normalizeLichessGame = ({
 export const normalizeChessComGame = ({
   game,
   userId,
-  folderId,
+  folderIds,
 }: {
   game: Chess_Com_Game;
   userId: string;
-  folderId: string;
+  folderIds?: string[] | null;
 }): NormalizedGame => {
   const title = `${game.white.username} vs ${game.black.username}`;
   const result =
@@ -57,7 +57,7 @@ export const normalizeChessComGame = ({
 
   return {
     userId,
-    folderId,
+    folderIds: folderIds ?? null,
     platform: "chess.com",
     platformGameId: game.uuid,
     sourceUrl: game.url,

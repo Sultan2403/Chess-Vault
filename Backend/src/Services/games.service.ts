@@ -17,13 +17,13 @@ import lichessApi from "../Api/lichess.api";
 
 export const importGames = async ({
   userId,
-  folderId,
+  folderIds,
   username,
   platform,
 }: ImportGamesParams): Promise<ImportResult> => {
   const import_Chess_Com_Games = async ({
     userId,
-    folderId,
+    folderIds,
     username,
   }: ImportGameParams): Promise<ImportResult> => {
     // 1. Grab all active history blocks from Chess.com
@@ -78,7 +78,7 @@ export const importGames = async ({
         const normalizedGame = normalizeChessComGame({
           game,
           userId,
-          folderId,
+          folderIds,
         });
 
         console.log("Normalized game ready for insertion: ");
@@ -100,7 +100,9 @@ export const importGames = async ({
             update: {
               $setOnInsert: {
                 ...game,
-                folderId: new mongoose.Types.ObjectId(game.folderId),
+                folderIds: game.folderIds
+                  ? game.folderIds.map((id) => new mongoose.Types.ObjectId(id))
+                  : null,
               },
             },
             upsert: true,
@@ -123,7 +125,7 @@ export const importGames = async ({
 
   const import_Lichess_Game = async ({
     userId,
-    folderId,
+    folderIds,
     username,
   }: ImportGameParams): Promise<ImportResult> => {
     console.log("Starting lichess import...");
@@ -141,7 +143,7 @@ export const importGames = async ({
           const normalized = normalizeLichessGame({
             game: rawGame,
             userId,
-            folderId,
+            folderIds,
           });
 
           gamesBuffer.push(normalized);
@@ -169,7 +171,9 @@ export const importGames = async ({
                 update: {
                   $setOnInsert: {
                     ...game,
-                    folderId: new mongoose.Types.ObjectId(game.folderId),
+                    folderIds: game.folderIds
+                      ? game.folderIds.map((id) => new mongoose.Types.ObjectId(id))
+                      : null,
                   },
                 },
                 upsert: true,
@@ -198,14 +202,14 @@ export const importGames = async ({
     if (platform === Platforms.CHESS_COM) {
       return await import_Chess_Com_Games({
         userId,
-        folderId,
+        folderIds,
         username,
         platform,
       });
     } else {
       return await import_Lichess_Game({
         userId,
-        folderId,
+        folderIds,
         username,
         platform,
       });
@@ -234,8 +238,13 @@ export const searchGames = async ({
 }> => {
   const skip = (page - 1) * limit;
 
+  const { folderIds, ...restParams } = params;
+
   const query = {
-    ...params,
+    ...restParams,
+    ...(folderIds && folderIds.length > 0
+      ? { folderIds: { $in: folderIds.map((id) => new mongoose.Types.ObjectId(id)) } }
+      : {}),
     ...(search && {
       $or: [
         { title: { $regex: search, $options: "i" } },
@@ -255,11 +264,11 @@ export const searchGames = async ({
       .lean()
       .transform((games) =>
         games.map((game: any) => {
-          const { _id, __v, folderId, ...rest } = game;
+          const { _id, __v, folderIds, ...rest } = game;
 
           const normalized: Game = {
             id: _id.toString(),
-            folderId: folderId.toString(),
+            folderIds: folderIds ? folderIds.map((id: any) => id.toString()) : null,
             ...rest,
           };
 
@@ -291,10 +300,10 @@ export const getGameById = async (
   const game = await Games.findOne({ _id: id, userId }).lean();
   if (!game) return null;
 
-  const { _id, __v, folderId, ...rest } = game as any;
+  const { _id, __v, folderIds, ...rest } = game as any;
   return {
     id: _id.toString(),
-    folderId: folderId.toString(),
+    folderIds: folderIds ? folderIds.map((id: any) => id.toString()) : null,
     ...rest,
   };
 };

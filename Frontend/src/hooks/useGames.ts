@@ -1,8 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { gamesApi } from "../apis";
-import type { SearchGamesParams, SearchGamesResponse, GameResponse } from "../apis/api.games";
+import type {
+  SearchGamesParams,
+  SearchGamesResponse,
+  GameResponse,
+  FrontendImportGamesPayload,
+} from "../apis/api.games";
 import { QUERY_KEYS } from "../constants/queryKeys";
-import type { Game, ImportGamesParams } from "@chess-vault/shared";
+import type { Game } from "@chess-vault/shared";
 
 export const useGames = (params?: SearchGamesParams) => {
   console.log("useGames params", params);
@@ -58,7 +63,7 @@ export const useImportGames = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: ImportGamesParams) => gamesApi.importGames(data),
+    mutationFn: (data: FrontendImportGamesPayload) => gamesApi.importGames(data),
     onSuccess: () => {
       // Invalidate games cache so any visible tables / lists refresh with newly imported games
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.games.lists() });

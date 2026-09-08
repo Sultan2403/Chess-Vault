@@ -13,16 +13,17 @@
 
 ### Short version of all the bs below: 
 
-- Find a way to pass a folderId and stop using as any so frontend is accurate to the types
-- Maybe unboarding might invlve a folder creation step or it should be automated along with account init on signup using the webhook... They all have pros and cons but this is a summary. Good luck bro
+- Replace the single-folder assumption with optional many-to-many `folderIds` and keep `userId` as the ownership anchor.
+- `null` means the game is currently unassigned to any folder; no GameBank entity or ID should be introduced.
+- Update onboarding imports to send optional folder memberships when a folder is selected.
 
 
-### TODO: Wire onboarding imports to send real Game Bank `folderId`
+### TODO: Wire onboarding imports to send optional folder memberships
 
-- Relavnt file: Frontend/src/components/onboarding/ImportGames.tsx 
-- Update onboarding flow to fetch user's folders and select/create the Game Bank folder.
-- Ensure import calls pass `{ platform, username, folderId }` (no `any` casts).
-- Verify backend accepts the folder id and imports games into the correct folder.
+- Relevant file: Frontend/src/components/onboarding/ImportGames.tsx 
+- Update onboarding flow to fetch user's folders and optionally select one or more folders.
+- Ensure import calls pass `{ platform, username, folderIds: [...] | null }` without `any` casts.
+- Verify backend accepts the optional folder memberships and imports games without forcing a Game Bank.
 - Remove temporary placeholder and add tests for import flow.
 
 

@@ -26,10 +26,15 @@ const gameSchema = new mongoose.Schema(
       trim: true,
     },
 
-    folderId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "folders",
-      required: true,
+    folderIds: {
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Folders",
+          required: false,
+        },
+      ],
+      default: null,
     },
 
     // Source
@@ -133,7 +138,7 @@ gameSchema.index(
 // Folder lookups
 gameSchema.index({
   userId: 1,
-  folderId: 1,
+  folderIds: 1,
 });
 
 // Default listing (newest first)

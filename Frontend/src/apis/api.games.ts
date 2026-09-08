@@ -6,6 +6,8 @@ import type {
 } from "@chess-vault/shared";
 import api from "./api.client";
 
+export type FrontendImportGamesPayload = Omit<ImportGamesParams, "userId">;
+
 export type SearchGamesParams = Partial<Omit<GameSearchParams, "userId">>;
 
 export interface SearchGamesResponse {
@@ -31,7 +33,7 @@ const gamesApi = {
 
   getGame: (id: string): Promise<GameResponse> => api.get(`/api/games/${id}`),
 
-  importGames: (data: ImportGamesParams): Promise<ImportResult> =>
+  importGames: (data: FrontendImportGamesPayload): Promise<ImportResult> =>
     api.post("/api/games/import", data),
 };
 

@@ -9,7 +9,7 @@ export const mockGames: Game[] = [
   {
     id: "game-1",
     userId: "user-1",
-    folderId: "folder-1",
+    folderIds: ["folder-1"],
     platform: "lichess",
     platformGameId: "abc123",
     sourceUrl: "https://lichess.org/abc123",
@@ -26,7 +26,7 @@ export const mockGames: Game[] = [
   {
     id: "game-2",
     userId: "user-1",
-    folderId: "folder-1",
+    folderIds: ["folder-1"],
     platform: "chess.com",
     platformGameId: "def456",
     sourceUrl: "https://www.chess.com/game/live/def456",
@@ -42,7 +42,7 @@ export const mockGames: Game[] = [
   {
     id: "game-3",
     userId: "user-1",
-    folderId: "folder-1",
+    folderIds: ["folder-1"],
     platform: "lichess",
     platformGameId: "ghi789",
     sourceUrl: "https://lichess.org/ghi789",
