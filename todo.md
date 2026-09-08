@@ -28,3 +28,4 @@
 - Proper ci
 - Self healing deps maybe
 - More ideas will be added as they land in my head
+ 
