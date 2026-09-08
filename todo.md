@@ -24,6 +24,11 @@
 - Do not introduce a GameBank entity or ID
 - Treat `null` as "not in any folder" rather than an empty array
 
+### Type Safety & Validation
+
+- Remove inappropriate `.optional()` usages where the field should not accept `undefined`; use the established default/null behavior instead
+- Audit related types and schemas for unintended `undefined` values and keep optionality intentional
+
 ### Later taks (Project maintenance)
 
 - Do proper safeguards like linting all over including the shared folder
