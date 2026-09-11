@@ -11,13 +11,14 @@ import webhookRoutes from "./Routers/webhooks.routes";
 import apiRouter from "./Routers";
 import { healthCheckController } from "./Controllers/health.controller";
 import { errorResponse } from "./Utils/responses";
+import env from "./Config/env";
 
 // Init
 const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://sultan2403.github.io"],
+    origin: env.ALLOWED_ORIGINS,
   }),
 );
 
