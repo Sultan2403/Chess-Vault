@@ -8,14 +8,6 @@ import { successResponse, errorResponse } from "../Utils/responses";
 
 export const handleClerkWebhook = async (req: Request, res: Response) => {
   const secret = env.CLERK_WEBHOOK_SECRET;
-  if (!secret) {
-    logger.error("Missing CLERK_WEBHOOK_SECRET in environment");
-    return errorResponse({
-      res,
-      statusCode: 500,
-      message: "Missing webhook secret",
-    });
-  }
 
   try {
     const wh = new Webhook(secret);
