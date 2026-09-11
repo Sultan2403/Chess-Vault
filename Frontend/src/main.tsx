@@ -11,12 +11,7 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5, // 5 minutes fresh
       gcTime: 1000 * 60 * 30, // Keep in garbage collection cache for 30 minutes
       refetchOnWindowFocus: false, // Prevents refetch spam when switching tabs/windows
-      retry: (failureCount, error: any) => {
-        // Don't retry on 401 (unauthorized) or 404 (not found)
-        const status = error?.response?.status;
-        if (status === 401 || status === 404) return false;
-        return failureCount < 2;
-      },
+      retry: 1
     },
   },
 });
