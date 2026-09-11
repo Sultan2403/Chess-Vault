@@ -27,7 +27,10 @@ export function getPlayerPerspective(
 }
 
 export function getGameDate(game: Game, pattern = "MMM dd, yyyy") {
-  return format(game.playedAt, pattern);
+  if (!game.playedAt) return "Unknown date";
+  const dateObj = typeof game.playedAt === "string" ? new Date(game.playedAt) : game.playedAt;
+  if (isNaN(dateObj.getTime())) return "Unknown date";
+  return format(dateObj, pattern);
 }
 export function getMoveCount(game: Game) {
   return (game.pgn.match(/\d+\./g) ?? []).length;
