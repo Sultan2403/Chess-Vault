@@ -22,11 +22,12 @@ app.use(
   }),
 );
 
+app.use(clerkMiddleware());
 app.use(requestLogger);
 
 app.use("/webhooks", webhookRoutes);
 
-app.use(clerkMiddleware());
+
 app.use(express.json());
 
 // Routes
