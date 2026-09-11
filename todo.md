@@ -5,24 +5,14 @@
 
 ## Frontend
 
+- FRONTEND IS BS I DON'T LIKE IT! WE SHOULD DO A FULL REDESIGN!
+- Redesign frontend before all else. The UI is crap fr.
+
 - Polish frontend and fix any bugs
-- Make sure chess game viewer works correctly
-- Fix up accounts on frontend
-- Make accounts use clerk account context and clerk controls.
 - Make player context i.e username derived from account data
-- Enforce onboarding validation so users must provide at least one valid platform username before importing games
-- Add a clear empty-state/onboarding guard for no imported games and no selected accounts
+- Onboarding validation enforced but UI is shitty soo fix that.
 - Make the UI feel more alive with subtle interactive animations and motion polish across auth, dashboard, and key flows
 - Add a branded logo or visual identity treatment to auth pages and major app surfaces
-- In game viewer.tsx add support for keyboard arrow key controls and a board flipping feature that defaults to the perspective of the user's color in the game, and allow users to flip the board manually as well
-
-### Game <-> Folder relationship
-
-- Add explicit game-to-folder membership API: add a game to one or more folders
-- Add explicit game-to-folder membership API: remove a game from one or more folders
-- Keep `userId` as ownership and `folderIds` as optional organization membership
-- Do not introduce a GameBank entity or ID
-- Treat `null` as "not in any folder" rather than an empty array
 
 ### Type Safety & Validation
 
@@ -36,4 +26,3 @@
 - Proper ci
 - Self healing deps maybe
 - More ideas will be added as they land in my head
- 
