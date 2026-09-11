@@ -30,7 +30,7 @@ export const handleClerkWebhook = async (req: Request, res: Response) => {
       // deleteOne is inherently idempotent (deleting non-existent record is a no-op)
       await Accounts.deleteOne({ userId });
 
-      // TODO: Dispatch background job to purge user data (e.g. BullMQ / RabbitMQ)
+      // TODO: Dispatch background job to purge user data such as their games and such (e.g. BullMQ / RabbitMQ)
       logger.info({ userId }, "Account removed for user");
     }
 
