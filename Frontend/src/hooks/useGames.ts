@@ -10,7 +10,6 @@ import { QUERY_KEYS } from "../constants/queryKeys";
 import type { Game } from "@chess-vault/shared";
 
 export const useGames = (params?: SearchGamesParams) => {
-  console.log("useGames params", params);
   return useQuery<SearchGamesResponse, unknown, SearchGamesResponse>({
     queryKey: QUERY_KEYS.games.list(params),
     queryFn: () => gamesApi.getGames(params),
