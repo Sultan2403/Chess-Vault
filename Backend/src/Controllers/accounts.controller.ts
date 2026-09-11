@@ -35,7 +35,16 @@ export const connectLinkedAccountsController = async (
       getUserId(req)!,
       req.body as ConnectLinkedAccountsInput,
     );
-    return res.status(200).json(result);
+    const { success, message, ...data } = result;
+    if (success) {
+      return successResponse({ res, message, data });
+    }
+    return errorResponse({
+      res,
+      statusCode: 400,
+      message: message || "Failed to connect accounts",
+      data,
+    });
   } catch (error) {
     return internalError({ res, error });
   }
@@ -51,7 +60,16 @@ export const verifyLinkedAccountController = async (
       platform as PlatformType,
       username,
     );
-    return res.status(200).json(result);
+    const { success, message, ...data } = result;
+    if (success) {
+      return successResponse({ res, message, data });
+    }
+    return errorResponse({
+      res,
+      statusCode: 400,
+      message: message || "Failed to verify account",
+      data,
+    });
   } catch (error) {
     return internalError({ res, error });
   }
@@ -73,7 +91,14 @@ export const syncLinkedAccountController = async (
         message: "Linked account not found",
       });
     }
-    return res.status(result.success ? 200 : 500).json(result);
+    if (result.success) {
+      return successResponse({ res, message: result.message });
+    }
+    return errorResponse({
+      res,
+      statusCode: 500,
+      message: result.message || "Failed to sync account",
+    });
   } catch (error) {
     return internalError({ res, error });
   }
