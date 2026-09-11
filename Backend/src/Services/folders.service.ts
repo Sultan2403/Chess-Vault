@@ -49,7 +49,7 @@ export const updateFolder = async (
   const folder = await Folders.findOneAndUpdate(
     { _id: id, userId },
     { $set: payload },
-    { new: true, runValidators: true },
+    { returnDocument: "after", runValidators: true },
   ).lean();
   return folder;
 };

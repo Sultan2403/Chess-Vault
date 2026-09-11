@@ -30,7 +30,7 @@ const getAccount = async (userId: string) => {
   return Accounts.findOneAndUpdate(
     { userId },
     { $setOnInsert: { userId } },
-    { new: true, upsert: true, setDefaultsOnInsert: true },
+    { returnDocument: "after", upsert: true, setDefaultsOnInsert: true },
   ).lean();
 };
 
@@ -132,7 +132,7 @@ export const connectLinkedAccounts = async (
           normalizedUsername,
         },
       },
-      { new: true, upsert: true, setDefaultsOnInsert: true },
+      { returnDocument: "after", upsert: true, setDefaultsOnInsert: true },
     ).lean();
 
     results.push({
