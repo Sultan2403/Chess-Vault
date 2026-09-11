@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import Games from "../DB/Models/games.model";
 import { normalizeChessComGame, normalizeLichessGame } from "../Helpers";
 import { Platforms, MAX_GAMES_PER_USER } from "../Config/constants";
+import { logger } from "../Config/logger";
 import {
   ImportGamesParams,
   ImportGameParams,
@@ -26,12 +27,8 @@ export const importGames = async ({
     folderIds,
     username,
   }: ImportGameParams): Promise<ImportResult> => {
-    // 1. Grab all active history blocks from Chess.com
-
-    console.log("Starting Chess.com import...");
+    logger.info({ username }, "Starting Chess.com import");
     const response = await chessComApi.getPlayerArchives(username);
-
-    console.log("Chess.com responded with archive", response);
     const archiveUrls = response.archives;
 
     if (!archiveUrls || archiveUrls.length === 0) {
@@ -41,55 +38,38 @@ export const importGames = async ({
       };
     }
 
-    // 2. Reverse to start from the absolute most recent month
-    const recentArchives = archiveUrls.reverse();
+    const recentArchives = [...archiveUrls].reverse();
     let totalImported = 0;
 
-    console.log("📥 Starting import of Chess.com games for user:", username);
     for (const archiveUrl of recentArchives) {
-      console.log("Current archive", archiveUrl);
-      // Hard break if a previous month already maxed us out
       if (totalImported >= MAX_GAMES_PER_USER) break;
 
-      console.log(`📥 Fetching data directly from archive: ${archiveUrl}`);
-
-      // 3. Hit the full URL directly without parsing dates
       const monthlyData = await chessComApi.getGamesFromArchiveUrl(archiveUrl);
       if (!monthlyData.games || monthlyData.games.length === 0) continue;
 
-      console.log(
-        "Monthly data fetched. Total games in this archive:",
-        monthlyData.games.length,
-      );
-
-      // 4. Reverse the individual games array to get the newest games first
-      const monthlyGames = monthlyData.games.reverse();
+      const monthlyGames = [...monthlyData.games].reverse();
       const gamesToInsert: NormalizedGame[] = [];
 
       for (const game of monthlyGames) {
         if (totalImported >= MAX_GAMES_PER_USER) {
-          console.log(
-            `🛑 Hard limit of ${MAX_GAMES_PER_USER} games hit mid-archive.`,
+          logger.info(
+            { limit: MAX_GAMES_PER_USER },
+            "Hard limit of games hit mid-archive",
           );
           break;
         }
 
-        // Normalize and stage for batch insertion
         const normalizedGame = normalizeChessComGame({
           game,
           userId,
           folderIds,
         });
 
-        console.log("Normalized game ready for insertion: ");
-
         gamesToInsert.push(normalizedGame);
         totalImported++;
       }
 
-      // 5. Bulk dump the month's chunk into MongoDB with upserts to skip duplicates
       if (gamesToInsert.length > 0) {
-        console.log("Inserting games to db...");
         const ops = gamesToInsert.map((game) => ({
           updateOne: {
             filter: {
@@ -109,14 +89,18 @@ export const importGames = async ({
           },
         }));
         const res = await Games.bulkWrite(ops as any);
-        console.log(
-          `✅ Upserted ${res.upsertedCount} new games into DB (Ignored ${res.matchedCount} existing duplicates). (Running Total: ${totalImported})`,
+        logger.info(
+          {
+            upsertedCount: res.upsertedCount,
+            matchedCount: res.matchedCount,
+            totalImported,
+          },
+          "Upserted Chess.com archive batch into DB",
         );
       }
     }
-    console.log(
-      `🎉 Success! Capped import finished. Total processed: ${totalImported}`,
-    );
+
+    logger.info({ totalImported }, "Finished Chess.com import");
     return {
       success: true,
       message: `Imported ${totalImported} games from Chess.com`,
@@ -128,73 +112,112 @@ export const importGames = async ({
     folderIds,
     username,
   }: ImportGameParams): Promise<ImportResult> => {
-    console.log("Starting lichess import...");
+    logger.info({ username }, "Starting Lichess import");
 
     const response = await lichessApi.getUserGames(username);
 
-    console.log("Lichess server responded with games stream");
-
     return new Promise<ImportResult>((resolve, reject) => {
-      const gamesBuffer: NormalizedGame[] = [];
+      const CHUNK_SIZE = 500;
+      let gamesBuffer: NormalizedGame[] = [];
+      let totalUpserted = 0;
+      let totalMatched = 0;
+      let isProcessingChunk = false;
 
-      response
-        .pipe(ndjson.parse())
-        .on("data", (rawGame: Lichess_Game) => {
-          const normalized = normalizeLichessGame({
-            game: rawGame,
-            userId,
-            folderIds,
-          });
+      const stream = response.pipe(ndjson.parse());
 
-          gamesBuffer.push(normalized);
-        })
-        .on("end", async () => {
-          try {
-            if (gamesBuffer.length === 0) {
-              return resolve({
-                success: true,
-                message: "No games found for Lichess user",
-              });
-            }
+      const flushBuffer = async () => {
+        if (gamesBuffer.length === 0) return;
+        const currentChunk = [...gamesBuffer];
+        gamesBuffer = [];
 
-            console.log(
-              `📥 Stream ended. Bulk upserting ${gamesBuffer.length} games...`,
-            );
-
-            const ops = gamesBuffer.map((game) => ({
-              updateOne: {
-                filter: {
-                  userId: game.userId,
-                  platform: game.platform,
-                  platformGameId: game.platformGameId,
-                },
-                update: {
-                  $setOnInsert: {
-                    ...game,
-                    folderIds: game.folderIds
-                      ? game.folderIds.map((id) => new mongoose.Types.ObjectId(id))
-                      : null,
-                  },
-                },
-                upsert: true,
+        const ops = currentChunk.map((game) => ({
+          updateOne: {
+            filter: {
+              userId: game.userId,
+              platform: game.platform,
+              platformGameId: game.platformGameId,
+            },
+            update: {
+              $setOnInsert: {
+                ...game,
+                folderIds: game.folderIds
+                  ? game.folderIds.map((id) => new mongoose.Types.ObjectId(id))
+                  : null,
               },
-            }));
+            },
+            upsert: true,
+          },
+        }));
 
-            const res = await Games.bulkWrite(ops as any);
+        const res = await Games.bulkWrite(ops as any);
+        totalUpserted += res.upsertedCount;
+        totalMatched += res.matchedCount;
 
-            console.log(
-              `🎉 Lichess sync completed! Upserted ${res.upsertedCount} new games.`,
-            );
+        logger.info(
+          {
+            chunkSize: currentChunk.length,
+            upserted: res.upsertedCount,
+            matched: res.matchedCount,
+            runningTotal: totalUpserted + totalMatched,
+          },
+          "Flushed Lichess chunk to DB",
+        );
+      };
 
-            resolve({
-              success: true,
-              message: `Imported ${res.upsertedCount} new games from Lichess (${res.matchedCount} duplicates skipped)`,
-            });
+      stream.on("data", async (rawGame: Lichess_Game) => {
+        const normalized = normalizeLichessGame({
+          game: rawGame,
+          userId,
+          folderIds,
+        });
+
+        gamesBuffer.push(normalized);
+
+        if (gamesBuffer.length >= CHUNK_SIZE && !isProcessingChunk) {
+          isProcessingChunk = true;
+          stream.pause();
+          try {
+            await flushBuffer();
           } catch (err) {
-            reject(err);
+            stream.destroy();
+            return reject(err);
+          } finally {
+            isProcessingChunk = false;
+            stream.resume();
           }
-        })
-        .on("error", reject);
+        }
+      });
+
+      stream.on("end", async () => {
+        try {
+          // Flush any remaining items in buffer
+          await flushBuffer();
+
+          if (totalUpserted === 0 && totalMatched === 0) {
+            return resolve({
+              success: true,
+              message: "No games found for Lichess user",
+            });
+          }
+
+          logger.info(
+            { totalUpserted, totalMatched },
+            "Lichess sync completed successfully",
+          );
+
+          resolve({
+            success: true,
+            message: `Imported ${totalUpserted} new games from Lichess (${totalMatched} duplicates skipped)`,
+          });
+        } catch (err) {
+          reject(err);
+        }
+      });
+
+      stream.on("error", (err: any) => {
+        logger.error({ err }, "Lichess stream error");
+        reject(err);
+      });
     });
   };
 
@@ -215,7 +238,7 @@ export const importGames = async ({
       });
     }
   } catch (error: any) {
-    console.error("❌ Import failed:", error?.message);
+    logger.error({ err: error }, "Import failed");
     return { success: false, message: "Something went wrong" };
   }
 };
@@ -243,7 +266,11 @@ export const searchGames = async ({
   const query = {
     ...restParams,
     ...(folderIds && folderIds.length > 0
-      ? { folderIds: { $in: folderIds.map((id) => new mongoose.Types.ObjectId(id)) } }
+      ? {
+          folderIds: {
+            $in: folderIds.map((id) => new mongoose.Types.ObjectId(id)),
+          },
+        }
       : {}),
     ...(search && {
       $or: [
@@ -264,11 +291,13 @@ export const searchGames = async ({
       .lean()
       .transform((games) =>
         games.map((game: any) => {
-          const { _id, __v, folderIds, ...rest } = game;
+          const { _id, folderIds, ...rest } = game;
 
           const normalized: Game = {
             id: _id.toString(),
-            folderIds: folderIds ? folderIds.map((id: any) => id.toString()) : null,
+            folderIds: folderIds
+              ? folderIds.map((id: any) => id.toString())
+              : null,
             ...rest,
           };
 
@@ -300,11 +329,10 @@ export const getGameById = async (
   const game = await Games.findOne({ _id: id, userId }).lean();
   if (!game) return null;
 
-  const { _id, __v, folderIds, ...rest } = game as any;
+  const { _id, folderIds, ...rest } = game as any;
   return {
     id: _id.toString(),
     folderIds: folderIds ? folderIds.map((id: any) => id.toString()) : null,
     ...rest,
   };
 };
-

@@ -3,11 +3,19 @@ import { Webhook, WebhookRequiredHeaders } from "svix";
 import env from "../Config/env";
 import Accounts from "../DB/Models/accounts.model";
 import { CLERK_WEBHOOK_EVENTS } from "../Config/constants";
+import { logger } from "../Config/logger";
+import { successResponse, errorResponse } from "../Utils/responses";
 
 export const handleClerkWebhook = async (req: Request, res: Response) => {
-  console.log("Processing...")
   const secret = env.CLERK_WEBHOOK_SECRET;
-  if (!secret) return res.status(500).json({ error: "Missing secret" });
+  if (!secret) {
+    logger.error("Missing CLERK_WEBHOOK_SECRET in environment");
+    return errorResponse({
+      res,
+      statusCode: 500,
+      message: "Missing webhook secret",
+    });
+  }
 
   try {
     const wh = new Webhook(secret);
@@ -15,8 +23,6 @@ export const handleClerkWebhook = async (req: Request, res: Response) => {
       req.body,
       req.headers as unknown as WebhookRequiredHeaders,
     ) as any;
-
-    console.log("Secret verified! It's clerk broooo")
 
     const userId = evt.data.id;
 
@@ -27,21 +33,22 @@ export const handleClerkWebhook = async (req: Request, res: Response) => {
         { $setOnInsert: { userId } },
         { upsert: true },
       );
-      console.log(`✅ Game Bank initialized for ${userId}`);
+      logger.info({ userId }, "Game Bank initialized for user");
     } else if (evt.type === CLERK_WEBHOOK_EVENTS.USER_DELETED) {
       // deleteOne is inherently idempotent (deleting non-existent record is a no-op)
       await Accounts.deleteOne({ userId });
 
       // TODO: Dispatch background job to purge user data (e.g. BullMQ / RabbitMQ)
-      console.log(`🗑️ Account removed for ${userId}`);
+      logger.info({ userId }, "Account removed for user");
     }
 
-    console.log("Webhook succesfully processed!")
-    return res.status(200).json({ success: true });
+    return successResponse({ res });
   } catch (err) {
-    console.error("❌ Webhook error:", err);
-    return res
-      .status(400)
-      .json({ error: "Invalid webhook payload or signature" });
+    logger.error({ err }, "Webhook verification/processing error");
+    return errorResponse({
+      res,
+      statusCode: 400,
+      message: "Invalid webhook payload or signature",
+    });
   }
 };

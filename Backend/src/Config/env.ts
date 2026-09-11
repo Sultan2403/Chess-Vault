@@ -1,7 +1,7 @@
 import { z } from "zod";
 import "dotenv/config";
 
-const isProd = process.env.NODE_ENV === "production";
+export const isProd = process.env.NODE_ENV === "production";
 const envSchema = z.object({
   PORT: z.string().default("5000").transform(Number),
   MONGO_DB_URI: z.string().min(5, "MongoDB URI is required"),
@@ -14,6 +14,10 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
+
+  LOG_LEVEL: z
+    .enum(["debug", "info", "warn", "error", "fatal", "silent"])
+    .default("info"),
 
   CLERK_PUBLISHABLE_KEY: z.string().min(5, "Clerk publishable key missing"),
   CLERK_SECRET_KEY: z.string().min(5, "Clerk secret key missing"),

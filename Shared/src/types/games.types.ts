@@ -51,6 +51,16 @@ export type Chess_Com_Game = {
   eco?: string;
 };
 
+export interface Lichess_Player {
+  user?: {
+    id: string;
+    name: string;
+  };
+  rating?: number;
+  ratingDiff?: number;
+  aiLevel?: number;
+}
+
 export interface Lichess_Game {
   id: string;
   rated: boolean;
@@ -68,29 +78,14 @@ export interface Lichess_Game {
   winner?: "white" | "black";
 
   players: {
-    white: {
-      user: {
-        id: string;
-        name: string;
-      };
-      rating: number;
-      ratingDiff: number;
-    };
-
-    black: {
-      user: {
-        id: string;
-        name: string;
-      };
-      rating: number;
-      ratingDiff: number;
-    };
+    white: Lichess_Player;
+    black: Lichess_Player;
   };
 
   moves: string;
   pgn: string;
 
-  clock: {
+  clock?: {
     initial: number;
     increment: number;
     totalTime: number;

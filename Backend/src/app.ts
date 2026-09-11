@@ -4,10 +4,13 @@ import express, { Request, Response } from "express";
 // Middlewares
 import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
+import { requestLogger } from "./Middlewares/request_logger";
 
-// Routers
+// Routers & Controllers
 import webhookRoutes from "./Routers/webhooks.routes";
 import apiRouter from "./Routers";
+import { healthCheckController } from "./Controllers/health.controller";
+import { errorResponse } from "./Utils/responses";
 
 // Init
 const app = express();
@@ -18,28 +21,28 @@ app.use(
   }),
 );
 
+app.use(requestLogger);
+
 app.use("/webhooks", webhookRoutes);
 
 app.use(clerkMiddleware());
 app.use(express.json());
 
 // Routes
-
 app.use("/api", apiRouter);
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (_req: Request, res: Response) => {
   res
     .status(200)
     .json({ message: "Looking for something? Well it's not here XD" });
 });
 
-app.get("/health", (req: Request, res: Response) => {
-  res.status(200).json({ success: true, message: "Server says heyyy :)" });
-});
+app.get("/health", healthCheckController);
 
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
+app.use((_req: Request, res: Response) => {
+  return errorResponse({
+    res,
+    statusCode: 404,
     message: "Route not found",
   });
 });

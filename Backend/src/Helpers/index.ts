@@ -15,24 +15,37 @@ export const normalizeLichessGame = ({
   folderIds?: string[] | null;
 }): NormalizedGame => {
   const sourceUrl = `https://lichess.org/${game.id}`;
+
+  const whiteName =
+    game.players.white?.user?.name ||
+    (game.players.white?.aiLevel
+      ? `AI (Level ${game.players.white.aiLevel})`
+      : "Guest");
+
+  const blackName =
+    game.players.black?.user?.name ||
+    (game.players.black?.aiLevel
+      ? `AI (Level ${game.players.black.aiLevel})`
+      : "Guest");
+
   return {
     userId,
     folderIds: folderIds ?? null,
     platform: "lichess",
     platformGameId: game.id,
     sourceUrl,
-    title: `${game.players.white.user.name} vs ${game.players.black.user.name}`,
+    title: `${whiteName} vs ${blackName}`,
     whitePlayer: {
-      username: game.players.white.user.name,
-      rating: game.players.white.rating,
+      username: whiteName,
+      rating: game.players.white?.rating || 0,
     },
     blackPlayer: {
-      username: game.players.black.user.name,
-      rating: game.players.black.rating,
+      username: blackName,
+      rating: game.players.black?.rating || 0,
     },
     result: game.winner || "draw",
     timeClass: game.speed as TimeClassType,
-    playedAt: new Date(game.createdAt * 1000),
+    playedAt: new Date(game.createdAt),
     pgn: game.pgn,
     isRated: game.rated,
   };
