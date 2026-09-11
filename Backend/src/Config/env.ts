@@ -29,6 +29,16 @@ const envSchema = z.object({
   PAYSTACK_TEST_API_KEY: z.string().min(5, "Paystack test API key missing"),
 
   DEV_EMAIL: z.string().min(5, "Dev email not configured"),
+
+  ALLOWED_ORIGINS: z
+    .string()
+    .default("http://localhost:5173,https://sultan2403.github.io")
+    .transform((val) =>
+      val
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean),
+    ),
 });
 
 const validateEnv = () => {
