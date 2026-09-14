@@ -61,7 +61,7 @@ The authoritative Game model is defined as:
     type Game = {
         id: string;
         userId: string;
-        folderIds?: string[] | null;
+        folderIds: string[] | null;
         platform: "chess.com" | "lichess";
         platformGameId: string;
         sourceUrl: string;
@@ -78,11 +78,11 @@ The authoritative Game model is defined as:
         timeClass: "ultraBullet" | "bullet" | "blitz" | "rapid" | "classical" | "daily" | "correspondence";
         playedAt: Date;
         pgn: string;
-        title?: string | undefined;
-        notes?: string | undefined;
-        tags?: string | undefined;
-        createdAt?: Date | undefined;
-        updatedAt?: Date | undefined;
+        title: string | undefined;
+        notes: string | undefined;
+        tags: string | undefined;
+        createdAt: Date | undefined;
+        updatedAt: Date | undefined;
     }
 
 * Avoid altering, deleting, or renaming fields in Game without explicit user instruction.
