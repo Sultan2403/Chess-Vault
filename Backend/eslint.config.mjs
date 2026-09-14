@@ -5,13 +5,13 @@ import { defineConfig } from "eslint/config";
 
 export default defineConfig([
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
+    files: ["src/**/*.{js,mjs,cjs,ts,mts,cts}", "tests/**/*.{js,mjs,cjs,ts,mts,cts}"],
     extends: [js.configs.recommended, tseslint.configs.recommended],
     languageOptions: {
       globals: globals.node,
       parserOptions: {
         tsconfigRootDir: import.meta.dirname,
-        project: "./tsconfig.json",
+        project: "./tsconfig.eslint.json",
       },
     },
   },
