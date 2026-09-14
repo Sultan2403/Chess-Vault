@@ -21,6 +21,7 @@
 
 ### Later taks (Project maintenance)
 
+- Remove unnecessary `any` usage throughout the project; every remaining `any` must be genuinely warranted and have a concrete explanation for why it is necessary
 - Do proper safeguards like linting all over including the shared folder
 - Tests and stuff
 - Proper ci
