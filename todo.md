@@ -3,6 +3,10 @@
 - Finalize and decide on product pricing and pro features and such
 - Backend is done ig... I can't find any more excuses not to work on the client side lol so...
 
+## Backend
+
+- Add final tests where necessary
+
 ## Frontend
 
 - FRONTEND IS BS I DON'T LIKE IT! WE SHOULD DO A FULL REDESIGN!
