@@ -1,7 +1,7 @@
 {
   "name": "chess-vault-backend",
   "version": "1.0.0",
-  "description": "Chess game vault & analysis backend service",
+  "description": "Chess vault backend service",
   "main": "./src/server.js",
   "scripts": {
     "test": "vitest run",
