@@ -349,3 +349,17 @@ Chess Vault is a TypeScript codebase. Preserve and enforce strict typing through
 - Preserve meaningful distinctions such as `null`, `undefined`, and required values according to the established domain contract. Do not introduce optionality or `undefined` merely for convenience.
 
 If strict typing conflicts with a requested implementation, stop and notify the user rather than silently weakening the types.
+
+---
+
+## 26. Type Safety
+
+- Follow the project's existing TypeScript types and contracts.
+- Do not introduce `any` unless it is genuinely necessary.
+- Do not use `as any` to silence TypeScript errors.
+- Prefer existing shared, domain, schema, and API types over creating new duplicate/ad-hoc types.
+- If an appropriate project type already exists, reuse it.
+- Keep unavoidable `any` usage as small and localized as possible.
+- If `any` is genuinely necessary, explain why it is necessary.
+- Do not invent a new type when an existing project type accurately represents the value.
+- Before finishing a task, inspect changed code for unnecessary `any`, unsafe casts, duplicate types, and avoidable type assertions.
