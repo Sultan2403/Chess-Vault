@@ -3,6 +3,7 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run deploy:frontend",
   "outputDirectory": "Frontend/dist",
+  "devCommand": "npm run dev:frontend",
   "rewrites": [
     {
       "source": "/(.*)",
