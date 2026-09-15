@@ -37,7 +37,6 @@
     "@eslint/js": "^10.0.1",
     "@types/express": "^5.0.6",
     "@types/node": "^25.9.5",
-    "@types/pino-http": "^6.1.0",
     "@types/supertest": "^7.2.1",
     "globals": "^17.11.0",
     "pino-pretty": "^13.1.3",
