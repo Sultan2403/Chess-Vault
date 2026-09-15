@@ -3,9 +3,12 @@ import dotenv from "dotenv";
 import { z } from "zod";
 
 // Load .env or .env.test from Backend folder
-dotenv.config({ path: path.resolve(__dirname, "../../.env.test") });
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
-dotenv.config();
+const envFile =
+  process.env.NODE_ENV === "test" ? "../../.env.test" : "../../.env";
+
+dotenv.config({
+  path: path.resolve(__dirname, envFile),
+});
 
 export const isProd = process.env.NODE_ENV === "production";
 
@@ -50,7 +53,7 @@ const envSchema = z.object({
 
 const validateEnv = () => {
   const result = envSchema.safeParse(process.env);
-
+  
   if (!result.success) {
     console.error("❌ Invalid Environment Variables:");
     console.error(JSON.stringify(result.error.flatten().fieldErrors, null, 2));
