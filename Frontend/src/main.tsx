@@ -21,9 +21,17 @@ const queryClient = new QueryClient({
   },
 });
 
+const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+console.log(import.meta.env);
+
+if (!clerkPublishableKey) {
+  console.error("❌ Missing VITE_CLERK_PUBLISHABLE_KEY in environment variables!");
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider publishableKey={clerkPublishableKey}>
       <QueryClientProvider client={queryClient}>
         <App />
       </QueryClientProvider>
