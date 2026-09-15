@@ -29,12 +29,12 @@ export interface GameResponse {
 
 const gamesApi = {
   getGames: (params?: SearchGamesParams): Promise<SearchGamesResponse> =>
-    api.get("/api/games", { params }),
+    api.get("/games", { params }),
 
-  getGame: (id: string): Promise<GameResponse> => api.get(`/api/games/${id}`),
+  getGame: (id: string): Promise<GameResponse> => api.get(`/games/${id}`),
 
   importGames: (data: FrontendImportGamesPayload): Promise<ImportResult> =>
-    api.post("/api/games/import", data),
+    api.post("/games/import", data),
 };
 
 export default gamesApi;

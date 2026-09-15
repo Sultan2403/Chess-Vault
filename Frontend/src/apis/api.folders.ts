@@ -32,21 +32,21 @@ export interface DeleteFolderResponse {
 
 const foldersApi = {
   getFolders: (params?: ListFoldersParams): Promise<ListFoldersResponse> =>
-    api.get("/api/folders", { params }),
+    api.get("/folders", { params }),
 
   getFolder: (id: string): Promise<FolderResponse> =>
-    api.get(`/api/folders/${id}`),
+    api.get(`/folders/${id}`),
 
   createFolder: (data: CreateFolderPayload): Promise<FolderResponse> =>
-    api.post("/api/folders", data),
+    api.post("/folders", data),
 
   updateFolder: (
     id: string,
     data: UpdateFolderPayload,
-  ): Promise<FolderResponse> => api.patch(`/api/folders/${id}`, data),
+  ): Promise<FolderResponse> => api.patch(`/folders/${id}`, data),
 
   deleteFolder: (id: string): Promise<DeleteFolderResponse> =>
-    api.delete(`/api/folders/${id}`),
+    api.delete(`/folders/${id}`),
 };
 
 export default foldersApi;
