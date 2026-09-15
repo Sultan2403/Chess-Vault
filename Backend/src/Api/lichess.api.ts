@@ -4,10 +4,9 @@ import { Readable } from "stream";
 
 const lichessApi = {
   getUserProfile: (username: string) =>
-    lichess_api.get<any, { id: string; username: string }>(
-      `/user/${username}`,
-      { headers: { Accept: "application/json" } },
-    ),
+    lichess_api.get<any, { id: string, username: string }>(`/user/${username}`, {
+      headers: { Accept: "application/json" },
+    }),
 
   getUserGames: (username: string) =>
     lichess_api.get<any, Readable>(`/games/user/${username}`, {
