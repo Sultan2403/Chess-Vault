@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Karla:wght@400;500;600;700&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -10,34 +10,45 @@
   }
 
   html {
-    @apply bg-vault-background;
+    @apply bg-vault-background text-vault-on-background;
+    color-scheme: dark;
   }
 
   body {
-    @apply m-0 min-h-screen bg-vault-background font-body text-vault-on-background antialiased;
+    @apply m-0 min-h-screen bg-vault-background font-body text-vault-on-background antialiased selection:bg-vault-primary/20 selection:text-vault-primary;
   }
 
   button,
-  input {
+  input,
+  textarea,
+  select {
     font: inherit;
   }
 }
 
 @layer utilities {
+  .tnum {
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+
   .bg-paper {
     background-image: radial-gradient(
-      rgb(60 42 33 / 4%) 1px,
+      rgb(233 193 118 / 3%) 1px,
       transparent 1px
     );
-    background-size: 6px 6px;
+    background-size: 8px 8px;
   }
 
   .bg-film-grain {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.025'/%3E%3C/svg%3E");
+  }
+
+  .archival-input {
+    @apply rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3.5 py-2.5 text-vault-text-primary outline-none transition-colors placeholder:text-vault-text-muted focus:border-vault-bronze;
   }
 
   .ledger-input {
-    @apply border-b border-vault-outline bg-transparent py-2.5 text-base font-normal tracking-normal outline-none transition-colors placeholder:text-vault-outline/70 focus:border-vault-ochre;
+    @apply rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3.5 py-2.5 text-sm font-normal tracking-normal text-vault-text-primary outline-none transition-colors placeholder:text-vault-text-muted focus:border-vault-bronze;
   }
 }
-
