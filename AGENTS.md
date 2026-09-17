@@ -6,9 +6,9 @@ This file contains the general guidelines for AI agents working anywhere in the 
 
 For product strategy, product scope, vision, terminology, and feature direction, refer to:
 
-PRODUCT_DIRECTION.md
+`Docs/PRODUCT_DIRECTION.md`
 
-PRODUCT_DIRECTION.md is the source of truth for product direction.
+`Docs/PRODUCT_DIRECTION.md` is the source of truth for product direction.
 
 This file is the source of truth for how agents should work.
 
@@ -22,8 +22,8 @@ Chess Vault uses a full-stack JavaScript/TypeScript architecture:
 * **Backend:** Node.js, Express, TypeScript
 * **Database & Models:** MongoDB with Mongoose
 * **Authentication:** Clerk Auth
-* **Mobile / Frontend:** React Native
-* **Shared Domain Types:** Centralized in shared/ (e.g., `@shared/types` or `shared/types`)
+* **Frontend:** React with Vite
+* **Shared Domain Types:** Centralized in `Shared/`, published internally as `@chess-vault/shared`
 
 ---
 
@@ -47,7 +47,7 @@ Do not create a new pattern when an established project pattern already exists.
 
 Types that are reused must be declared once and for all in a central location—never duplicated across multiple files.
 
-* If a type is shared between the client and the server, it must live in shared (e.g., `@shared/types` or `shared/types`).
+* If a type is shared between the client and the server, it must live in `Shared/` and be consumed through `@chess-vault/shared`.
 * Do not re-declare or redefine existing types locally when an established shared type exists.
 
 ---
@@ -87,6 +87,19 @@ The authoritative Game model is defined as:
 
 * Avoid altering, deleting, or renaming fields in Game without explicit user instruction.
 * If the Game type is modified, you must update every single reference, schema, service, interface, and test across the entire project that depends on it.
+
+### Game lifecycle and `NormalizedGame`
+
+`Game` and `NormalizedGame` intentionally represent different stages of the data lifecycle.
+
+* **`NormalizedGame`** is an import/normalization-stage type. It represents external chess-platform data after it has been normalized into Chess Vault's common shape, before Chess Vault has persisted the game and generated its own persistence metadata.
+* **`Game`** is the persisted/consumed Chess Vault domain model. Persisted games have Chess Vault's own `createdAt` and `updatedAt` timestamps supplied by the persistence layer.
+* `NormalizedGame` intentionally omits `id`, `createdAt`, and `updatedAt`. These are not missing domain requirements; they belong to a later stage of the lifecycle.
+* Do not add Chess Vault persistence timestamps to `NormalizedGame` merely to make it structurally identical to `Game`.
+
+The intended flow is:
+
+`External game data → normalize → NormalizedGame → persist → Game`
 
 ---
 
@@ -188,7 +201,7 @@ Never use broad cleanup or reset operations casually.
 
 Before implementing a meaningful product feature, refer to:
 
-PRODUCT_DIRECTION.md
+`Docs/PRODUCT_DIRECTION.md`
 
 Use it to understand the intended direction of Chess Vault. Do not silently make product decisions that contradict it.
 
@@ -198,7 +211,7 @@ If a requested feature appears to conflict with the current product direction, t
 
 ## 11. Product Direction Is Allowed to Evolve
 
-Do not treat PRODUCT_DIRECTION.md as immutable.
+Do not treat `Docs/PRODUCT_DIRECTION.md` as immutable.
 
 The product may evolve. When the user intentionally changes the direction:
 
@@ -319,8 +332,8 @@ When finishing a task, clearly communicate:
 When making a decision, generally use this order:
 
 1. User's explicit request
-2. Product direction in PRODUCT_DIRECTION.md
-3. Core domain types (e.g., Game model in shared)
+2. Product direction in `Docs/PRODUCT_DIRECTION.md`
+3. Core domain types (e.g., Game model in `Shared/`)
 4. Existing project patterns
 5. Established technical constraints
 6. Simplest reasonable implementation
@@ -336,10 +349,11 @@ When working on Chess Vault:
 
 ---
 
-## 25. Strict Typing
+## 25. Type Safety
 
 Chess Vault is a TypeScript codebase. Preserve and enforce strict typing throughout the repository.
 
+- Follow the project's existing TypeScript types and contracts.
 - Do not introduce `any`, `as any`, or unnecessary type assertions to silence TypeScript errors.
 - Prefer existing shared types, inferred types, generics, type guards, and proper narrowing over bypassing the type system.
 - Do not weaken types merely to make an implementation compile.
@@ -347,19 +361,9 @@ Chess Vault is a TypeScript codebase. Preserve and enforce strict typing through
 - If a type genuinely needs to change, make the change deliberately and update all affected references.
 - Type assertions are allowed only when they represent a verified fact that TypeScript cannot express directly; they must not be used as a shortcut around uncertainty.
 - Preserve meaningful distinctions such as `null`, `undefined`, and required values according to the established domain contract. Do not introduce optionality or `undefined` merely for convenience.
-
-If strict typing conflicts with a requested implementation, stop and notify the user rather than silently weakening the types.
-
----
-
-## 26. Type Safety
-
-- Follow the project's existing TypeScript types and contracts.
-- Do not introduce `any` unless it is genuinely necessary.
-- Do not use `as any` to silence TypeScript errors.
 - Prefer existing shared, domain, schema, and API types over creating new duplicate/ad-hoc types.
 - If an appropriate project type already exists, reuse it.
-- Keep unavoidable `any` usage as small and localized as possible.
-- If `any` is genuinely necessary, explain why it is necessary.
-- Do not invent a new type when an existing project type accurately represents the value.
+- Keep unavoidable `any` usage as small and localized as possible. If `any` is genuinely necessary, explain why it is necessary.
 - Before finishing a task, inspect changed code for unnecessary `any`, unsafe casts, duplicate types, and avoidable type assertions.
+
+If strict typing conflicts with a requested implementation, stop and notify the user rather than silently weakening the types.
