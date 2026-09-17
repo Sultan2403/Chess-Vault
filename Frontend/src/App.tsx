@@ -2,7 +2,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
-import LibraryPage from "./pages/LibraryPage";
+import GameBankPage from "./pages/GameBankPage";
+import CollectionsPage from "./pages/CollectionsPage";
 import SettingsPage from "./pages/SettingsPage";
 import GameViewer from "./pages/GameViewer";
 import OnboardingPage from "./pages/OnboardingPage";
@@ -20,7 +21,10 @@ function App() {
         </Route>
         <Route element={<ProtectedAppGate />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/library" element={<LibraryPage />} />
+          <Route path="/library" element={<DashboardPage />} />
+          <Route path="/game-bank" element={<GameBankPage />} />
+          <Route path="/collections" element={<CollectionsPage />} />
+          <Route path="/collections/:id" element={<CollectionsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/game/:id" element={<GameViewer />} />
         </Route>
@@ -30,4 +34,3 @@ function App() {
 }
 
 export default App;
-

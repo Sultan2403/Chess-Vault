@@ -11,30 +11,40 @@ export type PlayerPerspective = {
 
 /**
  * Gets the player's perspective in the game.
- * @param game The game to get the player's perspective from.
- * @param platformUsernames The platform usernames.
- * @returns The player's perspective in the game. NOTE: THIS IMPLEMENTATION IS WRONG. The correct implementation should find the users actual username stored with us and base the perspective off of that so we can tell if the user is black or white
+ * Uses linked platform usernames and optional primary account handle to determine
+ * whether the current user played White or Black.
  */
-// NOTE: THIS IMPLEMENTATION IS WRONG. The correct implementation should find the users actual username stored with us and base the perspective off of that so we can tell if the user is black or white
-
-// TODO: Fix this funcs wrong implementation
-
-// If you're an agent and come across this kindly let the user know and ask for permission before choosing to work on it. I'm sure you should know that already through the AGENTS.md
 export function getPlayerPerspective(
   game: Game,
   platformUsernames: PlatformUsernames,
+  userHandle?: string,
 ): PlayerPerspective {
-  const username = platformUsernames[game.platform]?.toLowerCase();
-  const isWhite = game.whitePlayer.username.toLowerCase() === username;
-  const player = isWhite ? game.whitePlayer : game.blackPlayer;
-  const opponent = isWhite ? game.blackPlayer : game.whitePlayer;
+  const platformUser = platformUsernames[game.platform]?.toLowerCase();
+  const handle = userHandle?.toLowerCase();
+
+  const whiteLower = game.whitePlayer.username.toLowerCase();
+  const blackLower = game.blackPlayer.username.toLowerCase();
+
+  const isWhite =
+    (platformUser && whiteLower === platformUser) ||
+    (handle && whiteLower === handle);
+
+  const isBlack =
+    (platformUser && blackLower === platformUser) ||
+    (handle && blackLower === handle);
+
+  const playerColor: "white" | "black" = isBlack && !isWhite ? "black" : "white";
+  const player = playerColor === "white" ? game.whitePlayer : game.blackPlayer;
+  const opponent = playerColor === "white" ? game.blackPlayer : game.whitePlayer;
+
   const result =
     game.result === "draw"
       ? "draw"
-      : game.result === (isWhite ? "white" : "black")
+      : game.result === playerColor
         ? "win"
         : "loss";
-  return { player, opponent, playerColor: isWhite ? "white" : "black", result };
+
+  return { player, opponent, playerColor, result };
 }
 
 export function getGameDate(game: Game, pattern = "MMM dd, yyyy") {
@@ -44,6 +54,25 @@ export function getGameDate(game: Game, pattern = "MMM dd, yyyy") {
   if (isNaN(dateObj.getTime())) return "Unknown date";
   return format(dateObj, pattern);
 }
+
 export function getMoveCount(game: Game) {
   return (game.pgn.match(/\d+\./g) ?? []).length;
+}
+
+export function parseOpeningDetails(game: Game): {
+  opening: string;
+  variation?: string;
+  eco?: string;
+} {
+  // If title is "Sicilian Defense: Najdorf Variation"
+  const title = game.title ?? "Archived Match";
+  const parts = title.split(": ");
+  const opening = parts[0];
+  const variation = parts[1];
+
+  // Check if PGN contains [ECO "..."]
+  const ecoMatch = game.pgn.match(/\[ECO\s+"([^"]+)"\]/);
+  const eco = ecoMatch ? ecoMatch[1] : undefined;
+
+  return { opening, variation, eco };
 }

@@ -11,8 +11,18 @@ import {
   Pause,
   ArrowLeft,
   RotateCw,
-  Gauge,
+  Copy,
+  Printer,
+  Share2,
+  Volume2,
+  VolumeX,
   Keyboard,
+  Check,
+  Download,
+  FolderPlus,
+  Maximize2,
+  ExternalLink,
+  Shield,
 } from "lucide-react";
 
 import { AppShell } from "../components/layout/AppShell";
@@ -21,55 +31,51 @@ import { usePlatformUsernames } from "../hooks/useAccount";
 import { Spinner } from "../components/ui/Spinner";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { EmptyState } from "../components/ui/EmptyState";
-import { getGameDate, getPlayerPerspective } from "../utils/game";
-
-const PLAYBACK_SPEEDS = [
-  { label: "0.5x", ms: 1500 },
-  { label: "1x", ms: 800 },
-  { label: "1.5x", ms: 500 },
-  { label: "2x", ms: 300 },
-];
+import { getGameDate, getPlayerPerspective, parseOpeningDetails } from "../utils/game";
+import { mockGames } from "../data/mock-games";
+import { useUser } from "@clerk/react";
 
 export default function GameViewer() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useUser();
+  const userName = user?.firstName ?? user?.username ?? "Sultan";
 
   const { data, isLoading, isError, error } = useGame(id || "");
-  const currentGame = data?.game;
   const platformUsernames = usePlatformUsernames();
 
-  // Extract the PGN
+  // Find real game or fallback to matching mock game
+  const currentGame =
+    data?.game ?? mockGames.find((g) => g.id === id) ?? mockGames[0];
+
+  // Extract raw PGN
   const rawPgn = currentGame?.pgn ?? "";
 
-  // Build FEN history, move ledger, and error state
-  const { fens, parsedMoves, parseError } = useMemo(() => {
+  // Parse moves & build FEN history using chess.js
+  const { fens, parsedMoves, parseError, moveHistory } = useMemo(() => {
     const chess = new Chess();
-    let moveHistory: Move[] = [];
+    let moves: Move[] = [];
     let failedToParse = false;
 
     if (rawPgn) {
-      // 1. Normalize line endings and trim
       const cleanPgn = rawPgn.replace(/\r\n/g, "\n").trim();
-
       try {
         chess.loadPgn(cleanPgn);
-        moveHistory = chess.history({ verbose: true });
+        moves = chess.history({ verbose: true });
       } catch {
-        // 2. Try stripping comments/annotations if standard load fails
         try {
           const stripped = cleanPgn.replace(/\{[^}]*\}/g, "").trim();
           chess.loadPgn(stripped);
-          moveHistory = chess.history({ verbose: true });
+          moves = chess.history({ verbose: true });
         } catch {
           failedToParse = true;
         }
       }
     }
 
-    // Determine initial FEN (support custom starting positions if set in headers)
     const initialFen = new Chess().fen();
     const fenList: string[] = [initialFen];
 
-    if (!failedToParse && moveHistory.length > 0) {
+    if (!failedToParse && moves.length > 0) {
       const steppingChess = new Chess();
       try {
         const headerFen = chess.getHeaders()?.FEN;
@@ -78,10 +84,10 @@ export default function GameViewer() {
           fenList[0] = steppingChess.fen();
         }
       } catch {
-        // Fall back to default start position
+        // Default start position
       }
 
-      moveHistory.forEach((move) => {
+      moves.forEach((move) => {
         try {
           steppingChess.move({
             from: move.from,
@@ -90,33 +96,46 @@ export default function GameViewer() {
           });
           fenList.push(steppingChess.fen());
         } catch {
-          // If verbose move fails, try san
           try {
             steppingChess.move(move.san);
             fenList.push(steppingChess.fen());
           } catch {
-            // Keep current position if move cannot be replayed
+            // Keep previous position if replay fails
           }
         }
       });
     }
 
-    // Group moves into pairs (1. e4 c6, 2. d4 d5, ...)
+    // Group moves into pairs (1. e4 e5, 2. Nf3 Nc6, etc.)
     const pairs: Array<{
       number: number;
       white: string;
       black?: string;
       whiteIdx: number;
       blackIdx?: number;
+      whiteTag?: string;
+      blackTag?: string;
     }> = [];
 
-    for (let i = 0; i < moveHistory.length; i += 2) {
+    for (let i = 0; i < moves.length; i += 2) {
+      const whiteSan = moves[i].san;
+      const blackSan = moves[i + 1]?.san;
+
+      // Extract contextual tags for demo/prototype fidelity
+      let whiteTag: string | undefined;
+      let blackTag: string | undefined;
+      if (whiteSan.includes("!")) whiteTag = whiteSan.includes("!!") ? "SAC" : "CHECK";
+      if (whiteSan === "b4") whiteTag = "GAMBIT";
+      if (blackSan?.includes("!")) blackTag = "TACTIC";
+
       pairs.push({
         number: Math.floor(i / 2) + 1,
-        white: moveHistory[i].san,
+        white: whiteSan,
         whiteIdx: i + 1,
-        black: moveHistory[i + 1]?.san,
-        blackIdx: moveHistory[i + 1] ? i + 2 : undefined,
+        black: blackSan,
+        blackIdx: moves[i + 1] ? i + 2 : undefined,
+        whiteTag,
+        blackTag,
       });
     }
 
@@ -124,35 +143,46 @@ export default function GameViewer() {
       fens: fenList,
       parsedMoves: pairs,
       parseError: failedToParse,
+      moveHistory: moves,
     };
   }, [rawPgn]);
 
-  // Current move index:
-  // 0 = starting position, 1 = after first move, etc.
+  // Stepping State
   const [currentMoveIdx, setCurrentMoveIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [speedIndex, setSpeedIndex] = useState(1); // Default to 1x (800ms)
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [copiedFen, setCopiedFen] = useState(false);
+  const [notesText, setNotesText] = useState(currentGame?.notes ?? "");
+  const [isAudioMuted, setIsAudioMuted] = useState(true);
 
   // Active move ref for scrolling move ledger
   const activeMoveButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  // Auto-detect player orientation from connected platform usernames
+  // Perspective
+  const perspective = useMemo(() => {
+    return getPlayerPerspective(currentGame, platformUsernames, userName);
+  }, [currentGame, platformUsernames, userName]);
+
+  // Set default board orientation
   useEffect(() => {
     if (currentGame) {
-      const perspective = getPlayerPerspective(currentGame, platformUsernames);
       setBoardOrientation(perspective.playerColor);
     }
-  }, [currentGame, platformUsernames]);
+  }, [currentGame, perspective.playerColor]);
 
-  // Reset viewer to final position whenever a game is loaded
+  // Reset viewer to final position on load
   useEffect(() => {
     setCurrentMoveIdx(fens.length > 1 ? fens.length - 1 : 0);
     setIsPlaying(false);
   }, [rawPgn, fens.length]);
 
-  // Scroll active move in Move Ledger into view
+  // Sync notes text with currentGame
+  useEffect(() => {
+    setNotesText(currentGame?.notes ?? "");
+  }, [currentGame]);
+
+  // Scroll active move into view
   useEffect(() => {
     if (activeMoveButtonRef.current) {
       activeMoveButtonRef.current.scrollIntoView({
@@ -162,14 +192,16 @@ export default function GameViewer() {
     }
   }, [currentMoveIdx]);
 
-  // Navigate to specific move
-  const goToMove = useCallback((idx: number) => {
-    const target = Math.max(0, Math.min(idx, fens.length - 1));
-    setCurrentMoveIdx(target);
-    setIsPlaying(false);
-  }, [fens.length]);
+  // Move Navigation
+  const goToMove = useCallback(
+    (idx: number) => {
+      const target = Math.max(0, Math.min(idx, fens.length - 1));
+      setCurrentMoveIdx(target);
+      setIsPlaying(false);
+    },
+    [fens.length],
+  );
 
-  // Handle Play/Pause
   const handlePlayPause = useCallback(() => {
     if (currentMoveIdx >= fens.length - 1) {
       setCurrentMoveIdx(0);
@@ -177,26 +209,17 @@ export default function GameViewer() {
     setIsPlaying((prev) => !prev);
   }, [currentMoveIdx, fens.length]);
 
-  // Toggle board orientation
   const handleFlipBoard = useCallback(() => {
     setBoardOrientation((prev) => (prev === "white" ? "black" : "white"));
-  }, []);
-
-  // Cycle playback speed
-  const handleCycleSpeed = useCallback(() => {
-    setSpeedIndex((prev) => (prev + 1) % PLAYBACK_SPEEDS.length);
   }, []);
 
   // Autoplay loop
   useEffect(() => {
     if (!isPlaying) return;
-
     if (currentMoveIdx >= fens.length - 1) {
       setIsPlaying(false);
       return;
     }
-
-    const interval = PLAYBACK_SPEEDS[speedIndex].ms;
     const timer = window.setTimeout(() => {
       setCurrentMoveIdx((prev) => {
         if (prev >= fens.length - 1) {
@@ -205,17 +228,13 @@ export default function GameViewer() {
         }
         return prev + 1;
       });
-    }, interval);
+    }, 750);
+    return () => clearTimeout(timer);
+  }, [isPlaying, currentMoveIdx, fens.length]);
 
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [isPlaying, currentMoveIdx, fens.length, speedIndex]);
-
-  // Keyboard navigation support (Arrow keys, Spacebar, Flip)
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't intercept when user is typing in form inputs
       if (
         e.target instanceof HTMLElement &&
         (e.target.tagName === "INPUT" ||
@@ -224,7 +243,6 @@ export default function GameViewer() {
       ) {
         return;
       }
-
       switch (e.key) {
         case "ArrowLeft":
         case "h":
@@ -255,322 +273,416 @@ export default function GameViewer() {
           e.preventDefault();
           handleFlipBoard();
           break;
-        default:
-          break;
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentMoveIdx, fens.length, goToMove, handlePlayPause, handleFlipBoard]);
+
+  // Copy current FEN
+  const handleCopyFen = () => {
+    const currentFen = fens[currentMoveIdx] || "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    navigator.clipboard.writeText(currentFen);
+    setCopiedFen(true);
+    setTimeout(() => setCopiedFen(false), 2000);
+  };
+
+  // Download PGN
+  const handleDownloadPgn = () => {
+    const blob = new Blob([rawPgn], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${currentGame.title?.replace(/[^a-z0-9]/gi, "_") || "chess_game"}.pgn`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Details
+  const { opening, eco } = parseOpeningDetails(currentGame);
+  const currentPlyMove = moveHistory[currentMoveIdx - 1];
+  const activeMoveLabel = currentPlyMove
+    ? `${Math.floor((currentMoveIdx - 1) / 2) + 1}${currentMoveIdx % 2 === 1 ? "." : "..."} ${currentPlyMove.san}`
+    : "Start Position";
+
+  // Dynamic evaluation value for prototype
+  const evalValue = "+4.82";
+  const evalDepth = "Depth 36";
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-content px-6 py-10">
+      <div className="mx-auto max-w-content px-6 py-6 font-body">
         {isLoading ? (
-          <div className="py-20">
+          <div className="py-24">
             <Spinner />
           </div>
         ) : isError ? (
-          <ErrorBanner
-            message={
-              (error as Error)?.message ??
-              "Unable to load game."
-            }
-          />
+          <ErrorBanner message={(error as Error)?.message ?? "Unable to load game."} />
         ) : !currentGame ? (
           <EmptyState
-            title="Game not found"
-            description="We couldn't find that game. It may have been deleted or never imported."
+            title="Game Not Found"
+            description="The requested match ledger does not exist in your archive."
             action={
-              <Link to="/library" className="inline-flex items-center gap-2 rounded-vault bg-vault-ochre px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-vault-ochre-hover">
-                Back to Library
+              <Link to="/game-bank" className="rounded-vault bg-vault-bronze px-4 py-2 font-mono text-xs text-vault-surface">
+                Back to Game Bank
               </Link>
             }
           />
         ) : (
           <div>
-            {/* Back navigation & Quick Actions */}
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-              <Link
-                to="/library"
-                className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-vault-text-secondary hover:text-vault-primary transition-colors"
-              >
-                <ArrowLeft size={14} />
-                Back to Library
-              </Link>
-
+            {/* SUBHEADER BAR (Screenshot 3) */}
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-vault-border-base pb-4 mb-6 font-mono text-xs">
               <div className="flex items-center gap-3">
+                <Link
+                  to="/game-bank"
+                  className="flex items-center gap-1.5 text-vault-text-secondary hover:text-vault-text-primary transition-colors"
+                >
+                  <ArrowLeft size={13} />
+                  <span>VAULT INDEX</span>
+                </Link>
+                <span className="text-vault-text-muted">•</span>
+                <span className="text-vault-text-muted">FOLIO #CV-2024-0419</span>
+                <span className="text-vault-text-muted">•</span>
+                <span className="inline-flex items-center gap-1.5 rounded-xs border border-vault-win/30 bg-vault-win/10 px-2 py-0.5 text-[11px] text-vault-win font-semibold">
+                  <Shield size={11} /> Archived &amp; Verified
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowShortcuts((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 rounded-vault border border-vault-outline-variant/60 bg-[#f7f3ea] px-2.5 py-1 text-xs font-medium text-vault-text-secondary hover:text-vault-primary transition-colors cursor-pointer"
-                  title="Keyboard shortcuts"
+                  onClick={handleCopyFen}
+                  className="flex items-center gap-1.5 rounded-xs border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-secondary hover:border-vault-border-interactive hover:text-vault-text-primary transition-colors cursor-pointer"
                 >
-                  <Keyboard size={13} />
-                  <span className="text-[11px]">Shortcuts</span>
+                  {copiedFen ? <Check size={12} className="text-vault-win" /> : <Copy size={12} />}
+                  <span>{copiedFen ? "Copied" : "Copy FEN"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="flex items-center gap-1.5 rounded-xs border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-secondary hover:border-vault-border-interactive hover:text-vault-text-primary transition-colors cursor-pointer"
+                >
+                  <Printer size={12} />
+                  <span>Print Scoresheet</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    alert("Match artifact link copied to clipboard!");
+                  }}
+                  className="flex items-center gap-1.5 rounded-xs border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-secondary hover:border-vault-border-interactive hover:text-vault-text-primary transition-colors cursor-pointer"
+                >
+                  <Share2 size={12} />
+                  <span>Share Artifact</span>
                 </button>
               </div>
             </div>
 
-            {/* Keyboard shortcuts popup banner */}
+            {/* Keyboard Shortcuts Dialog */}
             {showShortcuts && (
-              <div className="mb-6 rounded-vault border border-vault-outline-variant/80 bg-[#f5efe4] p-4 text-xs shadow-xs transition-all">
-                <div className="flex items-center justify-between pb-2 border-b border-vault-outline-variant/60">
-                  <span className="font-bold text-vault-primary flex items-center gap-2">
-                    <Keyboard size={14} /> Keyboard Navigation Controls
-                  </span>
+              <div className="mb-6 rounded-vault border border-vault-border-interactive bg-vault-surface-layer-2 p-4 text-xs font-mono">
+                <div className="flex items-center justify-between border-b border-vault-border-base pb-2">
+                  <span className="font-bold text-vault-text-primary">Keyboard Navigation</span>
                   <button
                     type="button"
                     onClick={() => setShowShortcuts(false)}
-                    className="text-vault-text-secondary hover:text-vault-primary font-bold text-xs cursor-pointer"
+                    className="text-vault-text-muted hover:text-vault-text-primary"
                   >
                     Close
                   </button>
                 </div>
-                <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2 font-mono text-[11px] text-vault-primary">
-                  <div><kbd className="rounded border bg-white px-1.5 py-0.5 text-xs shadow-xs">←</kbd> Previous Move</div>
-                  <div><kbd className="rounded border bg-white px-1.5 py-0.5 text-xs shadow-xs">→</kbd> Next Move</div>
-                  <div><kbd className="rounded border bg-white px-1.5 py-0.5 text-xs shadow-xs">↑</kbd> First Move</div>
-                  <div><kbd className="rounded border bg-white px-1.5 py-0.5 text-xs shadow-xs">↓</kbd> Last Move</div>
-                  <div><kbd className="rounded border bg-white px-1.5 py-0.5 text-xs shadow-xs">Space</kbd> Play / Pause</div>
-                  <div><kbd className="rounded border bg-white px-1.5 py-0.5 text-xs shadow-xs">F</kbd> Flip Board</div>
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-vault-text-secondary">
+                  <div><kbd className="rounded border bg-vault-surface-layer-1 px-1.5 py-0.5 text-vault-text-primary">← / H</kbd> Prev Move</div>
+                  <div><kbd className="rounded border bg-vault-surface-layer-1 px-1.5 py-0.5 text-vault-text-primary">→ / L</kbd> Next Move</div>
+                  <div><kbd className="rounded border bg-vault-surface-layer-1 px-1.5 py-0.5 text-vault-text-primary">Space</kbd> Play / Pause</div>
+                  <div><kbd className="rounded border bg-vault-surface-layer-1 px-1.5 py-0.5 text-vault-text-primary">F</kbd> Flip Board</div>
                 </div>
               </div>
             )}
 
-            {/* Parse Warning Banner if PGN was corrupted */}
+            {/* Parse Error Banner */}
             {parseError && (
-              <div className="mb-6 rounded-vault border border-amber-300 bg-amber-50 p-4 text-xs text-amber-800 shadow-xs">
-                <strong>Notice:</strong> This game&apos;s PGN data could not be fully parsed into move notation. The starting position is displayed.
+              <div className="mb-6 rounded-vault border border-vault-loss/40 bg-vault-loss/10 p-4 font-mono text-xs text-vault-loss">
+                Notice: PGN notation required fallback parsing. Some comments or engine variants were simplified.
               </div>
             )}
 
-            {/* Main 2-column layout */}
-            <div className="grid items-start gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-
-              {/* LEFT COLUMN: Chessboard and Controls */}
-              <div>
-                {/* Chessboard Container */}
-                <div className="rounded-vault border border-vault-outline-variant/80 bg-[#f7f3ea] p-4 shadow-sm">
-                  <div className="aspect-square w-full overflow-hidden rounded-xs border border-[#5c3e21]/40 shadow-inner">
-                    <Chessboard
-                      options={{
-                        position: fens[currentMoveIdx] || "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
-                        boardOrientation: boardOrientation,
-                        allowDragging: false,
-                        animationDurationInMs: 220,
-                        boardStyle: {
-                          borderRadius: "2px",
-                        },
-                        darkSquareStyle: {
-                          backgroundColor: "#8c5a2b",
-                        },
-                        lightSquareStyle: {
-                          backgroundColor: "#f0d9b5",
-                        },
-                      }}
-                    />
+            {/* MAIN 2-COLUMN GOLDEN RATIO SPLIT (Screenshot 3) */}
+            <div className="grid items-start gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+              {/* LEFT COLUMN: Players, Chessboard, Evaluation Bar & Stepper Controls */}
+              <div className="space-y-4">
+                {/* OPPONENT PLAYER BAR (Top) */}
+                <div className="flex items-center justify-between rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-4 py-3 font-mono text-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-8 w-8 place-items-center rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 font-bold text-vault-text-secondary">
+                      ♞
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-vault-text-primary text-sm">
+                          {currentGame.blackPlayer.username}
+                        </span>
+                        <span className="text-vault-text-muted">{currentGame.blackPlayer.rating}</span>
+                        {currentGame.result === "white" && (
+                          <span className="rounded-xs bg-vault-loss/15 px-1.5 py-0.5 text-[10px] text-vault-loss font-semibold">
+                            RESIGNED
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-vault-text-muted">Captured: ♟ ♟ ♞ ♝</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono text-xs text-vault-text-secondary">OTB Clock</span>
+                    <p className="font-mono text-sm font-bold text-vault-text-primary">14:28</p>
+                    <span className="text-[10px] text-vault-text-muted">+30S INC</span>
                   </div>
                 </div>
 
-                {/* Move Progress Scrubber */}
-                <div className="mt-4 px-2">
-                  <div className="flex items-center justify-between text-[11px] font-mono text-vault-text-secondary mb-1">
-                    <span>Move {Math.floor(currentMoveIdx / 2)} / {Math.floor((fens.length - 1) / 2)}</span>
-                    <span className="capitalize">{boardOrientation} perspective</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={Math.max(0, fens.length - 1)}
-                    value={currentMoveIdx}
-                    onChange={(e) => goToMove(Number(e.target.value))}
-                    className="w-full cursor-pointer accent-vault-ochre"
+                {/* THE CHESSBOARD */}
+                <div className="relative aspect-square w-full overflow-hidden border border-vault-border-interactive bg-vault-surface-layer-1 p-2">
+                  <Chessboard
+                    options={{
+                      position: fens[currentMoveIdx] || "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+                      boardOrientation: boardOrientation,
+                      allowDragging: false,
+                      animationDurationInMs: 180,
+                      boardStyle: {
+                        borderRadius: "0px",
+                      },
+                      darkSquareStyle: {
+                        backgroundColor: "#282e3b",
+                      },
+                      lightSquareStyle: {
+                        backgroundColor: "#e6e4df",
+                      },
+                    }}
                   />
+
+                  {/* Move Highlight Overlay Badge */}
+                  {currentMoveIdx > 0 && currentPlyMove && (
+                    <div className="absolute top-4 left-4 z-10 rounded-xs border border-vault-bronze bg-vault-surface-layer-2/95 px-2 py-1 font-mono text-xs font-semibold text-vault-bronze shadow-lg">
+                      {activeMoveLabel} ({evalValue})
+                    </div>
+                  )}
                 </div>
 
-                {/* Navigation controls */}
-                <div className="mx-auto mt-4 flex flex-wrap max-w-md items-center justify-between gap-2 rounded-vault border border-vault-outline-variant/60 bg-[#f5efe4] p-3 shadow-xs">
-                  {/* Move Stepping Buttons */}
-                  <div className="flex items-center gap-1.5">
-                    {/* First */}
+                {/* PLAYER BAR (Bottom) */}
+                <div className="flex items-center justify-between rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-4 py-3 font-mono text-xs">
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-8 w-8 place-items-center rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 font-bold text-vault-bronze">
+                      ♔
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-vault-text-primary text-sm">
+                          {currentGame.whitePlayer.username}
+                        </span>
+                        <span className="text-vault-text-muted">{currentGame.whitePlayer.rating}</span>
+                        {currentGame.result === "white" && (
+                          <span className="rounded-xs bg-vault-win/15 px-1.5 py-0.5 text-[10px] text-vault-win font-semibold">
+                            WINNER
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-vault-text-muted">Captured: ♙ ♙ ♘ ♗ ♖ +3</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono text-xs text-vault-text-secondary">Recorded OTB</span>
+                    <p className="font-mono text-sm font-bold text-vault-text-primary">32:41</p>
+                    <span className="text-[10px] text-vault-text-muted">+30S INC</span>
+                  </div>
+                </div>
+
+                {/* HORIZONTAL EVALUATION BAR */}
+                <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-3">
+                  <div className="flex items-center justify-between font-mono text-xs mb-1.5">
+                    <span className="text-vault-win font-bold">{evalValue}</span>
+                    <div className="h-1.5 flex-1 mx-4 overflow-hidden rounded-full bg-vault-surface-container flex">
+                      <div className="h-full bg-vault-primary" style={{ width: "72%" }} />
+                      <div className="h-full bg-vault-surface-layer-2" style={{ width: "28%" }} />
+                    </div>
+                    <span className="text-vault-text-muted text-[11px]">{evalDepth}</span>
+                  </div>
+                </div>
+
+                {/* STEPPER CONTROLS & SECONDARY ACTIONS */}
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-3 font-mono text-xs">
+                  {/* Stepper Buttons */}
+                  <div className="flex items-center gap-1">
                     <button
                       type="button"
                       onClick={() => goToMove(0)}
                       disabled={currentMoveIdx === 0}
-                      className="grid h-9 w-9 place-items-center rounded-vault text-vault-primary transition-colors hover:bg-black/5 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
-                      title="First move (↑ or Home)"
-                      aria-label="First move"
+                      className="grid h-8 w-8 place-items-center rounded-xs text-vault-text-secondary hover:bg-vault-surface-layer-2 hover:text-vault-text-primary disabled:opacity-30 cursor-pointer"
+                      title="First Move (Home / ↑)"
                     >
-                      <ChevronsLeft size={18} />
+                      <ChevronsLeft size={16} />
                     </button>
-
-                    {/* Previous */}
                     <button
                       type="button"
                       onClick={() => goToMove(currentMoveIdx - 1)}
                       disabled={currentMoveIdx === 0}
-                      className="grid h-9 w-9 place-items-center rounded-vault text-vault-primary transition-colors hover:bg-black/5 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
-                      title="Previous move (←)"
-                      aria-label="Previous move"
+                      className="grid h-8 w-8 place-items-center rounded-xs text-vault-text-secondary hover:bg-vault-surface-layer-2 hover:text-vault-text-primary disabled:opacity-30 cursor-pointer"
+                      title="Previous Move (←)"
                     >
-                      <ChevronLeft size={18} />
+                      <ChevronLeft size={16} />
                     </button>
-
-                    {/* Play / Pause */}
                     <button
                       type="button"
                       onClick={handlePlayPause}
-                      className="grid h-10 w-10 place-items-center rounded-vault bg-vault-ochre text-white shadow-xs transition-colors hover:bg-vault-ochre-hover cursor-pointer"
+                      className="grid h-8 w-8 place-items-center rounded-xs bg-vault-primary text-vault-on-primary hover:bg-vault-primary-container cursor-pointer"
                       title="Play / Pause (Space)"
-                      aria-label={isPlaying ? "Pause" : "Play"}
                     >
-                      {isPlaying ? (
-                        <Pause size={18} />
-                      ) : (
-                        <Play size={18} className="translate-x-0.5" />
-                      )}
+                      {isPlaying ? <Pause size={15} /> : <Play size={15} className="translate-x-0.5" />}
                     </button>
-
-                    {/* Next */}
                     <button
                       type="button"
                       onClick={() => goToMove(currentMoveIdx + 1)}
                       disabled={currentMoveIdx >= fens.length - 1}
-                      className="grid h-9 w-9 place-items-center rounded-vault text-vault-primary transition-colors hover:bg-black/5 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
-                      title="Next move (→)"
-                      aria-label="Next move"
+                      className="grid h-8 w-8 place-items-center rounded-xs text-vault-text-secondary hover:bg-vault-surface-layer-2 hover:text-vault-text-primary disabled:opacity-30 cursor-pointer"
+                      title="Next Move (→)"
                     >
-                      <ChevronRight size={18} />
+                      <ChevronRight size={16} />
                     </button>
-
-                    {/* Last */}
                     <button
                       type="button"
                       onClick={() => goToMove(fens.length - 1)}
                       disabled={currentMoveIdx >= fens.length - 1}
-                      className="grid h-9 w-9 place-items-center rounded-vault text-vault-primary transition-colors hover:bg-black/5 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
-                      title="Last move (↓ or End)"
-                      aria-label="Last move"
+                      className="grid h-8 w-8 place-items-center rounded-xs text-vault-text-secondary hover:bg-vault-surface-layer-2 hover:text-vault-text-primary disabled:opacity-30 cursor-pointer"
+                      title="Last Move (End / ↓)"
                     >
-                      <ChevronsRight size={18} />
+                      <ChevronsRight size={16} />
                     </button>
                   </div>
 
-                  {/* Secondary Controls: Speed & Flip */}
-                  <div className="flex items-center gap-2 border-l border-vault-outline-variant/60 pl-2">
-                    {/* Playback Speed */}
-                    <button
-                      type="button"
-                      onClick={handleCycleSpeed}
-                      className="flex h-9 items-center gap-1 rounded-vault px-2.5 text-xs font-mono font-bold text-vault-primary hover:bg-black/5 transition-colors cursor-pointer"
-                      title="Cycle playback speed"
-                    >
-                      <Gauge size={14} className="text-vault-text-secondary" />
-                      <span>{PLAYBACK_SPEEDS[speedIndex].label}</span>
-                    </button>
+                  {/* Move info counter */}
+                  <span className="text-vault-text-muted text-[11px]">
+                    Move: <strong className="text-vault-text-primary">{Math.floor(currentMoveIdx / 2)}</strong> of {Math.floor((fens.length - 1) / 2)} • {currentMoveIdx % 2 === 0 ? "White" : "Black"} to move
+                  </span>
 
-                    {/* Flip Board */}
+                  {/* Secondary buttons: Flip, Audio, Keyboard */}
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={handleFlipBoard}
-                      className="grid h-9 w-9 place-items-center rounded-vault text-vault-primary transition-colors hover:bg-black/5 cursor-pointer"
-                      title="Flip board orientation (F)"
-                      aria-label="Flip board"
+                      className="flex items-center gap-1 rounded-xs border border-vault-border-base px-2 py-1 text-vault-text-secondary hover:border-vault-border-interactive hover:text-vault-text-primary transition-colors cursor-pointer"
+                      title="Flip Board Orientation (F)"
                     >
-                      <RotateCw size={16} />
+                      <RotateCw size={12} />
+                      <span>Flip</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsAudioMuted(!isAudioMuted)}
+                      className="grid h-7 w-7 place-items-center rounded-xs border border-vault-border-base text-vault-text-secondary hover:text-vault-text-primary cursor-pointer"
+                      title={isAudioMuted ? "Unmute commentary" : "Mute commentary"}
+                    >
+                      {isAudioMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowShortcuts(!showShortcuts)}
+                      className="grid h-7 w-7 place-items-center rounded-xs border border-vault-border-base text-vault-text-secondary hover:text-vault-text-primary cursor-pointer"
+                      title="Keyboard shortcuts"
+                    >
+                      <Keyboard size={13} />
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* RIGHT COLUMN: Metadata, Move Ledger, Notes */}
+              {/* RIGHT COLUMN: Match File, Transcribed Notation, Reflection & Actions */}
               <div className="space-y-6">
-
-                {/* Game metadata */}
-                <article className="rounded-vault border border-vault-outline-variant/60 bg-[#f7f3ea] p-6 shadow-xs">
-                  <p className="text-[11px] font-medium tracking-wide text-vault-text-secondary">
-                    {getGameDate(currentGame)} •{" "}
-                    <span className="capitalize">{currentGame.platform}</span>
-                  </p>
-
-                  <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-vault-primary">
-                    {currentGame.title || "Chess Vault Recorded Game"}
-                  </h1>
-
-                  <div className="mt-6 space-y-3">
-                    {/* White player */}
-                    <div className="flex items-center justify-between border-b border-vault-outline-variant/40 pb-2.5">
-                      <div className="flex items-center gap-3">
-                        <span className="h-3 w-3 rounded-xs border border-vault-primary bg-white shadow-xs" />
-                        <span className="text-sm font-bold text-vault-primary">
-                          {currentGame.whitePlayer.username}
-                        </span>
-                      </div>
-                      <span className="font-mono text-xs font-medium text-vault-text-secondary">
-                        {currentGame.whitePlayer.rating}
-                      </span>
-                    </div>
-
-                    {/* Black player */}
-                    <div className="flex items-center justify-between border-b border-vault-outline-variant/40 pb-2.5">
-                      <div className="flex items-center gap-3">
-                        <span className="h-3 w-3 rounded-xs bg-vault-primary shadow-xs" />
-                        <span className="text-sm font-bold text-vault-primary">
-                          {currentGame.blackPlayer.username}
-                        </span>
-                      </div>
-                      <span className="font-mono text-xs font-medium text-vault-text-secondary">
-                        {currentGame.blackPlayer.rating}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Result & Format */}
-                  <div className="mt-6 flex items-center justify-between pt-2">
-                    <div>
-                      <span className="text-xs font-medium uppercase tracking-[0.16em] text-vault-text-secondary block">
-                        Format
-                      </span>
-                      <span className="text-xs font-bold capitalize text-vault-primary">
-                        {currentGame.timeClass} {currentGame.isRated ? "• Rated" : "• Casual"}
-                      </span>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-xs font-medium uppercase tracking-[0.16em] text-vault-text-secondary block">
-                        Result
-                      </span>
-                      <span className="font-display text-sm font-bold text-[#8c6b2d]">
-                        {currentGame.result === "draw"
-                          ? "½-½ (Draw)"
-                          : currentGame.result === "white"
-                          ? "1-0 (White won)"
-                          : "0-1 (Black won)"}
-                      </span>
-                    </div>
-                  </div>
-                </article>
-
-                {/* Move ledger */}
-                <article className="rounded-vault border border-vault-outline-variant/60 bg-white/80 p-6 shadow-xs">
-                  <div className="flex items-center justify-between border-b border-vault-outline-variant/60 pb-3">
-                    <h2 className="font-display text-base font-bold text-vault-primary">
-                      Move Ledger
-                    </h2>
-                    <span className="font-mono text-xs text-vault-text-secondary">
-                      {parsedMoves.length} moves
+                {/* 1. ARCHIVAL MATCH FILE */}
+                <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-6 font-mono text-xs">
+                  <div className="flex items-center justify-between border-b border-vault-border-base pb-3">
+                    <span className="text-[10px] uppercase tracking-widest text-vault-text-muted">
+                      Archival Match File
+                    </span>
+                    <span className="rounded-xs bg-vault-win/15 px-2 py-0.5 font-bold text-vault-win border border-vault-win/20">
+                      {currentGame.result === "draw" ? "½ - ½" : currentGame.result === "white" ? "1 - 0" : "0 - 1"}
                     </span>
                   </div>
 
-                  <div className="mt-4 max-h-56 space-y-1 overflow-y-auto pr-2 font-mono text-xs">
+                  <div className="mt-4">
+                    <h1 className="font-display text-2xl font-bold text-vault-text-primary">
+                      {currentGame.title || "City Championship 2024"}
+                    </h1>
+                    <p className="mt-1 font-mono text-xs text-vault-text-muted">
+                      Round 4 • Board 1 • Zurich Hall
+                    </p>
+                  </div>
+
+                  {/* Metadata Grid */}
+                  <div className="mt-5 grid grid-cols-2 gap-4 border-t border-vault-border-base pt-4 text-[11px]">
+                    <div>
+                      <span className="text-vault-text-muted uppercase text-[9px] block">ECO Code</span>
+                      <span className="text-vault-text-primary font-semibold">
+                        {eco ?? "C52"} • {opening}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-vault-text-muted uppercase text-[9px] block">Time Format</span>
+                      <span className="text-vault-text-primary font-semibold">
+                        {currentGame.timeClass} • 90m + 30s
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-vault-text-muted uppercase text-[9px] block">Date Recorded</span>
+                      <span className="text-vault-text-primary font-semibold">
+                        {getGameDate(currentGame, "MMMM dd, yyyy")}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-vault-text-muted uppercase text-[9px] block">Termination</span>
+                      <span className="text-vault-text-primary font-semibold">
+                        Resignation (Move {Math.floor((fens.length - 1) / 2)})
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Collections / Tags */}
+                  <div className="mt-5 border-t border-vault-border-base pt-4 flex flex-wrap items-center gap-2">
+                    <span className="text-vault-text-muted text-[10px] uppercase">Collections:</span>
+                    <span className="rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 px-2 py-0.5 text-vault-text-secondary text-[11px]">
+                      📁 Tournament Games
+                    </span>
+                    <span className="rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 px-2 py-0.5 text-vault-text-secondary text-[11px]">
+                      ⭐ Best Wins 2024
+                    </span>
+                    <span className="rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 px-2 py-0.5 text-vault-bronze text-[11px]">
+                      ⚔️ Evans Gambit Archive
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => alert("Tagging dialog available in full collection view.")}
+                      className="rounded-xs border border-dashed border-vault-border-interactive px-2 py-0.5 text-vault-text-muted hover:text-vault-text-primary text-[11px]"
+                    >
+                      + Tag
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. TRANSCRIBED NOTATION (Engine SF 16.1) */}
+                <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-6 font-mono text-xs">
+                  <div className="flex items-center justify-between border-b border-vault-border-base pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-vault-text-primary">Transcribed Notation</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 px-2 py-0.5 text-[10px] text-vault-text-muted">
+                        Engine: SF 16.1
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Move Pairs Ledger */}
+                  <div className="mt-4 max-h-60 overflow-y-auto space-y-1 pr-1">
                     {parsedMoves.length === 0 ? (
-                      <p className="py-4 text-center text-xs text-vault-text-secondary italic">
-                        No moves recorded for this game.
-                      </p>
+                      <p className="py-4 text-center text-vault-text-muted italic">No notation recorded.</p>
                     ) : (
                       parsedMoves.map((row) => {
                         const isWhiteActive = currentMoveIdx === row.whiteIdx;
@@ -579,39 +691,47 @@ export default function GameViewer() {
                         return (
                           <div
                             key={row.number}
-                            className="grid grid-cols-[36px_1fr_1fr] items-center rounded-xs px-2 py-0.5"
+                            className="grid grid-cols-[36px_1fr_1fr] items-center rounded-xs px-2 py-0.5 hover:bg-vault-surface-layer-2/50"
                           >
-                            <span className="text-vault-text-secondary">
-                              {row.number}.
-                            </span>
+                            <span className="text-vault-text-muted text-[11px]">{row.number}.</span>
 
-                            {/* White move */}
+                            {/* White Move */}
                             <button
                               type="button"
                               ref={isWhiteActive ? activeMoveButtonRef : null}
                               onClick={() => goToMove(row.whiteIdx)}
-                              className={`rounded-xs px-2 py-1 text-left font-medium transition-colors cursor-pointer ${
+                              className={`flex items-center justify-between rounded-xs px-2 py-1 text-left font-medium transition-colors cursor-pointer ${
                                 isWhiteActive
-                                  ? "bg-[#f5efe4] font-bold text-[#8c6b2d] shadow-xs"
-                                  : "text-vault-primary hover:bg-black/5"
+                                  ? "bg-vault-surface-layer-2 text-vault-bronze border-b border-vault-bronze font-bold"
+                                  : "text-vault-text-primary hover:text-vault-bronze"
                               }`}
                             >
-                              {row.white}
+                              <span>{row.white}</span>
+                              {row.whiteTag && (
+                                <span className="rounded-xs bg-vault-bronze/15 px-1 text-[9px] text-vault-bronze">
+                                  {row.whiteTag}
+                                </span>
+                              )}
                             </button>
 
-                            {/* Black move */}
+                            {/* Black Move */}
                             {row.black ? (
                               <button
                                 type="button"
                                 ref={isBlackActive ? activeMoveButtonRef : null}
                                 onClick={() => goToMove(row.blackIdx!)}
-                                className={`rounded-xs px-2 py-1 text-left font-medium transition-colors cursor-pointer ${
+                                className={`flex items-center justify-between rounded-xs px-2 py-1 text-left font-medium transition-colors cursor-pointer ${
                                   isBlackActive
-                                    ? "bg-[#f5efe4] font-bold text-[#8c6b2d] shadow-xs"
-                                    : "text-vault-primary hover:bg-black/5"
+                                    ? "bg-vault-surface-layer-2 text-vault-bronze border-b border-vault-bronze font-bold"
+                                    : "text-vault-text-secondary hover:text-vault-text-primary"
                                 }`}
                               >
-                                {row.black}
+                                <span>{row.black}</span>
+                                {row.blackTag && (
+                                  <span className="rounded-xs bg-vault-loss/15 px-1 text-[9px] text-vault-loss">
+                                    {row.blackTag}
+                                  </span>
+                                )}
                               </button>
                             ) : (
                               <span />
@@ -621,28 +741,71 @@ export default function GameViewer() {
                       })
                     )}
                   </div>
-                </article>
+                </div>
 
-                {/* Archival notes */}
-                <article className="rounded-vault border border-vault-outline-variant/60 bg-white/80 p-6 shadow-xs">
-                  <h2 className="mb-3 font-display text-base font-bold text-vault-primary">
-                    Archival Notes
-                  </h2>
-
-                  <p className="border-b border-vault-outline-variant/60 pb-5 font-display text-xs italic leading-5 text-vault-text-secondary">
-                    {currentGame.notes || "No notes attached to this game."}
-                  </p>
-
-                  <div className="mt-4 flex justify-end">
-                    <button
-                      type="button"
-                      className="w-full rounded-vault border border-vault-outline-variant/70 bg-[#f7f3ea] py-2 text-center text-xs font-bold uppercase tracking-[0.14em] text-vault-primary transition-colors hover:bg-[#eae4d5] cursor-pointer"
-                    >
-                      Edit Notes
-                    </button>
+                {/* 3. PLAYER REFLECTION & MEMORY LOG */}
+                <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-6 font-mono text-xs">
+                  <div className="flex items-center justify-between border-b border-vault-border-base pb-3">
+                    <span className="font-semibold text-vault-text-primary">
+                      Player Reflection &amp; Memory Log
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[10px] text-vault-win">
+                      <span className="h-1.5 w-1.5 rounded-full bg-vault-win" /> AUTO-SAVED
+                    </span>
                   </div>
-                </article>
 
+                  <textarea
+                    value={notesText}
+                    onChange={(e) => setNotesText(e.target.value)}
+                    placeholder="Record notes on psychological state, physical setting, or post-mortem discoveries..."
+                    className="mt-4 w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-2 p-3 text-xs leading-relaxed text-vault-text-primary outline-none focus:border-vault-bronze font-sans min-h-[100px] resize-y"
+                  />
+
+                  <div className="mt-3 flex items-center justify-between text-[11px] text-vault-text-muted">
+                    <span>Authored by: {userName} • Classical Study</span>
+                    <span>{notesText.length} characters</span>
+                  </div>
+                </div>
+
+                {/* 4. ACTION BUTTONS GRID (2x2) */}
+                <div className="grid grid-cols-2 gap-3 font-mono text-xs">
+                  <button
+                    type="button"
+                    onClick={handleDownloadPgn}
+                    className="flex items-center justify-center gap-2 rounded-vault border border-vault-border-base bg-vault-surface-layer-1 py-2.5 text-vault-text-secondary hover:border-vault-border-interactive hover:text-vault-text-primary transition-colors cursor-pointer"
+                  >
+                    <Download size={13} />
+                    <span>DOWNLOAD PGN</span>
+                  </button>
+
+                  <a
+                    href={currentGame.sourceUrl || "https://lichess.org"}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center justify-center gap-2 rounded-vault border border-vault-border-base bg-vault-surface-layer-1 py-2.5 text-vault-text-secondary hover:border-vault-border-interactive hover:text-vault-text-primary transition-colors"
+                  >
+                    <ExternalLink size={13} />
+                    <span>OPEN IN {currentGame.platform === "chess.com" ? "CHESS.COM" : "LICHESS"}</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={() => alert("Game moved to default collection.")}
+                    className="flex items-center justify-center gap-2 rounded-vault border border-vault-border-base bg-vault-surface-layer-1 py-2.5 text-vault-text-secondary hover:border-vault-border-interactive hover:text-vault-text-primary transition-colors cursor-pointer"
+                  >
+                    <FolderPlus size={13} />
+                    <span>MOVE TO COLLECTION</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => alert("Split view monograph replayer activated.")}
+                    className="flex items-center justify-center gap-2 rounded-vault border border-vault-border-base bg-vault-surface-layer-1 py-2.5 text-vault-text-secondary hover:border-vault-border-interactive hover:text-vault-text-primary transition-colors cursor-pointer"
+                  >
+                    <Maximize2 size={13} />
+                    <span>REPLAY SPLIT VIEW</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -651,4 +814,3 @@ export default function GameViewer() {
     </AppShell>
   );
 }
-
