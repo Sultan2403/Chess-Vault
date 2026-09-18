@@ -116,6 +116,13 @@ const gameSchema = new mongoose.Schema(
       trim: true,
       maxlength: 20,
     },
+
+    // Opening details (parsed from platform data or PGN headers)
+    opening: {
+      eco:       { type: String, trim: true, maxlength: 10  },
+      name:      { type: String, trim: true, maxlength: 100 },
+      variation: { type: String, trim: true, maxlength: 100 },
+    },
   },
   {
     strict: true,
@@ -167,6 +174,10 @@ gameSchema.index({
   userId: 1,
   isRated: 1,
 });
+
+// Opening search
+gameSchema.index({ userId: 1, "opening.name": 1 });
+gameSchema.index({ userId: 1, "opening.variation": 1 });
 
 gameSchema.set("toJSON", {
   transform: (_, obj) => {

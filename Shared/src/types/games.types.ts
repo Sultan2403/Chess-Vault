@@ -114,6 +114,13 @@ export interface Lichess_Game {
     black: Lichess_Player;
   };
 
+  /** Opening classification from Lichess. Present when the game reaches a known opening. */
+  opening?: {
+    eco: string;   // ECO code, e.g. "C34"
+    name: string;  // Full name including variation, e.g. "King's Gambit Accepted: Fischer Defense"
+    ply: number;   // Half-moves into game where opening was identified (not stored on Game)
+  };
+
   moves: string;
   pgn: string;
 

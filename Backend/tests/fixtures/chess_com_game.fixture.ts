@@ -2,7 +2,7 @@ import type { Chess_Com_Game } from "@chess-vault/shared";
 
 export const MOCK_CHESS_COM_GAME: Chess_Com_Game = {
   url: "https://www.chess.com/game/daily/957394363",
-  pgn: "1. d4 1... d5 2. c4 2... dxc4 3. Nc3 1-0",
+  pgn: '[Event "Live Chess"]\n[ECO "D06"]\n[Opening "Queen\'s Gambit"]\n[Variation "Declined"]\n\n1. d4 d5 2. c4 dxc4 3. Nc3 1-0',
   time_control: "1/259200",
   end_time: 1782919420,
   rated: true,

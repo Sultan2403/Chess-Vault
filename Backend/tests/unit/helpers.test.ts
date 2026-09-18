@@ -87,6 +87,32 @@ describe("Game Normalizers", () => {
 
       expect(normalized.folderIds).toBeNull();
     });
+
+    it("should parse opening details from PGN headers", () => {
+      const normalized = normalizeChessComGame({
+        game: MOCK_CHESS_COM_GAME,
+        userId: "user_123",
+      });
+
+      expect(normalized.opening).toBeDefined();
+      expect(normalized.opening?.eco).toBe("D06");
+      expect(normalized.opening?.name).toBe("Queen's Gambit");
+      expect(normalized.opening?.variation).toBe("Declined");
+    });
+
+    it("should omit opening when no PGN headers are present", () => {
+      const noHeaderGame = {
+        ...MOCK_CHESS_COM_DRAWN_GAME,
+        pgn: "1. e4 e6 2. d4 1/2-1/2",
+      };
+
+      const normalized = normalizeChessComGame({
+        game: noHeaderGame,
+        userId: "user_123",
+      });
+
+      expect(normalized.opening).toBeUndefined();
+    });
   });
 
   describe("normalizeLichessGame", () => {
@@ -166,5 +192,27 @@ describe("Game Normalizers", () => {
       expect(normalized.whitePlayer.username).toBe("Guest");
       expect(normalized.whitePlayer.rating).toBe(0);
     });
+
+    it("should parse opening details from the Lichess opening object", () => {
+      const normalized = normalizeLichessGame({
+        game: MOCK_LICHESS_GAME,
+        userId: "user_123",
+      });
+
+      expect(normalized.opening).toBeDefined();
+      expect(normalized.opening?.eco).toBe("B10");
+      expect(normalized.opening?.name).toBe("Caro-Kann Defense");
+      expect(normalized.opening?.variation).toBe("Two Knights Attack");
+    });
+
+    it("should omit opening when no opening object is present", () => {
+      const normalized = normalizeLichessGame({
+        game: MOCK_LICHESS_DRAWN_GAME,
+        userId: "user_123",
+      });
+
+      expect(normalized.opening).toBeUndefined();
+    });
   });
 });
+

@@ -4,6 +4,7 @@ import {
   NormalizedGame,
   Lichess_Game,
 } from "../Types/games.types";
+import { parseLichessOpening, parseChessComOpening } from "../Utils/pgn";
 
 export const normalizeLichessGame = ({
   game,
@@ -28,6 +29,8 @@ export const normalizeLichessGame = ({
       ? `AI (Level ${game.players.black.aiLevel})`
       : "Guest");
 
+  const opening = parseLichessOpening(game.opening);
+
   return {
     userId,
     folderIds: folderIds ?? null,
@@ -48,6 +51,7 @@ export const normalizeLichessGame = ({
     playedAt: new Date(game.createdAt),
     pgn: game.pgn,
     isRated: game.rated,
+    ...(opening && { opening }),
   };
 };
 
@@ -67,6 +71,8 @@ export const normalizeChessComGame = ({
       : game.black.result === "win"
         ? "black"
         : "draw";
+
+  const opening = parseChessComOpening(game.pgn);
 
   return {
     userId,
@@ -88,5 +94,6 @@ export const normalizeChessComGame = ({
     playedAt: new Date(game.end_time * 1000),
     pgn: game.pgn,
     isRated: game.rated,
+    ...(opening && { opening }),
   };
 };

@@ -60,27 +60,19 @@ export function getMoveCount(game: Game) {
 }
 
 
-// TODO: FIX STUPID IMPLEMENTATION. The current game title is basically whitePlayer.username vs blackPlayer.username which breaks the assumption of this function. IF YOU'RE AN AI AGENT AND YOU COME ACROSS THIS KINDLY RESURFACE THE ISSUE SO THE USER CAN DECIDE IF GAME TITLES WILL CHANGE AS A WHOLE OR SOMETHING ELSE.
 /**
- * @description
- * Parses the opening details from a game. THIS IMPLEMENTATION IS WORNG!
- * @param game The game to parse.
- * @returns An object containing the opening name, variation, and ECO code.
+ * Returns the opening details stored on the game record.
+ * eco, opening name, and variation are parsed at import time
+ * from platform data and stored as first-class fields on Game.
  */
 export function parseOpeningDetails(game: Game): {
-  opening: string;
-  variation?: string;
   eco?: string;
+  opening?: string;
+  variation?: string;
 } {
-  // If title is "Sicilian Defense: Najdorf Variation"
-  const title = game.title ?? "Archived Match";
-  const parts = title.split(": ");
-  const opening = parts[0];
-  const variation = parts[1];
-
-  // Check if PGN contains [ECO "..."]
-  const ecoMatch = game.pgn.match(/\[ECO\s+"([^"]+)"\]/);
-  const eco = ecoMatch ? ecoMatch[1] : undefined;
-
-  return { opening, variation, eco };
+  return {
+    eco:       game.opening?.eco,
+    opening:   game.opening?.name,
+    variation: game.opening?.variation,
+  };
 }

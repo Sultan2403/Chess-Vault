@@ -29,6 +29,11 @@ export const MOCK_LICHESS_GAME: Lichess_Game = {
       ratingDiff: 12,
     },
   },
+  opening: {
+    eco: "B10",
+    name: "Caro-Kann Defense: Two Knights Attack",
+    ply: 4,
+  },
   moves: "e4 c6 Bc4 d5 exd5 cxd5",
   pgn: "1. e4 c6 2. Bc4 d5 0-1",
   clock: {

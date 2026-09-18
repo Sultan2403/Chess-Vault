@@ -279,6 +279,8 @@ export const searchGames = async ({
         { "blackPlayer.username": { $regex: search, $options: "i" } },
         { notes: { $regex: search, $options: "i" } },
         { tags: { $regex: search, $options: "i" } },
+        { "opening.name": { $regex: search, $options: "i" } },
+        { "opening.variation": { $regex: search, $options: "i" } },
       ],
     }),
   };

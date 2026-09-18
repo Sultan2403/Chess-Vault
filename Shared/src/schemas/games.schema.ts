@@ -25,6 +25,16 @@ export const playerInputSchema = z.object({
   rating: z.number().nonnegative(),
 });
 
+/** Opening details parsed from platform data or PGN headers */
+export const openingSchema = z.object({
+  /** ECO classification code (e.g. "C34"). Stored for display; not indexed. */
+  eco: z.string().trim().max(10).optional(),
+  /** Opening family name (e.g. "King's Gambit Accepted") */
+  name: z.string().trim().max(100).optional(),
+  /** Specific variation (e.g. "Fischer Defense") */
+  variation: z.string().trim().max(100).optional(),
+});
+
 export const GameSchema = z.object({
   /** MongoDB ObjectId string assigned upon persistence in Chess Vault */
   id: z.string().trim().min(1),
@@ -76,6 +86,9 @@ export const GameSchema = z.object({
   /** User custom tag */
   tags: z.string().trim().max(20).optional(),
 
+  /** Opening details: ECO code, opening family name, and variation */
+  opening: openingSchema.optional(),
+
   /** Timestamp when persisted in Chess Vault DB */
   createdAt: z.coerce.date().optional(),
   /** Timestamp when last updated in Chess Vault DB */
@@ -105,6 +118,9 @@ export const searchGamesQuery = z.object({
     if (val === "false") return false;
     return val;
   }, z.boolean().optional()),
+
+  "opening.name": z.string().trim().max(100).optional(),
+  "opening.variation": z.string().trim().max(100).optional(),
 
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(15),
