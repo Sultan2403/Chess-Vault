@@ -32,20 +32,17 @@ import { Spinner } from "../components/ui/Spinner";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { EmptyState } from "../components/ui/EmptyState";
 import { getGameDate, getPlayerPerspective, parseOpeningDetails } from "../utils/game";
-import { mockGames } from "../data/mock-games";
 import { useUser } from "@clerk/react";
 
 export default function GameViewer() {
   const { id } = useParams<{ id: string }>();
   const { user } = useUser();
-  const userName = user?.firstName ?? user?.username ?? "Sultan";
+  const userName = user?.firstName ?? user?.username ?? "Vault Keeper";
 
   const { data, isLoading, isError, error } = useGame(id || "");
   const platformUsernames = usePlatformUsernames();
 
-  // Find real game or fallback to matching mock game
-  const currentGame =
-    data?.game ?? mockGames.find((g) => g.id === id) ?? mockGames[0];
+  const currentGame = data?.game;
 
   // Extract raw PGN
   const rawPgn = currentGame?.pgn ?? "";
@@ -161,6 +158,14 @@ export default function GameViewer() {
 
   // Perspective
   const perspective = useMemo(() => {
+    if (!currentGame) {
+      return {
+        player: { username: "", rating: 0 },
+        opponent: { username: "", rating: 0 },
+        playerColor: "white" as const,
+        result: "draw" as const,
+      };
+    }
     return getPlayerPerspective(currentGame, platformUsernames, userName);
   }, [currentGame, platformUsernames, userName]);
 
@@ -289,6 +294,7 @@ export default function GameViewer() {
 
   // Download PGN
   const handleDownloadPgn = () => {
+    if (!currentGame) return;
     const blob = new Blob([rawPgn], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -299,7 +305,9 @@ export default function GameViewer() {
   };
 
   // Details
-  const { opening, eco } = parseOpeningDetails(currentGame);
+  const { opening, eco } = currentGame
+    ? parseOpeningDetails(currentGame)
+    : { opening: undefined, eco: undefined };
   const currentPlyMove = moveHistory[currentMoveIdx - 1];
   const activeMoveLabel = currentPlyMove
     ? `${Math.floor((currentMoveIdx - 1) / 2) + 1}${currentMoveIdx % 2 === 1 ? "." : "..."} ${currentPlyMove.san}`

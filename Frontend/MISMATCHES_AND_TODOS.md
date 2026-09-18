@@ -28,7 +28,7 @@ Strictly conforming to `AGENTS.md`, we do not invent unverified backend APIs or 
 | **ARCHIVE SOURCES ("3 connected repositories: Lichess, Chess.com, OTB FIDE")** | The server supports `chess.com` and `lichess` only (`PlatformType`). OTB FIDE is not a supported platform. | Shows connected platforms from `useAccountBootstrap()`. OTB FIDE is tagged as "Manual Ingestion / OTB". | Implement FIDE ID registry lookup or manual OTB tournament ingestion. |
 | **Recent Engagements (3 Interactive Boards)** | Real user games retrieved via `useGames({ limit: 3 })`. | Renders real user games if imported; falls back to curated sample matches if the vault is brand new. | N/A — Connected to real data. |
 | **Archive Observations (Opening Drift, W/D/L in Catalan, Rapid Peak 2,185)** | No server-side analytics, opening performance calculations, or Elo milestone tracking exist. | Renders UI prototype with high fidelity using mock observation models. | Build an analytical aggregation service for opening tendencies and rating peaks. |
-| **Force Sync Now** | `accountApi.syncLinkedAccount(id)` exists for individual linked accounts. | Triggers sync on active linked accounts from bootstrap. | Add a single unified `syncAll` endpoint on the server. |
+| **Force Sync Now** | The exact system behavior (whether to trigger sequential background sync across all linked accounts, dispatch a batch background job, or refresh the cache) is undecided. | UI placeholder button; left unhooked pending product specification. | Define and implement backend batch sync/refresh endpoint. |
 
 ---
 

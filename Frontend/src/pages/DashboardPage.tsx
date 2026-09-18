@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "@clerk/react";
-import { ArrowRight, RefreshCw, FileCode, ExternalLink } from "lucide-react";
+import { ArrowRight, RefreshCw, FileCode, FolderPlus, Plus, Database } from "lucide-react";
 import { AppShell } from "../components/layout/AppShell";
 import { Button } from "../components/ui/Button";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
@@ -13,23 +13,22 @@ import {
   useConnectLinkedAccounts,
   useVerifyLinkedAccount,
 } from "../hooks/useAccount";
-import { mockGames } from "../data/mock-games";
-import { getPlayerPerspective, parseOpeningDetails } from "../utils/game";
+import { getPlayerPerspective, parseOpeningDetails, getGameDate } from "../utils/game";
 import { OnboardingModal } from "../components/onboarding/OnboardingModal";
 import { Platforms } from "@chess-vault/shared";
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const userName = user?.username || user?.firstName;
+  const userName = user?.username || user?.firstName || "Vault Keeper";
 
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
   // Queries
-  const { data: gamesData } = useGames({ limit: 6 });
-  const { data: foldersData } = useFolders({ limit: 8 });
-  const { refetch: refetchAccount } = useAccountBootstrap();
+  const { data: gamesData, isLoading: isGamesLoading } = useGames({ limit: 6 });
+  const { data: foldersData, isLoading: isFoldersLoading } = useFolders({ limit: 8 });
+  const { data: accountData, refetch: refetchAccount } = useAccountBootstrap();
   const platformUsernames = usePlatformUsernames();
 
   const connectMutation = useConnectLinkedAccounts();
@@ -37,64 +36,65 @@ export default function DashboardPage() {
 
   // Metrics
   const realGamesCount = gamesData?.pagination?.total ?? 0;
-  const displayGamesCount = realGamesCount > 0 ? realGamesCount : 4218;
-  const realFoldersCount =
-    foldersData?.total ?? foldersData?.folders?.length ?? 0;
-  const displayFoldersCount = realFoldersCount > 0 ? realFoldersCount : 14;
-
-  // Games to display in Recent Engagements
-  const rawGames =
-    gamesData?.games && gamesData.games.length > 0
-      ? gamesData.games
-      : mockGames;
-  const recentGames = rawGames.slice(0, 3);
-
-  // Folders to display
+  const realFoldersCount = foldersData?.total ?? foldersData?.folders?.length ?? 0;
+  const recentGames = gamesData?.games?.slice(0, 3) ?? [];
   const userFolders = foldersData?.folders ?? [];
-  // FOLIOS SHOULD BE FROM THE USEFOLDERS HOOK. AND THE NAMING SHOULD BE CHANGED TO FOLDERS EVERYWHERE.
-  const defaultFolios = [
-    {
-      id: "folio-1",
-      name: "Tournament Games",
-      count: 34,
-      desc: "FIDE standard rated matches with arbiter verification.",
-      updated: "UPDATED 3 DAYS AGO",
-    },
-    {
-      id: "folio-2",
-      name: "Najdorf Defense Lab",
-      count: 142,
-      desc: "6.Be3 and 6.Bg5 deep preparation lines and tactical shots.",
-      updated: "UPDATED YESTERDAY",
-    },
-    {
-      id: "folio-3",
-      name: "Tactical Monoliths",
-      count: 39,
-      desc: "Decisive queen sacrifices and quiet king safety manoeuvres.",
-      updated: "UPDATED 2 WKS AGO",
-    },
-    {
-      id: "folio-4",
-      name: "Toughest Opponents",
-      count: 67,
-      desc: "Profiles vs 2200+ Elo peers with negative score records.",
-      updated: "UPDATED OCT 28",
-    },
-  ];
 
-  const foliosToDisplay =
-    userFolders.length > 0
-      ? userFolders.slice(0, 4).map((f, i) => ({
-          id: f.id,
-          name: f.name,
-          count: defaultFolios[i % defaultFolios.length].count,
-          desc: f.description || defaultFolios[i % defaultFolios.length].desc,
-          updated: "ACTIVE FOLIO",
-        }))
-      : defaultFolios;
+  // Live Connected Accounts
+  const connectedAccounts = accountData?.linkedAccounts ?? [];
+  const annotatedCount = useMemo(() => {
+    return (gamesData?.games ?? []).filter((g) => Boolean(g.notes || g.tags)).length;
+  }, [gamesData?.games]);
 
-  // Manual Force Sync trigger
+  // Observations derived from real games
+  const observations = useMemo(() => {
+    const games = gamesData?.games ?? [];
+    if (games.length === 0) return null;
+
+    let wins = 0;
+    let draws = 0;
+    let losses = 0;
+
+    const openingMap: Record<string, { count: number; wins: number; name: string }> = {};
+
+    games.forEach((g) => {
+      const p = getPlayerPerspective(g, platformUsernames, user?.username ?? undefined);
+      if (p.result === "win") wins++;
+      else if (p.result === "draw") draws++;
+      else losses++;
+
+      const parsed = parseOpeningDetails(g);
+      const opName = parsed.opening || g.title || "Standard Encounter";
+      if (!openingMap[opName]) {
+        openingMap[opName] = { count: 0, wins: 0, name: opName };
+      }
+      openingMap[opName].count++;
+      if (p.result === "win") openingMap[opName].wins++;
+    });
+
+    const total = games.length;
+    const sortedOpenings = Object.values(openingMap).sort((a, b) => b.count - a.count);
+    const topOpening = sortedOpenings[0];
+
+    return {
+      wins,
+      draws,
+      losses,
+      total,
+      winPct: Math.round((wins / total) * 100),
+      drawPct: Math.round((draws / total) * 100),
+      lossPct: Math.round((losses / total) * 100),
+      topOpening: topOpening
+        ? {
+            name: topOpening.name,
+            count: topOpening.count,
+            winPct: Math.round((topOpening.wins / topOpening.count) * 100),
+          }
+        : null,
+    };
+  }, [gamesData?.games, platformUsernames, user?.username]);
+
+  // Manual Force Sync trigger (Placeholder as documented in MISMATCHES_AND_TODOS.md)
   const handleForceSync = async () => {
     setIsSyncing(true);
     setSyncFeedback(null);
@@ -113,22 +113,22 @@ export default function DashboardPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-content px-6 py-10 space-y-12">
-        {/* HERO / WELCOME HEADER (Screenshot 2) */}
+        {/* HERO / WELCOME HEADER */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-vault-border-base pb-8">
           <div>
             <div className="flex items-center gap-2 font-mono text-xs text-vault-text-muted">
               <span className="h-1.5 w-1.5 rounded-full bg-vault-win" />
-              <span>FOLIO REF. 04-2991B</span>
+              <span>REGISTRY REF. CV-{new Date().getFullYear()}</span>
               <span>•</span>
               <span className="uppercase text-vault-bronze">
                 Active Registry
               </span>
             </div>
             <h1 className="mt-2 font-display text-4xl sm:text-5xl font-normal text-vault-text-primary tracking-tight">
-              Good evening, {userName}
+              Good day, {userName}
             </h1>
             <p className="mt-1 text-sm text-vault-text-secondary font-sans">
-              Your chess history, kept in one place.
+              Your permanent chess archive and match registry.
             </p>
           </div>
 
@@ -142,7 +142,11 @@ export default function DashboardPage() {
                     : "text-vault-text-muted"
                 }
               />
-              <span>Synced 2h ago: Chess.com & Lichess</span>
+              <span>
+                {connectedAccounts.length > 0
+                  ? `Connected: ${connectedAccounts.map((a) => a.platform).join(" & ")}`
+                  : "No platforms connected"}
+              </span>
             </div>
             <Link to="/game-bank">
               <Button
@@ -164,10 +168,10 @@ export default function DashboardPage() {
             </span>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="font-display text-3xl font-bold text-vault-text-primary">
-                {displayGamesCount.toLocaleString()}
+                {isGamesLoading ? "..." : realGamesCount.toLocaleString()}
               </span>
               <span className="font-mono text-xs text-vault-win font-semibold">
-                +12 this wk
+                live
               </span>
             </div>
             <p className="mt-1 font-mono text-[11px] text-vault-text-muted">
@@ -178,11 +182,11 @@ export default function DashboardPage() {
           {/* Stat 2 */}
           <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5">
             <span className="font-mono text-[10px] uppercase tracking-widest text-vault-text-muted">
-              Curated Folios
+              Curated Folders
             </span>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="font-display text-3xl font-bold text-vault-text-primary">
-                {displayFoldersCount}
+                {isFoldersLoading ? "..." : realFoldersCount}
               </span>
               <span className="font-mono text-xs text-vault-text-secondary">
                 active
@@ -200,14 +204,14 @@ export default function DashboardPage() {
             </span>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="font-display text-3xl font-bold text-vault-text-primary">
-                62
+                {annotatedCount}
               </span>
               <span className="font-mono text-xs text-vault-bronze">
-                Starred
+                noted
               </span>
             </div>
             <p className="mt-1 font-mono text-[11px] text-vault-text-muted">
-              With deep engine variations
+              With user marginalia & notes
             </p>
           </div>
 
@@ -216,24 +220,27 @@ export default function DashboardPage() {
             <span className="font-mono text-[10px] uppercase tracking-widest text-vault-text-muted">
               Archive Sources
             </span>
-            <div className="mt-2 flex items-center gap-1.5 font-mono text-xs font-semibold">
-              <span className="rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 px-1.5 py-0.5 text-vault-text-primary">
-                Lichess
-              </span>
-              <span className="rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 px-1.5 py-0.5 text-vault-text-primary">
-                Chess.com
-              </span>
-              <span className="rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 px-1.5 py-0.5 text-vault-bronze">
-                OTB PGN
-              </span>
+            <div className="mt-2 flex items-center gap-1.5 font-mono text-xs font-semibold flex-wrap">
+              {connectedAccounts.length > 0 ? (
+                connectedAccounts.map((acc) => (
+                  <span
+                    key={acc.platform}
+                    className="rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 px-1.5 py-0.5 text-vault-text-primary capitalize"
+                  >
+                    {acc.platform}
+                  </span>
+                ))
+              ) : (
+                <span className="text-vault-text-muted text-[11px]">PGN Ingestion</span>
+              )}
             </div>
             <p className="mt-2 font-mono text-[11px] text-vault-text-muted">
-              3 connected repositories
+              {connectedAccounts.length} connected source{connectedAccounts.length === 1 ? "" : "s"}
             </p>
           </div>
         </section>
 
-        {/* RECENT ENGAGEMENTS (Screenshot 2: 3 board cards) */}
+        {/* RECENT ENGAGEMENTS */}
         <section>
           <div className="flex items-center justify-between border-b border-vault-border-base pb-3 mb-6">
             <div className="flex items-center gap-2">
@@ -252,147 +259,178 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-3">
-            {recentGames.map((game, idx) => {
-              const perspective = getPlayerPerspective(
-                game,
-                platformUsernames,
-                user?.username ?? undefined,
-              );
-              const { opening, variation, eco } = parseOpeningDetails(game);
-
-              const resultBadgeClasses =
-                perspective.result === "win"
-                  ? "bg-vault-win/15 text-vault-win border-vault-win/30"
-                  : perspective.result === "loss"
-                    ? "bg-vault-loss/15 text-vault-loss border-vault-loss/30"
-                    : "bg-vault-draw/15 text-vault-draw border-vault-draw/30";
-
-              const resultBadgeText =
-                game.result === "draw"
-                  ? "½ - ½"
-                  : game.result === "white"
-                    ? "1 - 0"
-                    : "0 - 1";
-
-              const badgeLabel =
-                idx === 0
-                  ? "38. Qxh7#"
-                  : idx === 1
-                    ? "44... Rd2+ Resign"
-                    : "61. Re3 Repetition";
-
-              return (
-                // We should probably make the whole card clickable and link to the game viewer instead of just the tiny btn on the bottom
-                <article
-                  key={game.id}
-                  className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5 flex flex-col justify-between hover:border-vault-border-interactive transition-all group"
+          {isGamesLoading ? (
+            <div className="grid gap-6 md:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5 h-80 animate-pulse flex flex-col justify-between"
                 >
-                  <div>
-                    {/* Top Row: Result and Format */}
-                    <div className="flex items-center justify-between text-xs font-mono mb-4">
-                      <span
-                        className={`rounded-xs border px-2 py-0.5 font-bold ${resultBadgeClasses}`}
-                      >
-                        {resultBadgeText}
-                      </span>
-                      <span className="text-vault-text-muted">
-                        <span className="capitalize">{game.timeClass}</span> •{" "}
-                        {idx === 0
-                          ? "Today, 17:42"
-                          : idx === 1
-                            ? "Yesterday, 22:15"
-                            : "Nov 12"}{" "}
-                        {/*This implementation should use game.playedAt and probably format with the date-fns library */}
-                      </span>
-                    </div>
+                  <div className="h-4 bg-vault-surface-layer-2 rounded-xs w-1/3" />
+                  <div className="h-36 bg-vault-surface-layer-2 rounded-xs my-3" />
+                  <div className="space-y-2">
+                    <div className="h-3 bg-vault-surface-layer-2 rounded-xs w-3/4" />
+                    <div className="h-3 bg-vault-surface-layer-2 rounded-xs w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : recentGames.length === 0 ? (
+            <div className="rounded-vault border border-dashed border-vault-border-interactive bg-vault-surface-layer-1 p-10 text-center space-y-4">
+              <div className="grid h-12 w-12 place-items-center rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 text-vault-bronze mx-auto">
+                <Database size={24} />
+              </div>
+              <h3 className="font-display text-lg font-bold text-vault-text-primary">
+                No Games Indexed Yet
+              </h3>
+              <p className="text-xs text-vault-text-secondary max-w-md mx-auto">
+                Connect your Chess.com or Lichess handle, or upload PGN files to populate your permanent match ledger.
+              </p>
+              <div className="pt-2 flex justify-center gap-3">
+                <Button
+                  variant="solid-bronze"
+                  onClick={() => setIsOnboardingOpen(true)}
+                  className="text-xs font-mono uppercase px-4 py-2"
+                >
+                  Connect Platforms
+                </Button>
+                <Link to="/game-bank">
+                  <Button variant="secondary" className="text-xs font-mono uppercase px-4 py-2">
+                    Upload PGN
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-3">
+              {recentGames.map((game) => {
+                const perspective = getPlayerPerspective(
+                  game,
+                  platformUsernames,
+                  user?.username ?? undefined,
+                );
+                const { opening, variation, eco } = parseOpeningDetails(game);
 
-                    {/* Mini Board Diagram */}
-                    <div className="my-3">
-                      <MiniChessboard
-                        fen={
-                          idx === 0
-                            ? "r1b2rk1/1pq1bppp/p1n1pn2/3p4/2PN4/1PN1P3/PB2BPPP/R2Q1RK1 w - - 0 11"
-                            : idx === 1
-                              ? "r2q1rk1/pp1b1ppp/2n1pn2/2pp4/2PP4/2N1PN2/PP1QBPPP/R4RK1 w - - 0 10"
-                              : "r1bq1rk1/ppp2pbp/2np1np1/4p3/2PPP3/2N1BP2/PP2N1PP/R2QKB1R w KQ - 0 8"
-                        }
-                        orientation={perspective.playerColor}
-                        badgeLabel={badgeLabel}
-                      />
-                    </div>
+                const resultBadgeClasses =
+                  perspective.result === "win"
+                    ? "bg-vault-win/15 text-vault-win border-vault-win/30"
+                    : perspective.result === "loss"
+                      ? "bg-vault-loss/15 text-vault-loss border-vault-loss/30"
+                      : "bg-vault-draw/15 text-vault-draw border-vault-draw/30";
 
-                    {/* Players */}
-                    <div className="space-y-1 mt-4 text-xs font-mono">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className={`h-2 w-2 rounded-full ${game.whitePlayer.username.toLowerCase() === userName.toLowerCase() ? "bg-vault-bronze" : "bg-vault-text-muted"}`}
-                          />
-                          <span className="font-semibold text-vault-text-primary">
-                            {game.whitePlayer.username}{" "}
-                            {game.whitePlayer.username.toLowerCase() ===
-                            userName.toLowerCase()
-                              ? "(You)"
-                              : ""}{" "}
-                            {/*This implementation should use the username from the useAccounts hook. aka platformUsernames*/}
-                          </span>
-                        </div>
-                        <span className="text-vault-text-secondary">
-                          {game.whitePlayer.rating}
+                const resultBadgeText =
+                  game.result === "draw"
+                    ? "½ - ½"
+                    : game.result === "white"
+                      ? "1 - 0"
+                      : "0 - 1";
+
+                const isCurrentUserWhite =
+                  (platformUsernames[game.platform] &&
+                    game.whitePlayer.username.toLowerCase() ===
+                      platformUsernames[game.platform]?.toLowerCase()) ||
+                  (user?.username &&
+                    game.whitePlayer.username.toLowerCase() ===
+                      user.username.toLowerCase());
+
+                const isCurrentUserBlack =
+                  (platformUsernames[game.platform] &&
+                    game.blackPlayer.username.toLowerCase() ===
+                      platformUsernames[game.platform]?.toLowerCase()) ||
+                  (user?.username &&
+                    game.blackPlayer.username.toLowerCase() ===
+                      user.username.toLowerCase());
+
+                return (
+                  <Link
+                    key={game.id}
+                    to={`/game/${game.id}`}
+                    className="block rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5 flex flex-col justify-between hover:border-vault-bronze hover:bg-vault-surface-layer-2/70 transition-all group cursor-pointer"
+                  >
+                    <div>
+                      {/* Top Row: Result and Format */}
+                      <div className="flex items-center justify-between text-xs font-mono mb-4">
+                        <span
+                          className={`rounded-xs border px-2 py-0.5 font-bold ${resultBadgeClasses}`}
+                        >
+                          {resultBadgeText}
+                        </span>
+                        <span className="text-vault-text-muted">
+                          <span className="capitalize">{game.timeClass}</span> •{" "}
+                          {getGameDate(game, "MMM dd, yyyy")}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className={`h-2 w-2 rounded-full ${game.blackPlayer.username.toLowerCase() === userName.toLowerCase() ? "bg-vault-bronze" : "bg-vault-border-interactive"}`}
-                          />
-                          <span className="font-semibold text-vault-text-primary">
-                            {game.blackPlayer.username}{" "}
-                            {game.blackPlayer.username.toLowerCase() ===
-                            userName.toLowerCase()
-                              ? "(You)"
-                              : ""}{" "}
-                            {/*This implementation should use the username from the useAccounts hook. aka platformUsernames*/}
+
+                      {/* Mini Board Diagram */}
+                      <div className="my-3">
+                        <MiniChessboard
+                          fen="r1b2rk1/1pq1bppp/p1n1pn2/3p4/2PN4/1PN1P3/PB2BPPP/R2Q1RK1 w - - 0 11"
+                          orientation={perspective.playerColor}
+                          badgeLabel={resultBadgeText}
+                        />
+                      </div>
+
+                      {/* Players */}
+                      <div className="space-y-1 mt-4 text-xs font-mono">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span
+                              className={`h-2 w-2 rounded-full shrink-0 ${isCurrentUserWhite ? "bg-vault-bronze" : "bg-vault-text-muted"}`}
+                            />
+                            <span className="font-semibold text-vault-text-primary truncate">
+                              {game.whitePlayer.username}{" "}
+                              {isCurrentUserWhite ? "(You)" : ""}
+                            </span>
+                          </div>
+                          <span className="text-vault-text-secondary shrink-0 ml-2">
+                            {game.whitePlayer.rating}
                           </span>
                         </div>
-                        <span className="text-vault-text-secondary">
-                          {game.blackPlayer.rating}
-                        </span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span
+                              className={`h-2 w-2 rounded-full shrink-0 ${isCurrentUserBlack ? "bg-vault-bronze" : "bg-vault-border-interactive"}`}
+                            />
+                            <span className="font-semibold text-vault-text-primary truncate">
+                              {game.blackPlayer.username}{" "}
+                              {isCurrentUserBlack ? "(You)" : ""}
+                            </span>
+                          </div>
+                          <span className="text-vault-text-secondary shrink-0 ml-2">
+                            {game.blackPlayer.rating}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Opening Title & Link */}
-                  <div className="mt-4 pt-3 border-t border-vault-border-base flex items-center justify-between">
-                    <div className="truncate pr-2">
-                      <p className="font-mono text-[11px] text-vault-text-muted truncate">
-                        {eco ?? (idx === 0 ? "B90" : idx === 1 ? "E04" : "D37")}{" "}
-                        • {opening} {variation ? `(${variation})` : ""}
-                      </p>
+                    {/* Opening Title & Subline */}
+                    <div className="mt-4 pt-3 border-t border-vault-border-base flex items-center justify-between">
+                      <div className="truncate pr-2">
+                        <p className="font-mono text-[11px] text-vault-text-muted truncate">
+                          {eco ? `${eco} • ` : ""}
+                          {opening || game.title || "Archived Match"}{" "}
+                          {variation ? `(${variation})` : ""}
+                        </p>
+                      </div>
+                      <span className="text-vault-text-muted group-hover:text-vault-bronze transition-colors shrink-0 text-xs font-mono">
+                        Inspect →
+                      </span>
                     </div>
-                    <Link
-                      to={`/game/${game.id}`}
-                      className="text-vault-text-muted hover:text-vault-bronze transition-colors shrink-0"
-                      title="Inspect Game"
-                    >
-                      <ExternalLink size={13} />
-                    </Link>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </section>
 
-        {/* LOWER SPLIT SECTION (Left: Curated Folios, Right: Archive Observations) */}
+        {/* LOWER SPLIT SECTION (Left: Curated Folders, Right: Archive Observations) */}
         <section className="grid gap-8 md:grid-cols-[1.1fr_0.9fr]">
-          {/* LEFT: Curated Folios */}
+          {/* LEFT: Curated Folders */}
           <div>
             <div className="flex items-center justify-between border-b border-vault-border-base pb-3 mb-6">
               <div className="flex items-center gap-2">
                 <h2 className="font-display text-xl font-normal text-vault-text-primary">
-                  Curated Folios
+                  Curated Folders
                 </h2>
                 <span className="font-mono text-xs text-vault-text-muted">
                   Structured Repertoires
@@ -402,40 +440,62 @@ export default function DashboardPage() {
                 to="/collections"
                 className="font-mono text-xs text-vault-text-secondary hover:text-vault-bronze transition-colors"
               >
-                INSPECT ALL {displayFoldersCount} &gt;
+                INSPECT ALL {realFoldersCount} &gt;
               </Link>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {foliosToDisplay.map((folio) => (
-                <Link key={folio.id} to="/collections">
-                  <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5 hover:border-vault-border-interactive hover:bg-vault-surface-layer-2 transition-all">
-                    <div className="flex items-start gap-3">
-                      {/* Chess icon block */}
-                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 text-vault-bronze font-mono text-xs">
-                        ♞
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-baseline justify-between gap-1">
-                          <h3 className="font-display text-base font-bold text-vault-text-primary truncate">
-                            {folio.name}
-                          </h3>
-                          <span className="font-mono text-[11px] text-vault-text-muted shrink-0">
-                            {folio.count} PGNs
+            {isFoldersLoading ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {[1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5 h-28 animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : userFolders.length === 0 ? (
+              <div className="rounded-vault border border-dashed border-vault-border-interactive bg-vault-surface-layer-1 p-6 text-center space-y-3">
+                <FolderPlus size={24} className="text-vault-bronze mx-auto" />
+                <h4 className="font-display text-sm font-bold text-vault-text-primary">
+                  No Folders Created
+                </h4>
+                <p className="text-xs text-vault-text-secondary">
+                  Organize your opening repertoires and tournament monographs into curated folders.
+                </p>
+                <Link to="/collections">
+                  <Button variant="secondary" className="text-xs font-mono uppercase px-3 py-1.5 mt-2">
+                    <Plus size={12} className="mr-1" /> Create Folder
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {userFolders.slice(0, 4).map((folder) => (
+                  <Link key={folder.id} to="/collections">
+                    <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5 hover:border-vault-border-interactive hover:bg-vault-surface-layer-2 transition-all">
+                      <div className="flex items-start gap-3">
+                        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 text-vault-bronze font-mono text-xs">
+                          ♞
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between gap-1">
+                            <h3 className="font-display text-base font-bold text-vault-text-primary truncate">
+                              {folder.name}
+                            </h3>
+                          </div>
+                          <p className="mt-1 text-xs text-vault-text-secondary line-clamp-2 leading-relaxed">
+                            {folder.description || "Curated match monograph archive."}
+                          </p>
+                          <span className="mt-3 block font-mono text-[9px] uppercase tracking-widest text-vault-text-muted">
+                            Active Folder
                           </span>
                         </div>
-                        <p className="mt-1 text-xs text-vault-text-secondary line-clamp-2 leading-relaxed">
-                          {folio.desc}
-                        </p>
-                        <span className="mt-3 block font-mono text-[9px] uppercase tracking-widest text-vault-text-muted">
-                          {folio.updated}
-                        </span>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* RIGHT: Archive Observations */}
@@ -450,76 +510,79 @@ export default function DashboardPage() {
             </div>
 
             <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-6 space-y-6">
-              {/* Catalan Opening Drift */}
-              <div>
-                <div className="flex items-center justify-between font-mono text-xs">
-                  <span className="text-vault-text-muted uppercase tracking-wider text-[10px]">
-                    Recent Opening Drift
-                  </span>
-                  <span className="text-vault-text-muted text-[10px]">
-                    Last 60 Days
-                  </span>
-                </div>
-                <div className="mt-1 flex items-baseline justify-between">
-                  <h3 className="font-display text-lg font-bold text-vault-text-primary">
-                    Catalan Opening (White)
-                  </h3>
-                  <span className="font-mono text-xs font-semibold text-vault-win">
-                    68% Score
-                  </span>
-                </div>
-                <p className="mt-2 text-xs leading-relaxed text-vault-text-secondary font-sans">
-                  You switched 42% of your 1.d4 games toward closed fianchetto
-                  structures, cutting middle-game tactical blunders by nearly
-                  half.
-                </p>
+              {observations ? (
+                <div>
+                  <div className="flex items-center justify-between font-mono text-xs">
+                    <span className="text-vault-text-muted uppercase tracking-wider text-[10px]">
+                      Archive Performance
+                    </span>
+                    <span className="text-vault-text-muted text-[10px]">
+                      {observations.total} Matches
+                    </span>
+                  </div>
+                  <div className="mt-1 flex items-baseline justify-between">
+                    <h3 className="font-display text-lg font-bold text-vault-text-primary">
+                      {observations.topOpening ? observations.topOpening.name : "Archived Tendency"}
+                    </h3>
+                    <span className="font-mono text-xs font-semibold text-vault-win">
+                      {observations.winPct}% Score
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs leading-relaxed text-vault-text-secondary font-sans">
+                    Indexed from your live federated games ledger.
+                  </p>
 
-                {/* W/D/L Ratio Bar */}
-                <div className="mt-4">
-                  <div className="flex justify-between font-mono text-[11px] text-vault-text-muted mb-1.5">
-                    <span>W/D/L Ratio in Catalan</span>
-                    <span>22 Matches</span>
-                  </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-vault-surface-container flex">
-                    <div
-                      className="h-full bg-vault-win"
-                      style={{ width: "63%" }}
-                      title="14 Wins (63%)"
-                    />
-                    <div
-                      className="h-full bg-vault-draw"
-                      style={{ width: "18%" }}
-                      title="4 Draws (18%)"
-                    />
-                    <div
-                      className="h-full bg-vault-loss"
-                      style={{ width: "19%" }}
-                      title="4 Losses (19%)"
-                    />
-                  </div>
-                  <div className="mt-1.5 flex justify-between font-mono text-[10px] text-vault-text-muted">
-                    <span>14 Wins (63%)</span>
-                    <span>4 Draws</span>
-                    <span>4 Losses</span>
+                  {/* W/D/L Ratio Bar */}
+                  <div className="mt-4">
+                    <div className="flex justify-between font-mono text-[11px] text-vault-text-muted mb-1.5">
+                      <span>W/D/L Ratio</span>
+                      <span>{observations.total} Matches</span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-vault-surface-container flex">
+                      <div
+                        className="h-full bg-vault-win"
+                        style={{ width: `${observations.winPct}%` }}
+                        title={`${observations.wins} Wins (${observations.winPct}%)`}
+                      />
+                      <div
+                        className="h-full bg-vault-draw"
+                        style={{ width: `${observations.drawPct}%` }}
+                        title={`${observations.draws} Draws (${observations.drawPct}%)`}
+                      />
+                      <div
+                        className="h-full bg-vault-loss"
+                        style={{ width: `${observations.lossPct}%` }}
+                        title={`${observations.losses} Losses (${observations.lossPct}%)`}
+                      />
+                    </div>
+                    <div className="mt-1.5 flex justify-between font-mono text-[10px] text-vault-text-muted">
+                      <span>{observations.wins} Wins ({observations.winPct}%)</span>
+                      <span>{observations.draws} Draws</span>
+                      <span>{observations.losses} Losses</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-6 text-vault-text-muted text-xs font-mono">
+                  Observations and opening tendencies will appear here once games are imported.
+                </div>
+              )}
 
-              {/* Milestone In Sight */}
+              {/* Ingestion Status */}
               <div className="border-t border-vault-border-base pt-5">
                 <span className="font-mono text-[10px] uppercase tracking-wider text-vault-text-muted">
-                  Milestone In Sight
+                  Ledger Status
                 </span>
                 <div className="mt-1 flex items-baseline justify-between">
                   <h4 className="font-display text-base font-bold text-vault-text-primary">
-                    Rapid Peak: 2,185
+                    Universal Index
                   </h4>
-                  <span className="font-mono text-xs text-vault-bronze">
-                    37 pts away
+                  <span className="font-mono text-xs text-vault-win">
+                    Online
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-vault-text-secondary font-sans leading-relaxed">
-                  Highest archival evaluation stood at 2,185 in April 2023.
+                  Automatic background synchronization active for linked accounts.
                 </p>
               </div>
             </div>
@@ -558,7 +621,7 @@ export default function DashboardPage() {
             </Button>
             <Button
               variant="solid-bronze"
-              onClick={handleForceSync} // This force sync doenst actually do anything and it should be decided what it should do later.
+              onClick={handleForceSync}
               disabled={isSyncing}
               className="font-mono text-xs uppercase"
             >

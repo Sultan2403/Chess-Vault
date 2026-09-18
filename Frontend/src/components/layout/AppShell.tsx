@@ -7,7 +7,7 @@ import { useAccountBootstrap } from "../../hooks/useAccount";
 const navItems = [
   { to: "/dashboard", label: "Library" },
   { to: "/game-bank", label: "Game Bank" },
-  { to: "/collections", label: "Collections" },
+  { to: "/collections", label: "Folders" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {

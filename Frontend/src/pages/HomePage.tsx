@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Shield,
   ArrowRight,
@@ -15,9 +16,36 @@ import {
 import { Button } from "../components/ui/Button";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
 
+const HERO_HEADLINES = [
+  {
+    lead: "Every move you've ever made.",
+    accent: "Finally in one permanent home.",
+  },
+  {
+    lead: "Google Photos,",
+    accent: "but for your chess legacy.",
+  },
+  {
+    lead: "Your intellectual footprint,",
+    accent: "unbothered by algorithm feeds.",
+  },
+  {
+    lead: "A permanent, timeless sanctuary",
+    accent: "for every move you play.",
+  },
+];
+
 export default function HomePage() {
   const [usernameInput, setUsernameInput] = useState("");
+  const [headlineIndex, setHeadlineIndex] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeadlineIndex((prev) => (prev + 1) % HERO_HEADLINES.length);
+    }, 4500);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleStartFree = (e: React.SubmitEvent) => {
     e.preventDefault();
@@ -111,14 +139,23 @@ export default function HomePage() {
             </span>
           </div>
 
-          {/* TODO: */}
-          {/* Here I wanna use an array of alternating messages. e.g Google photos, but for chess.  */}
-          <h1 className="font-display text-4xl sm:text-6xl lg:text-[68px] font-normal leading-[1.08] tracking-tight text-vault-text-primary">
-            Every move you&apos;ve ever made. <br />
-            <span className="italic font-normal text-vault-bronze">
-              Finally in one permanent home.
-            </span>
-          </h1>
+          <div className="min-h-[140px] sm:min-h-[160px] lg:min-h-[180px] flex items-center justify-center overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.h1
+                key={headlineIndex}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                className="font-display text-4xl sm:text-6xl lg:text-[68px] font-normal leading-[1.08] tracking-tight text-vault-text-primary"
+              >
+                {HERO_HEADLINES[headlineIndex].lead} <br />
+                <span className="italic font-normal text-vault-bronze">
+                  {HERO_HEADLINES[headlineIndex].accent}
+                </span>
+              </motion.h1>
+            </AnimatePresence>
+          </div>
 
           <p className="mx-auto mt-6 max-w-2xl text-sm sm:text-base leading-relaxed text-vault-text-secondary font-sans">
             Consolidate thousands of games across Chess.com, Lichess, and OTB
