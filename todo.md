@@ -3,6 +3,11 @@
 - Finalize and decide on product pricing and pro features and such
 - Backend is done ig... I can't find any more excuses not to work on the client side lol so...
 
+## Overall
+
+- Add stockfish wasm for analysis on the client side
+- Remove `.optional()` in Game.opening as it and it's kids are all required. This is just a knock off of the type safety task below but just more precise lol. 
+
 ## Backend
 
 - Add final tests where necessary
