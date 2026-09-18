@@ -26,8 +26,11 @@ export const playerInputSchema = z.object({
 });
 
 export const GameSchema = z.object({
+  /** MongoDB ObjectId string assigned upon persistence in Chess Vault */
   id: z.string().trim().min(1),
+  /** Clerk User ID of the owner of this game */
   userId: z.string().trim().min(1),
+  /** Folder ObjectIds containing this game, or null if unorganized */
   folderIds: z
     .array(
       z
@@ -39,28 +42,43 @@ export const GameSchema = z.object({
     .nullable()
     .default(null),
 
+  /** Source platform where game was played ("chess.com" | "lichess") */
   platform: z.enum(PlatformValues),
+  /** Platform-assigned game identifier (e.g. Chess.com UUID or Lichess ID) */
   platformGameId: z.string().trim().min(1),
 
+  /** Direct Web URL to the game on the source platform */
   sourceUrl: z.string().trim().min(1),
 
+  /** Match title, formatted as `${whitePlayer.username} vs ${blackPlayer.username}` (or custom title) */
   title: z.string().trim().max(100).optional(),
 
+  /** Details of White player ({ username, rating }) */
   whitePlayer: playerInputSchema,
+  /** Details of Black player ({ username, rating }) */
   blackPlayer: playerInputSchema,
+  /** Outcome of the match ("white" | "black" | "draw") */
   result: z.enum(Results),
 
+  /** Whether the game was a rated match */
   isRated: z.boolean(),
 
+  /** Standardized time control category */
   timeClass: z.enum(TimeClasses),
 
+  /** Timestamp when game was played on source platform */
   playedAt: z.coerce.date(),
+  /** Portable Game Notation string */
   pgn: z.string().min(1),
 
+  /** User analysis or commentary */
   notes: z.string().trim().max(1000).optional(),
+  /** User custom tag */
   tags: z.string().trim().max(20).optional(),
 
+  /** Timestamp when persisted in Chess Vault DB */
   createdAt: z.coerce.date().optional(),
+  /** Timestamp when last updated in Chess Vault DB */
   updatedAt: z.coerce.date().optional(),
 });
 
