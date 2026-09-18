@@ -92,7 +92,7 @@ export default function LibraryPage() {
               <Spinner />
             </div>
           ) : isError ? (
-            <ErrorBanner message={(error as any)?.message ?? "Unable to load games."} onRetry={() => refetch()} />
+            <ErrorBanner message={error instanceof Error ? error.message : "Unable to load games."} onRetry={() => refetch()} />
           ) : gamesList.length === 0 ? (
             <EmptyState
               title="No games yet"

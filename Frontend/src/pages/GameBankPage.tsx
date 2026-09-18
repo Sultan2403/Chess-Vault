@@ -21,6 +21,8 @@ import { useGames } from "../hooks/useGames";
 import { useFolders } from "../hooks/useFolders";
 import { parseOpeningDetails, getGameDate, getMoveCount } from "../utils/game";
 
+import type { TimeClassType } from "@chess-vault/shared";
+
 export default function GameBankPage() {
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,7 +32,7 @@ export default function GameBankPage() {
   const [outcomeFilter, setOutcomeFilter] = useState<
     "all" | "win" | "draw" | "loss"
   >("all");
-  const [cadenceFilter, setCadenceFilter] = useState("all");
+  const [cadenceFilter, setCadenceFilter] = useState<"all" | TimeClassType>("all");
   const [selectedFolderId, setSelectedFolderId] = useState<string>("all");
   const [selectedGameIds, setSelectedGameIds] = useState<Set<string>>(
     new Set(),
@@ -54,8 +56,8 @@ export default function GameBankPage() {
           ? "draw"
           : undefined;
 
-  const timeClassParam =
-    cadenceFilter === "all" ? undefined : (cadenceFilter as any);
+  const timeClassParam: TimeClassType | undefined =
+    cadenceFilter === "all" ? undefined : cadenceFilter;
 
   const folderIdsParam =
     selectedFolderId === "all" ? undefined : [selectedFolderId];
@@ -292,7 +294,7 @@ export default function GameBankPage() {
               <select
                 value={cadenceFilter}
                 onChange={(e) => {
-                  setCadenceFilter(e.target.value);
+                  setCadenceFilter(e.target.value as "all" | TimeClassType);
                   setCurrentPage(1);
                 }}
                 className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-primary outline-none focus:border-vault-bronze cursor-pointer"
