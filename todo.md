@@ -20,6 +20,7 @@
 - Onboarding validation enforced but UI is shitty soo fix that.
 - Make the UI feel more alive with subtle interactive animations and motion polish across auth, dashboard, and key flows
 - Add a branded logo or visual identity treatment to auth pages and major app surfaces
+- Mini chessboard apparently renders the same freaking position for all games... investigate and fix
 
 ### Type Safety & Validation
 
