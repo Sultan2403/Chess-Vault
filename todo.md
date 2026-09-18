@@ -14,9 +14,6 @@
 
 ## Frontend
 
-- FRONTEND IS BS I DON'T LIKE IT! WE SHOULD DO A FULL REDESIGN!
-- Redesign frontend before all else. The UI is crap fr.
-
 - Polish frontend and fix any bugs
 - Make player context i.e username derived from account data
 - Onboarding validation enforced but UI is shitty soo fix that.
