@@ -14,6 +14,7 @@
 
 ## Frontend
 
+- Maybe add time control/time rendering to game viewer? 
 - Polish frontend and fix any bugs
 - Make player context i.e username derived from account data
 - Onboarding validation enforced but UI is shitty soo fix that.
