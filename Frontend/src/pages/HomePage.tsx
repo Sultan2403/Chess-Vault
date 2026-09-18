@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Shield,
@@ -19,7 +19,7 @@ export default function HomePage() {
   const [usernameInput, setUsernameInput] = useState("");
   const navigate = useNavigate();
 
-  const handleStartFree = (e: React.FormEvent) => {
+  const handleStartFree = (e: React.SubmitEvent) => {
     e.preventDefault();
     if (usernameInput.trim()) {
       navigate(`/sign-up?username=${encodeURIComponent(usernameInput.trim())}`);
@@ -48,11 +48,36 @@ export default function HomePage() {
           </Link>
 
           <nav className="hidden items-center gap-7 text-xs font-mono md:flex text-vault-text-secondary">
-            <a href="#philosophy" className="hover:text-vault-text-primary transition-colors">Philosophy</a>
-            <a href="#features" className="hover:text-vault-text-primary transition-colors">Features</a>
-            <a href="#the-archive" className="hover:text-vault-text-primary transition-colors">The Archive</a>
-            <a href="#evaluations" className="hover:text-vault-text-primary transition-colors">Evaluations</a>
-            <a href="#pricing" className="hover:text-vault-text-primary transition-colors">Pricing</a>
+            <a
+              href="#philosophy"
+              className="hover:text-vault-text-primary transition-colors"
+            >
+              Philosophy
+            </a>
+            <a
+              href="#features"
+              className="hover:text-vault-text-primary transition-colors"
+            >
+              Features
+            </a>
+            <a
+              href="#the-archive"
+              className="hover:text-vault-text-primary transition-colors"
+            >
+              The Archive
+            </a>
+            <a
+              href="#evaluations"
+              className="hover:text-vault-text-primary transition-colors"
+            >
+              Evaluations
+            </a>
+            <a
+              href="#pricing"
+              className="hover:text-vault-text-primary transition-colors"
+            >
+              Pricing
+            </a>
           </nav>
 
           <div className="flex items-center gap-4 text-xs font-mono">
@@ -63,7 +88,10 @@ export default function HomePage() {
               Sign In
             </Link>
             <Link to="/sign-up">
-              <Button variant="primary" className="text-xs uppercase tracking-widest px-4 py-1.5">
+              <Button
+                variant="primary"
+                className="text-xs uppercase tracking-widest px-4 py-1.5"
+              >
                 Open Your Vault
               </Button>
             </Link>
@@ -78,27 +106,42 @@ export default function HomePage() {
             <span className="h-1.5 w-1.5 rounded-full bg-vault-bronze" />
             <span>THE ARCHIVE FOR SERIOUS CHESS PRACTITIONERS</span>
             <span className="text-vault-text-muted">•</span>
-            <span className="text-vault-text-muted">ESTABLISHED 2024 / REGISTER NO. 041</span>
+            <span className="text-vault-text-muted">
+              ESTABLISHED 2024 / REGISTER NO. 041
+            </span>
           </div>
 
+          {/* TODO: */}
+          {/* Here I wanna use an array of alternating messages. e.g Google photos, but for chess.  */}
           <h1 className="font-display text-4xl sm:text-6xl lg:text-[68px] font-normal leading-[1.08] tracking-tight text-vault-text-primary">
             Every move you&apos;ve ever made. <br />
-            <span className="italic font-normal text-vault-bronze">Finally in one permanent home.</span>
+            <span className="italic font-normal text-vault-bronze">
+              Finally in one permanent home.
+            </span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-sm sm:text-base leading-relaxed text-vault-text-secondary font-sans">
-            Consolidate thousands of games across Chess.com, Lichess, and OTB tournaments into a clean, timeless library. Never lose your master ties to fleeting algorithm feeds.
+            Consolidate thousands of games across Chess.com, Lichess, and OTB
+            tournaments into a clean, timeless library. Never lose your master
+            ties to fleeting algorithm feeds.
           </p>
 
           <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
             <Link to="/sign-up">
-              <Button variant="solid-bronze" className="px-6 py-3 text-xs tracking-widest uppercase">
+              <Button
+                variant="solid-bronze"
+                className="px-6 py-3 text-xs tracking-widest uppercase"
+              >
                 Open For Free Vault
               </Button>
             </Link>
             <Link to="/dashboard">
-              <Button variant="secondary" className="px-6 py-3 text-xs tracking-widest uppercase">
-                Explore Live Archive Demo <ArrowRight size={13} className="ml-1" />
+              <Button
+                variant="secondary"
+                className="px-6 py-3 text-xs tracking-widest uppercase"
+              >
+                Explore Live Archive Demo{" "}
+                <ArrowRight size={13} className="ml-1" />
               </Button>
             </Link>
           </div>
@@ -119,7 +162,9 @@ export default function HomePage() {
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-vault-border-base bg-vault-surface-layer-2 px-6 py-3.5 text-xs font-mono">
               <div className="flex items-center gap-2 text-vault-text-secondary">
                 <span className="h-2 w-2 rounded-full bg-vault-win" />
-                <span className="font-semibold text-vault-text-primary">Recent Archived Match</span>
+                <span className="font-semibold text-vault-text-primary">
+                  Recent Archived Match
+                </span>
                 <span>•</span>
                 <span className="text-vault-text-muted">FIDE ID: 120042</span>
               </div>
@@ -154,13 +199,18 @@ export default function HomePage() {
                     <h3 className="font-display text-lg font-bold text-vault-text-primary">
                       Queen&apos;s Gambit Accepted: Classical Variation
                     </h3>
-                    <span className="font-mono text-xs text-vault-text-muted">ECO C52</span>
+                    <span className="font-mono text-xs text-vault-text-muted">
+                      ECO C52
+                    </span>
                   </div>
                   <p className="mt-1 text-xs font-mono text-vault-text-secondary">
-                    White: Kasparov (2812) • Black: Anand (2795) • Match 1995 (PCA) • 34 M • 14 Oct 1995
+                    White: Kasparov (2812) • Black: Anand (2795) • Match 1995
+                    (PCA) • 34 M • 14 Oct 1995
                   </p>
                   <blockquote className="mt-3 rounded-xs border-l-2 border-vault-bronze bg-vault-surface-container/60 px-3 py-1.5 font-sans text-xs italic text-vault-text-secondary">
-                    &ldquo;The knight sacrifice on f7 was an all-time opening sacrifice in my pre-game preparation. The engine later confirmed it was the only winning sequence.&rdquo;
+                    &ldquo;The knight sacrifice on f7 was an all-time opening
+                    sacrifice in my pre-game preparation. The engine later
+                    confirmed it was the only winning sequence.&rdquo;
                   </blockquote>
                 </div>
                 <div className="flex md:flex-col items-end gap-2 shrink-0">
@@ -168,7 +218,10 @@ export default function HomePage() {
                     +4.82 (Eval)
                   </span>
                   <Link to="/game/game-1">
-                    <Button variant="secondary" className="text-[11px] px-3 py-1">
+                    <Button
+                      variant="secondary"
+                      className="text-[11px] px-3 py-1"
+                    >
                       Inspect <ExternalLink size={11} className="ml-1" />
                     </Button>
                   </Link>
@@ -191,13 +244,18 @@ export default function HomePage() {
                     <h3 className="font-display text-lg font-bold text-vault-text-primary">
                       Queen&apos;s Indian Defense: Classical Nimzo-Indian
                     </h3>
-                    <span className="font-mono text-xs text-vault-text-muted">ECO E15</span>
+                    <span className="font-mono text-xs text-vault-text-muted">
+                      ECO E15
+                    </span>
                   </div>
                   <p className="mt-1 text-xs font-mono text-vault-text-secondary">
-                    White: Karpov (2745) • Black: Kasparov (2800) • Seville 1987 • 42 M • 18 Nov 1987
+                    White: Karpov (2745) • Black: Kasparov (2800) • Seville 1987
+                    • 42 M • 18 Nov 1987
                   </p>
                   <blockquote className="mt-3 rounded-xs border-l-2 border-vault-border-interactive bg-vault-surface-container/60 px-3 py-1.5 font-sans text-xs italic text-vault-text-secondary">
-                    &ldquo;Heavy-weight 48 moves. Subtle repetition by a thread in the end-game pawn endgame when he refused h5, but 1-move tempo error meant equal pawn race.&rdquo;
+                    &ldquo;Heavy-weight 48 moves. Subtle repetition by a thread
+                    in the end-game pawn endgame when he refused h5, but 1-move
+                    tempo error meant equal pawn race.&rdquo;
                   </blockquote>
                 </div>
                 <div className="flex md:flex-col items-end gap-2 shrink-0">
@@ -205,7 +263,10 @@ export default function HomePage() {
                     0.00 (Equal)
                   </span>
                   <Link to="/game/game-3">
-                    <Button variant="secondary" className="text-[11px] px-3 py-1">
+                    <Button
+                      variant="secondary"
+                      className="text-[11px] px-3 py-1"
+                    >
                       View Lines <ExternalLink size={11} className="ml-1" />
                     </Button>
                   </Link>
@@ -228,13 +289,19 @@ export default function HomePage() {
                     <h3 className="font-display text-lg font-bold text-vault-text-primary">
                       King&apos;s Indian: Mar del Plata Variation
                     </h3>
-                    <span className="font-mono text-xs text-vault-text-muted">ECO E97</span>
+                    <span className="font-mono text-xs text-vault-text-muted">
+                      ECO E97
+                    </span>
                   </div>
                   <p className="mt-1 text-xs font-mono text-vault-text-secondary">
-                    White: Spassky (2660) • Black: Fischer (2785) • Reykjavik 1972 • 41 M • 06 Aug 1972
+                    White: Spassky (2660) • Black: Fischer (2785) • Reykjavik
+                    1972 • 41 M • 06 Aug 1972
                   </p>
                   <blockquote className="mt-3 rounded-xs border-l-2 border-vault-loss bg-vault-surface-container/60 px-3 py-1.5 font-sans text-xs italic text-vault-text-secondary">
-                    &ldquo;Fischer&apos;s queenside pawn avalanche broke down white&apos;s defense. Positional bind retained throughout. King&apos;s Indian defense proved invincible in modern tournament play.&rdquo;
+                    &ldquo;Fischer&apos;s queenside pawn avalanche broke down
+                    white&apos;s defense. Positional bind retained throughout.
+                    King&apos;s Indian defense proved invincible in modern
+                    tournament play.&rdquo;
                   </blockquote>
                 </div>
                 <div className="flex md:flex-col items-end gap-2 shrink-0">
@@ -242,7 +309,10 @@ export default function HomePage() {
                     -M4 (Win Black)
                   </span>
                   <Link to="/game/game-2">
-                    <Button variant="secondary" className="text-[11px] px-3 py-1">
+                    <Button
+                      variant="secondary"
+                      className="text-[11px] px-3 py-1"
+                    >
                       Deep Analysis <ExternalLink size={11} className="ml-1" />
                     </Button>
                   </Link>
@@ -269,7 +339,9 @@ export default function HomePage() {
               A sanctuary, not a social feed.
             </h2>
             <p className="mt-3 text-sm text-vault-text-secondary">
-              Designed for reflection, not algorithm addiction. Most chess sites push endless tactical puzzles and ratings roulette. Chess Vault preserves your intellectual footprint.
+              Designed for reflection, not algorithm addiction. Most chess sites
+              push endless tactical puzzles and ratings roulette. Chess Vault
+              preserves your intellectual footprint.
             </p>
           </div>
 
@@ -287,7 +359,9 @@ export default function HomePage() {
                   The Unified Game Bank
                 </h3>
                 <p className="mt-3 text-xs leading-relaxed text-vault-text-secondary">
-                  Connect your accounts once. Every encounter across Chess.com and Lichess automatically federates into your private permanent bank without duplicates or missing plies.
+                  Connect your accounts once. Every encounter across Chess.com
+                  and Lichess automatically federates into your private
+                  permanent bank without duplicates or missing plies.
                 </p>
               </div>
               <div className="mt-6 border-t border-vault-border-base pt-4 flex items-center justify-between font-mono text-[11px] text-vault-text-muted">
@@ -309,7 +383,10 @@ export default function HomePage() {
                   Curated Anthologies
                 </h3>
                 <p className="mt-3 text-xs leading-relaxed text-vault-text-secondary">
-                  Assemble bespoke match folios: &ldquo;Tournament Matches 2024&rdquo;, &ldquo;Najdorf Defense Lab&rdquo;, or &ldquo;Toughest Opponents&rdquo;. Your personal repertoires treated as published works.
+                  Assemble bespoke match folios: &ldquo;Tournament Matches
+                  2024&rdquo;, &ldquo;Najdorf Defense Lab&rdquo;, or
+                  &ldquo;Toughest Opponents&rdquo;. Your personal repertoires
+                  treated as published works.
                 </p>
               </div>
               <div className="mt-6 border-t border-vault-border-base pt-4 flex items-center justify-between font-mono text-[11px] text-vault-text-muted">
@@ -331,7 +408,9 @@ export default function HomePage() {
                   Personal Memory Layer
                 </h3>
                 <p className="mt-3 text-xs leading-relaxed text-vault-text-secondary">
-                  Annotate key decisions, record physical tournament atmospheres, clock management blunders, or tactical memories directly alongside verified algebraic notation.
+                  Annotate key decisions, record physical tournament
+                  atmospheres, clock management blunders, or tactical memories
+                  directly alongside verified algebraic notation.
                 </p>
               </div>
               <div className="mt-6 border-t border-vault-border-base pt-4 flex items-center justify-between font-mono text-[11px] text-vault-text-muted">
@@ -353,19 +432,31 @@ export default function HomePage() {
                 From vintage carbon paper to searchable algebraic ledger.
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-vault-text-secondary">
-                Before digital servers, chess knowledge survived in leather-bound volumes, yellowed carbon scoresheets, and tournament gazettes. Chess Vault brings that same permanence to the modern era.
+                Before digital servers, chess knowledge survived in
+                leather-bound volumes, yellowed carbon scoresheets, and
+                tournament gazettes. Chess Vault brings that same permanence to
+                the modern era.
               </p>
               <div className="mt-6 space-y-3 font-mono text-xs text-vault-text-secondary">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-vault-bronze shrink-0" />
+                  <CheckCircle2
+                    size={16}
+                    className="text-vault-bronze shrink-0"
+                  />
                   <span>High-resolution algebraic notation formatting</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-vault-bronze shrink-0" />
+                  <CheckCircle2
+                    size={16}
+                    className="text-vault-bronze shrink-0"
+                  />
                   <span>Permanent timestamps, ECO codes, and move indices</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-vault-bronze shrink-0" />
+                  <CheckCircle2
+                    size={16}
+                    className="text-vault-bronze shrink-0"
+                  />
                   <span>Universal PGN and EPD standard interoperability</span>
                 </div>
               </div>
@@ -377,14 +468,22 @@ export default function HomePage() {
                 <span className="text-vault-bronze">REF: CV-LEDGER-01</span>
               </div>
               <div className="mt-4 space-y-2 text-vault-text-secondary">
-                <p className="text-vault-text-primary font-semibold">[Event &ldquo;Zurich Masters Invitational&rdquo;]</p>
+                <p className="text-vault-text-primary font-semibold">
+                  [Event &ldquo;Zurich Masters Invitational&rdquo;]
+                </p>
                 <p>[Site &ldquo;Zurich Hall, Switzerland&rdquo;]</p>
                 <p>[Date &ldquo;2024.10.12&rdquo;]</p>
                 <p>[Round &ldquo;4.1&rdquo;]</p>
-                <p>[White &ldquo;Sultan, K.&rdquo;] [WhiteElo &ldquo;2140&rdquo;]</p>
-                <p>[Black &ldquo;Chigorin, M.&rdquo;] [BlackElo &ldquo;2089&rdquo;]</p>
+                <p>
+                  [White &ldquo;Sultan, K.&rdquo;] [WhiteElo &ldquo;2140&rdquo;]
+                </p>
+                <p>
+                  [Black &ldquo;Chigorin, M.&rdquo;] [BlackElo
+                  &ldquo;2089&rdquo;]
+                </p>
                 <p className="pt-2 text-vault-bronze">
-                  1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. b4 Bxb4 5. c3 Ba5 6. d4 exd4 7. O-O Nge7 8. cxd4 d5 9. exd5 Nxd5 ...
+                  1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. b4 Bxb4 5. c3 Ba5 6. d4 exd4
+                  7. O-O Nge7 8. cxd4 d5 9. exd5 Nxd5 ...
                 </p>
               </div>
             </div>
@@ -399,7 +498,9 @@ export default function HomePage() {
             </span>
             <h2 className="mt-2 font-display text-3xl sm:text-4xl text-vault-text-primary">
               A Platform Built for Your Legacy, <br />
-              <span className="italic font-normal">not platform advertising.</span>
+              <span className="italic font-normal">
+                not platform advertising.
+              </span>
             </h2>
           </div>
 
@@ -416,15 +517,24 @@ export default function HomePage() {
               <ul className="mt-6 space-y-4 text-xs font-sans text-vault-text-muted leading-relaxed">
                 <li className="flex items-start gap-2">
                   <span className="text-vault-loss font-bold">•</span>
-                  <span>Infinite scroll match feeds that push old games into unreachable digital obscurity.</span>
+                  <span>
+                    Infinite scroll match feeds that push old games into
+                    unreachable digital obscurity.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-vault-loss font-bold">•</span>
-                  <span>Flashing evaluation arrows and game reviews designed to provoke emotional dopamine reactions.</span>
+                  <span>
+                    Flashing evaluation arrows and game reviews designed to
+                    provoke emotional dopamine reactions.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-vault-loss font-bold">•</span>
-                  <span>Fragmented across multiple sites: half your history on Chess.com, half on Lichess.</span>
+                  <span>
+                    Fragmented across multiple sites: half your history on
+                    Chess.com, half on Lichess.
+                  </span>
                 </li>
               </ul>
             </div>
@@ -441,15 +551,24 @@ export default function HomePage() {
               <ul className="mt-6 space-y-4 text-xs font-sans text-vault-text-secondary leading-relaxed">
                 <li className="flex items-start gap-2">
                   <span className="text-vault-bronze font-bold">•</span>
-                  <span>Unified match registry indexing your games into structured folios and searchable opening banks.</span>
+                  <span>
+                    Unified match registry indexing your games into structured
+                    folios and searchable opening banks.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-vault-bronze font-bold">•</span>
-                  <span>Quiet typography and zero ads: distraction-free review honoring chess as an intellectual art.</span>
+                  <span>
+                    Quiet typography and zero ads: distraction-free review
+                    honoring chess as an intellectual art.
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-vault-bronze font-bold">•</span>
-                  <span>Standard PGN/EPD export ensures you maintain complete ownership of every move you record.</span>
+                  <span>
+                    Standard PGN/EPD export ensures you maintain complete
+                    ownership of every move you record.
+                  </span>
                 </li>
               </ul>
             </div>
@@ -503,8 +622,12 @@ export default function HomePage() {
                   </p>
                 </div>
                 <div className="mt-6 border-t border-vault-border-base pt-3 font-mono text-xs">
-                  <p className="font-semibold text-vault-text-primary">{t.author}</p>
-                  <p className="text-vault-text-muted text-[11px]">{t.rating}</p>
+                  <p className="font-semibold text-vault-text-primary">
+                    {t.author}
+                  </p>
+                  <p className="text-vault-text-muted text-[11px]">
+                    {t.rating}
+                  </p>
                 </div>
               </div>
             ))}
@@ -527,10 +650,18 @@ export default function HomePage() {
         <section className="mx-auto max-w-content px-6 py-16">
           <div className="relative rounded-vault border border-vault-border-interactive bg-vault-surface-layer-1 p-8 sm:p-14 text-center overflow-hidden">
             {/* Corner Decorative Brackets */}
-            <span className="absolute top-3 left-3 font-mono text-xs text-vault-bronze">┌</span>
-            <span className="absolute top-3 right-3 font-mono text-xs text-vault-bronze">┐</span>
-            <span className="absolute bottom-3 left-3 font-mono text-xs text-vault-bronze">└</span>
-            <span className="absolute bottom-3 right-3 font-mono text-xs text-vault-bronze">┘</span>
+            <span className="absolute top-3 left-3 font-mono text-xs text-vault-bronze">
+              ┌
+            </span>
+            <span className="absolute top-3 right-3 font-mono text-xs text-vault-bronze">
+              ┐
+            </span>
+            <span className="absolute bottom-3 left-3 font-mono text-xs text-vault-bronze">
+              └
+            </span>
+            <span className="absolute bottom-3 right-3 font-mono text-xs text-vault-bronze">
+              ┘
+            </span>
 
             <span className="font-mono text-xs uppercase tracking-[0.2em] text-vault-bronze">
               A Lifetime Archive, Instantly
@@ -539,10 +670,14 @@ export default function HomePage() {
               Your chess life deserves more than a forgotten history log.
             </h2>
             <p className="mt-3 max-w-lg mx-auto text-xs sm:text-sm text-vault-text-secondary font-sans">
-              Start your permanent archive today. Connect your username or upload your PGN archives in under 15 seconds.
+              Start your permanent archive today. Connect your username or
+              upload your PGN archives in under 15 seconds.
             </p>
 
-            <form onSubmit={handleStartFree} className="mt-8 mx-auto flex max-w-md flex-col sm:flex-row gap-3">
+            <form
+              onSubmit={handleStartFree}
+              className="mt-8 mx-auto flex max-w-md flex-col sm:flex-row gap-3"
+            >
               <input
                 type="text"
                 value={usernameInput}
@@ -550,7 +685,11 @@ export default function HomePage() {
                 placeholder="Enter your Chess.com or Lichess handle..."
                 className="flex-1 rounded-vault border border-vault-border-base bg-vault-surface-layer-2 px-4 py-2.5 text-xs text-vault-text-primary outline-none focus:border-vault-bronze font-mono placeholder:text-vault-text-muted"
               />
-              <Button type="submit" variant="solid-bronze" className="px-5 py-2.5 text-xs tracking-wider uppercase whitespace-nowrap">
+              <Button
+                type="submit"
+                variant="solid-bronze"
+                className="px-5 py-2.5 text-xs tracking-wider uppercase whitespace-nowrap"
+              >
                 Start Free <ChevronRight size={13} className="ml-1" />
               </Button>
             </form>
@@ -574,41 +713,72 @@ export default function HomePage() {
               The Grand Archive
             </span>
             <p className="mt-2 text-[11px] text-vault-text-secondary leading-relaxed">
-              A curated digital sanctuary for grandmasters, club competitors, and collectors. Dedicated to precision, taxonomy, and memory preservation.
+              A curated digital sanctuary for grandmasters, club competitors,
+              and collectors. Dedicated to precision, taxonomy, and memory
+              preservation.
             </p>
           </div>
 
           <div>
-            <h4 className="text-vault-text-primary uppercase tracking-wider font-semibold mb-3">Resources</h4>
+            <h4 className="text-vault-text-primary uppercase tracking-wider font-semibold mb-3">
+              Resources
+            </h4>
             <ul className="space-y-2 text-[11px]">
-              <li><Link to="/dashboard" className="hover:text-vault-text-primary">Public Registry</Link></li>
-              <li><a href="#philosophy" className="hover:text-vault-text-primary">Monograph Manual</a></li>
-              <li><a href="#features" className="hover:text-vault-text-primary">ECO Taxonomic Codes</a></li>
+              <li>
+                <Link to="/dashboard" className="hover:text-vault-text-primary">
+                  Public Registry
+                </Link>
+              </li>
+              <li>
+                <a href="#philosophy" className="hover:text-vault-text-primary">
+                  Monograph Manual
+                </a>
+              </li>
+              <li>
+                <a href="#features" className="hover:text-vault-text-primary">
+                  ECO Taxonomic Codes
+                </a>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-vault-text-primary uppercase tracking-wider font-semibold mb-3">Standards</h4>
+            <h4 className="text-vault-text-primary uppercase tracking-wider font-semibold mb-3">
+              Standards
+            </h4>
             <ul className="space-y-2 text-[11px]">
-              <li><span>FIDE Compliant Export</span></li>
-              <li><span>Standard Algebraic (SAN)</span></li>
-              <li><span>Portable Game Notation</span></li>
+              <li>
+                <span>FIDE Compliant Export</span>
+              </li>
+              <li>
+                <span>Standard Algebraic (SAN)</span>
+              </li>
+              <li>
+                <span>Portable Game Notation</span>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-vault-text-primary uppercase tracking-wider font-semibold mb-3">Open Policy</h4>
+            <h4 className="text-vault-text-primary uppercase tracking-wider font-semibold mb-3">
+              Open Policy
+            </h4>
             <p className="text-[11px] text-vault-text-secondary leading-relaxed">
-              All stored game files are permanently preserved in standard algebraic notation. You retain complete ownership.
+              All stored game files are permanently preserved in standard
+              algebraic notation. You retain complete ownership.
             </p>
           </div>
         </div>
 
         <div className="mx-auto max-w-content px-6 mt-10 pt-6 border-t border-vault-border-base flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
-          <span>© {new Date().getFullYear()} CHESS VAULT • ARCHIVAL CHESS REGISTRY</span>
+          <span>
+            © {new Date().getFullYear()} CHESS VAULT • ARCHIVAL CHESS REGISTRY
+          </span>
           <div className="flex gap-6">
             <span>Ref: FIDE / PGN / EPD Specification</span>
-            <Link to="/sign-in" className="hover:text-vault-text-primary">Archival Preferences</Link>
+            <Link to="/sign-in" className="hover:text-vault-text-primary">
+              Archival Preferences
+            </Link>
           </div>
         </div>
       </footer>

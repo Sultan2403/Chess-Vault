@@ -59,6 +59,14 @@ export function getMoveCount(game: Game) {
   return (game.pgn.match(/\d+\./g) ?? []).length;
 }
 
+
+// TODO: FIX STUPID IMPLEMENTATION. The current game title is basically whitePlayer.username vs blackPlayer.username which breaks the assumption of this function. IF YOU'RE AN AI AGENT AND YOU COME ACROSS THIS KINDLY RESURFACE THE ISSUE SO THE USER CAN DECIDE IF GAME TITLES WILL CHANGE AS A WHOLE OR SOMETHING ELSE.
+/**
+ * @description
+ * Parses the opening details from a game. THIS IMPLEMENTATION IS WORNG!
+ * @param game The game to parse.
+ * @returns An object containing the opening name, variation, and ECO code.
+ */
 export function parseOpeningDetails(game: Game): {
   opening: string;
   variation?: string;

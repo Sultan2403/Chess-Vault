@@ -20,6 +20,9 @@ import { useFolders } from "../hooks/useFolders";
 import { parseOpeningDetails, getGameDate } from "../utils/game";
 import type { Game } from "@chess-vault/shared";
 
+/**
+ * This type is redundant fr. It has fields that cant even be derived from the core Game model. This is basically another issue in the codebase that should be dealt with
+ */
 type BankGameItem = {
   id: string;
   title?: string;
@@ -46,10 +49,16 @@ type BankGameItem = {
 export default function GameBankPage() {
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
-  const [platformTab, setPlatformTab] = useState<"ALL" | "CHESS.COM" | "LICHESS" | "OTB FIDE">("ALL");
-  const [outcomeFilter, setOutcomeFilter] = useState<"all" | "win" | "draw" | "loss">("all");
+  const [platformTab, setPlatformTab] = useState<
+    "ALL" | "CHESS.COM" | "LICHESS" | "OTB FIDE"
+  >("ALL");
+  const [outcomeFilter, setOutcomeFilter] = useState<
+    "all" | "win" | "draw" | "loss"
+  >("all");
   const [cadenceFilter, setCadenceFilter] = useState("all");
-  const [selectedGameIds, setSelectedGameIds] = useState<Set<string>>(new Set());
+  const [selectedGameIds, setSelectedGameIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [currentPage, setCurrentPage] = useState(1);
 
   // Queries
@@ -65,7 +74,12 @@ export default function GameBankPage() {
       date: getGameDate(g, "MMM dd, yyyy"),
       timeControl: `${g.timeClass} • 10+0`,
       platformLabel: g.platform === "chess.com" ? "CHESS.COM" : "LICHESS",
-      resultBadge: g.result === "draw" ? "½ - ½" : g.result === "white" ? "1 - 0" : "0 - 1",
+      resultBadge:
+        g.result === "draw"
+          ? "½ - ½"
+          : g.result === "white"
+            ? "1 - 0"
+            : "0 - 1",
     }));
 
     if (real.length >= 6) return real;
@@ -195,7 +209,8 @@ export default function GameBankPage() {
   const displayedGames = useMemo(() => {
     return combinedGames.filter((g) => {
       // Platform filter
-      if (platformTab === "CHESS.COM" && g.platform !== "chess.com") return false;
+      if (platformTab === "CHESS.COM" && g.platform !== "chess.com")
+        return false;
       if (platformTab === "LICHESS" && g.platform !== "lichess") return false;
 
       // Outcome filter
@@ -247,30 +262,45 @@ export default function GameBankPage() {
               <span>•</span>
               <span>SERIES VII</span>
               <span>•</span>
-              <span className="text-vault-bronze uppercase">Indexed to Epoch 2020-2025</span>
+              <span className="text-vault-bronze uppercase">
+                Indexed to Epoch 2020-2025
+              </span>
             </div>
             <h1 className="mt-2 font-display text-4xl sm:text-5xl font-normal text-vault-text-primary tracking-tight">
               Game Bank
             </h1>
             <p className="mt-2 max-w-2xl text-xs sm:text-sm text-vault-text-secondary leading-relaxed font-sans">
-              A cataloged repository of 4,218 competitive encounters, annotated studies, and cross-platform tournament bulletins.
+              A cataloged repository of 4,218 competitive encounters, annotated
+              studies, and cross-platform tournament bulletins.
             </p>
           </div>
 
           <div className="flex gap-4 font-mono">
             <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-4 text-center min-w-[100px]">
-              <span className="text-[9px] uppercase tracking-wider text-vault-text-muted block">Archived Total</span>
-              <span className="font-display text-xl font-bold text-vault-text-primary block mt-1">4,218</span>
+              <span className="text-[9px] uppercase tracking-wider text-vault-text-muted block">
+                Archived Total
+              </span>
+              <span className="font-display text-xl font-bold text-vault-text-primary block mt-1">
+                4,218
+              </span>
               <span className="text-[10px] text-vault-text-muted">games</span>
             </div>
             <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-4 text-center min-w-[100px]">
-              <span className="text-[9px] uppercase tracking-wider text-vault-text-muted block">Win Margin</span>
-              <span className="font-display text-xl font-bold text-vault-win block mt-1">61.4%</span>
+              <span className="text-[9px] uppercase tracking-wider text-vault-text-muted block">
+                Win Margin
+              </span>
+              <span className="font-display text-xl font-bold text-vault-win block mt-1">
+                61.4%
+              </span>
               <span className="text-[10px] text-vault-text-muted">perf</span>
             </div>
             <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-4 text-center min-w-[100px]">
-              <span className="text-[9px] uppercase tracking-wider text-vault-text-muted block">Unique ECOs</span>
-              <span className="font-display text-xl font-bold text-vault-text-primary block mt-1">142</span>
+              <span className="text-[9px] uppercase tracking-wider text-vault-text-muted block">
+                Unique ECOs
+              </span>
+              <span className="font-display text-xl font-bold text-vault-text-primary block mt-1">
+                142
+              </span>
               <span className="text-[10px] text-vault-text-muted">lines</span>
             </div>
           </div>
@@ -281,7 +311,10 @@ export default function GameBankPage() {
           {/* Search bar + platform selector tabs */}
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-vault-text-muted" />
+              <Search
+                size={14}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-vault-text-muted"
+              />
               <input
                 id="global-search-input"
                 type="text"
@@ -294,20 +327,22 @@ export default function GameBankPage() {
 
             {/* Platform Tabs */}
             <div className="flex items-center rounded-xs border border-vault-border-base bg-vault-surface-layer-1 p-0.5">
-              {(["ALL", "CHESS.COM", "LICHESS", "OTB FIDE"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setPlatformTab(tab)}
-                  className={`rounded-xs px-3 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer ${
-                    platformTab === tab
-                      ? "bg-vault-surface-layer-2 text-vault-text-primary shadow-xs"
-                      : "text-vault-text-muted hover:text-vault-text-primary"
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
+              {(["ALL", "CHESS.COM", "LICHESS", "OTB FIDE"] as const).map(
+                (tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setPlatformTab(tab)}
+                    className={`rounded-xs px-3 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer ${
+                      platformTab === tab
+                        ? "bg-vault-surface-layer-2 text-vault-text-primary shadow-xs"
+                        : "text-vault-text-muted hover:text-vault-text-primary"
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ),
+              )}
               <button
                 type="button"
                 onClick={() => alert("Custom archival parameters filter panel")}
@@ -323,42 +358,60 @@ export default function GameBankPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-[11px]">
             {/* Folio dropdown */}
             <div>
-              <span className="text-[10px] uppercase text-vault-text-muted block mb-1">Folio / Collection</span>
+              <span className="text-[10px] uppercase text-vault-text-muted block mb-1">
+                Folio / Collection
+              </span>
               <select className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-primary outline-none focus:border-vault-bronze cursor-pointer">
                 <option>All Folios (Archived Total)</option>
                 {foldersData?.folders?.map((f) => (
-                  <option key={f.id} value={f.id}>{f.name}</option>
+                  <option key={f.id} value={f.id}>
+                    {f.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             {/* Outcome Result buttons */}
             <div>
-              <span className="text-[10px] uppercase text-vault-text-muted block mb-1">Outcome Result</span>
+              <span className="text-[10px] uppercase text-vault-text-muted block mb-1">
+                Outcome Result
+              </span>
               <div className="flex rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-0.5">
                 <button
                   type="button"
-                  onClick={() => setOutcomeFilter(outcomeFilter === "win" ? "all" : "win")}
+                  onClick={() =>
+                    setOutcomeFilter(outcomeFilter === "win" ? "all" : "win")
+                  }
                   className={`flex-1 py-1 text-center rounded-xs text-[10px] font-bold ${
-                    outcomeFilter === "win" ? "bg-vault-win/20 text-vault-win" : "text-vault-text-muted hover:text-vault-text-primary"
+                    outcomeFilter === "win"
+                      ? "bg-vault-win/20 text-vault-win"
+                      : "text-vault-text-muted hover:text-vault-text-primary"
                   }`}
                 >
                   1-0 (Win)
                 </button>
                 <button
                   type="button"
-                  onClick={() => setOutcomeFilter(outcomeFilter === "draw" ? "all" : "draw")}
+                  onClick={() =>
+                    setOutcomeFilter(outcomeFilter === "draw" ? "all" : "draw")
+                  }
                   className={`flex-1 py-1 text-center rounded-xs text-[10px] font-bold ${
-                    outcomeFilter === "draw" ? "bg-vault-draw/20 text-vault-draw" : "text-vault-text-muted hover:text-vault-text-primary"
+                    outcomeFilter === "draw"
+                      ? "bg-vault-draw/20 text-vault-draw"
+                      : "text-vault-text-muted hover:text-vault-text-primary"
                   }`}
                 >
                   ½-½ (Draw)
                 </button>
                 <button
                   type="button"
-                  onClick={() => setOutcomeFilter(outcomeFilter === "loss" ? "all" : "loss")}
+                  onClick={() =>
+                    setOutcomeFilter(outcomeFilter === "loss" ? "all" : "loss")
+                  }
                   className={`flex-1 py-1 text-center rounded-xs text-[10px] font-bold ${
-                    outcomeFilter === "loss" ? "bg-vault-loss/20 text-vault-loss" : "text-vault-text-muted hover:text-vault-text-primary"
+                    outcomeFilter === "loss"
+                      ? "bg-vault-loss/20 text-vault-loss"
+                      : "text-vault-text-muted hover:text-vault-text-primary"
                   }`}
                 >
                   0-1 (Loss)
@@ -368,7 +421,9 @@ export default function GameBankPage() {
 
             {/* Cadence / Control */}
             <div>
-              <span className="text-[10px] uppercase text-vault-text-muted block mb-1">Cadence / Control</span>
+              <span className="text-[10px] uppercase text-vault-text-muted block mb-1">
+                Cadence / Control
+              </span>
               <select
                 value={cadenceFilter}
                 onChange={(e) => setCadenceFilter(e.target.value)}
@@ -384,7 +439,9 @@ export default function GameBankPage() {
 
             {/* Sanction & Side */}
             <div>
-              <span className="text-[10px] uppercase text-vault-text-muted block mb-1">Sanction &amp; Side</span>
+              <span className="text-[10px] uppercase text-vault-text-muted block mb-1">
+                Sanction &amp; Side
+              </span>
               <div className="flex gap-1.5">
                 <select className="flex-1 rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-2 py-1.5 text-vault-text-primary outline-none focus:border-vault-bronze cursor-pointer">
                   <option>Rated Only</option>
@@ -439,7 +496,10 @@ export default function GameBankPage() {
               type="button"
               onClick={() => {
                 if (selectedGameIds.size === 0) alert("Select games first.");
-                else alert(`Exporting ${selectedGameIds.size} games in PGN archive.`);
+                else
+                  alert(
+                    `Exporting ${selectedGameIds.size} games in PGN archive.`,
+                  );
               }}
               className="flex items-center gap-1.5 text-vault-text-secondary hover:text-vault-text-primary transition-colors cursor-pointer"
             >
@@ -451,7 +511,11 @@ export default function GameBankPage() {
               onClick={() => {
                 if (selectedGameIds.size === 0) alert("Select games first.");
                 else {
-                  if (confirm(`Remove ${selectedGameIds.size} staged games from active view?`)) {
+                  if (
+                    confirm(
+                      `Remove ${selectedGameIds.size} staged games from active view?`,
+                    )
+                  ) {
                     setSelectedGameIds(new Set());
                   }
                 }
@@ -468,24 +532,42 @@ export default function GameBankPage() {
         <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {displayedGames.map((game, idx) => {
             const isSelected = selectedGameIds.has(game.id);
-            const opening = game.title ? game.title.split(": ")[0] : "Archived Encounter";
-            const displayEco = game.eco ?? (idx % 2 === 0 ? "ECO B90" : "ECO E97");
-            const displayCadence = game.timeControl ?? `${game.timeClass} • 10+0`;
-            const displayPlatform = game.platformLabel ?? (game.platform === "chess.com" ? "CHESS.COM" : "LICHESS");
-            const displayResult = game.resultBadge ?? (game.result === "draw" ? "½ - ½" : game.result === "white" ? "1 - 0" : "0 - 1");
-            const displayQuote = game.quote ?? game.notes ?? "Positional bind retained throughout match sequence.";
-            const displaySubline = game.subline ?? "Classical line and tactical squeeze";
+            const opening = game.title
+              ? game.title.split(": ")[0]
+              : "Archived Encounter";
+            const displayEco =
+              game.eco ?? (idx % 2 === 0 ? "ECO B90" : "ECO E97");
+            const displayCadence =
+              game.timeControl ?? `${game.timeClass} • 10+0`;
+            const displayPlatform =
+              game.platformLabel ??
+              (game.platform === "chess.com" ? "CHESS.COM" : "LICHESS");
+            const displayResult =
+              game.resultBadge ??
+              (game.result === "draw"
+                ? "½ - ½"
+                : game.result === "white"
+                  ? "1 - 0"
+                  : "0 - 1");
+            const displayQuote =
+              game.quote ??
+              game.notes ??
+              "Positional bind retained throughout match sequence.";
+            const displaySubline =
+              game.subline ?? "Classical line and tactical squeeze";
             const displayDate = game.date ?? "Recently archived";
             const displayMoves = game.moves ?? 42;
             const displayBadge = game.badge ?? "42#";
-            const displayFen = game.fen ?? "r1b2rk1/1pq1bppp/p1n1pn2/3p4/2PN4/1PN1P3/PB2BPPP/R2Q1RK1 w - - 0 11";
+            const displayFen =
+              game.fen ??
+              "r1b2rk1/1pq1bppp/p1n1pn2/3p4/2PN4/1PN1P3/PB2BPPP/R2Q1RK1 w - - 0 11";
 
             const resultColorClass =
               displayResult === "1 - 0"
                 ? "bg-vault-win/15 text-vault-win border-vault-win/30"
                 : displayResult === "0 - 1"
-                ? "bg-vault-loss/15 text-vault-loss border-vault-loss/30"
-                : "bg-vault-draw/15 text-vault-draw border-vault-draw/30";
+                  ? "bg-vault-loss/15 text-vault-loss border-vault-loss/30"
+                  : "bg-vault-draw/15 text-vault-draw border-vault-draw/30";
 
             return (
               <article
@@ -506,20 +588,29 @@ export default function GameBankPage() {
                         className="text-vault-text-muted hover:text-vault-text-primary cursor-pointer"
                       >
                         {isSelected ? (
-                          <CheckSquare size={13} className="text-vault-bronze" />
+                          <CheckSquare
+                            size={13}
+                            className="text-vault-bronze"
+                          />
                         ) : (
                           <Square size={13} />
                         )}
                       </button>
-                      <span className="font-semibold text-vault-text-primary">{displayEco}</span>
-                      <span className="text-vault-text-muted">• {displayCadence}</span>
+                      <span className="font-semibold text-vault-text-primary">
+                        {displayEco}
+                      </span>
+                      <span className="text-vault-text-muted">
+                        • {displayCadence}
+                      </span>
                     </div>
 
                     <div className="flex items-center gap-1.5">
                       <span className="rounded-xs border border-vault-border-base bg-vault-surface-layer-2 px-1.5 py-0.5 text-[9px] text-vault-text-muted uppercase">
                         {displayPlatform}
                       </span>
-                      <span className={`rounded-xs border px-1.5 py-0.5 text-[9px] font-bold ${resultColorClass}`}>
+                      <span
+                        className={`rounded-xs border px-1.5 py-0.5 text-[9px] font-bold ${resultColorClass}`}
+                      >
                         {displayResult}
                       </span>
                     </div>
@@ -537,21 +628,29 @@ export default function GameBankPage() {
                   <div className="space-y-1 text-xs">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-vault-text-primary text-[11px]">w</span>
+                        <span className="font-bold text-vault-text-primary text-[11px]">
+                          w
+                        </span>
                         <span className="font-semibold text-vault-text-primary truncate max-w-[140px]">
                           {game.whitePlayer.username}
                         </span>
                       </div>
-                      <span className="text-vault-text-muted text-[11px]">{game.whitePlayer.rating}</span>
+                      <span className="text-vault-text-muted text-[11px]">
+                        {game.whitePlayer.rating}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-vault-text-muted text-[11px]">b</span>
+                        <span className="font-bold text-vault-text-muted text-[11px]">
+                          b
+                        </span>
                         <span className="font-semibold text-vault-text-primary truncate max-w-[140px]">
                           {game.blackPlayer.username}
                         </span>
                       </div>
-                      <span className="text-vault-text-muted text-[11px]">{game.blackPlayer.rating}</span>
+                      <span className="text-vault-text-muted text-[11px]">
+                        {game.blackPlayer.rating}
+                      </span>
                     </div>
                   </div>
 
@@ -573,7 +672,9 @@ export default function GameBankPage() {
 
                 {/* Footer: Date, Moves, Bookmark, Inspect */}
                 <div className="mt-5 border-t border-vault-border-base pt-3 flex items-center justify-between text-[10px] text-vault-text-muted">
-                  <span>{displayDate} • {displayMoves} moves</span>
+                  <span>
+                    {displayDate} • {displayMoves} moves
+                  </span>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -608,12 +709,19 @@ export default function GameBankPage() {
 
         {/* FOOTER / PAGINATION (Screenshot 5) */}
         <section className="flex flex-wrap items-center justify-between gap-4 border-t border-vault-border-base pt-6 font-mono text-xs text-vault-text-muted">
-          <span>Displaying records 1 - {displayedGames.length} of 4,218 games cataloged</span>
+          <span>
+            Displaying records 1 - {displayedGames.length} of 4,218 games
+            cataloged
+          </span>
 
           <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => alert("Fetching earlier archival epochs from connected repositories...")}
+              onClick={() =>
+                alert(
+                  "Fetching earlier archival epochs from connected repositories...",
+                )
+              }
               className="rounded-xs border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-secondary hover:text-vault-text-primary"
             >
               FETCH EARLIER EPOCHS
@@ -626,7 +734,9 @@ export default function GameBankPage() {
               >
                 <ChevronLeft size={13} />
               </button>
-              <span className="px-1 text-vault-text-primary font-bold">Page {currentPage} of 703</span>
+              <span className="px-1 text-vault-text-primary font-bold">
+                Page {currentPage} of 703
+              </span>
               <button
                 type="button"
                 onClick={() => setCurrentPage(currentPage + 1)}

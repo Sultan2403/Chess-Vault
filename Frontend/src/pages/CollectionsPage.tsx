@@ -18,7 +18,7 @@ import { useUser } from "@clerk/react";
 
 export default function CollectionsPage() {
   const { user } = useUser();
-  const userName = user?.firstName ?? "Sultan";
+  const userName = user?.username || user?.firstName 
   const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState("");

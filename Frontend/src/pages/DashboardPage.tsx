@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "@clerk/react";
-import {
-  ArrowRight,
-  RefreshCw,
-  FileCode,
-  ExternalLink,
-} from "lucide-react";
+import { ArrowRight, RefreshCw, FileCode, ExternalLink } from "lucide-react";
 import { AppShell } from "../components/layout/AppShell";
 import { Button } from "../components/ui/Button";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
@@ -25,7 +20,7 @@ import { Platforms } from "@chess-vault/shared";
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const userName = user?.firstName ?? user?.username ?? "Sultan";
+  const userName = user?.username || user?.firstName;
 
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -43,17 +38,20 @@ export default function DashboardPage() {
   // Metrics
   const realGamesCount = gamesData?.pagination?.total ?? 0;
   const displayGamesCount = realGamesCount > 0 ? realGamesCount : 4218;
-  const realFoldersCount = foldersData?.total ?? foldersData?.folders?.length ?? 0;
+  const realFoldersCount =
+    foldersData?.total ?? foldersData?.folders?.length ?? 0;
   const displayFoldersCount = realFoldersCount > 0 ? realFoldersCount : 14;
 
   // Games to display in Recent Engagements
-  const rawGames = (gamesData?.games && gamesData.games.length > 0)
-    ? gamesData.games
-    : mockGames;
+  const rawGames =
+    gamesData?.games && gamesData.games.length > 0
+      ? gamesData.games
+      : mockGames;
   const recentGames = rawGames.slice(0, 3);
 
   // Folders to display
   const userFolders = foldersData?.folders ?? [];
+  // FOLIOS SHOULD BE FROM THE USEFOLDERS HOOK. AND THE NAMING SHOULD BE CHANGED TO FOLDERS EVERYWHERE.
   const defaultFolios = [
     {
       id: "folio-1",
@@ -85,15 +83,16 @@ export default function DashboardPage() {
     },
   ];
 
-  const foliosToDisplay = userFolders.length > 0
-    ? userFolders.slice(0, 4).map((f, i) => ({
-        id: f.id,
-        name: f.name,
-        count: defaultFolios[i % defaultFolios.length].count,
-        desc: f.description || defaultFolios[i % defaultFolios.length].desc,
-        updated: "ACTIVE FOLIO",
-      }))
-    : defaultFolios;
+  const foliosToDisplay =
+    userFolders.length > 0
+      ? userFolders.slice(0, 4).map((f, i) => ({
+          id: f.id,
+          name: f.name,
+          count: defaultFolios[i % defaultFolios.length].count,
+          desc: f.description || defaultFolios[i % defaultFolios.length].desc,
+          updated: "ACTIVE FOLIO",
+        }))
+      : defaultFolios;
 
   // Manual Force Sync trigger
   const handleForceSync = async () => {
@@ -121,7 +120,9 @@ export default function DashboardPage() {
               <span className="h-1.5 w-1.5 rounded-full bg-vault-win" />
               <span>FOLIO REF. 04-2991B</span>
               <span>•</span>
-              <span className="uppercase text-vault-bronze">Active Registry</span>
+              <span className="uppercase text-vault-bronze">
+                Active Registry
+              </span>
             </div>
             <h1 className="mt-2 font-display text-4xl sm:text-5xl font-normal text-vault-text-primary tracking-tight">
               Good evening, {userName}
@@ -133,11 +134,21 @@ export default function DashboardPage() {
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2 rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 font-mono text-xs text-vault-text-secondary">
-              <RefreshCw size={12} className={isSyncing ? "animate-spin text-vault-bronze" : "text-vault-text-muted"} />
+              <RefreshCw
+                size={12}
+                className={
+                  isSyncing
+                    ? "animate-spin text-vault-bronze"
+                    : "text-vault-text-muted"
+                }
+              />
               <span>Synced 2h ago: Chess.com & Lichess</span>
             </div>
             <Link to="/game-bank">
-              <Button variant="secondary" className="font-mono text-xs px-4 py-2">
+              <Button
+                variant="secondary"
+                className="font-mono text-xs px-4 py-2"
+              >
                 Browse Game Bank <ArrowRight size={13} className="ml-1" />
               </Button>
             </Link>
@@ -155,7 +166,9 @@ export default function DashboardPage() {
               <span className="font-display text-3xl font-bold text-vault-text-primary">
                 {displayGamesCount.toLocaleString()}
               </span>
-              <span className="font-mono text-xs text-vault-win font-semibold">+12 this wk</span>
+              <span className="font-mono text-xs text-vault-win font-semibold">
+                +12 this wk
+              </span>
             </div>
             <p className="mt-1 font-mono text-[11px] text-vault-text-muted">
               Across all federated engines
@@ -171,7 +184,9 @@ export default function DashboardPage() {
               <span className="font-display text-3xl font-bold text-vault-text-primary">
                 {displayFoldersCount}
               </span>
-              <span className="font-mono text-xs text-vault-text-secondary">active</span>
+              <span className="font-mono text-xs text-vault-text-secondary">
+                active
+              </span>
             </div>
             <p className="mt-1 font-mono text-[11px] text-vault-text-muted">
               Repertoire & monograph labs
@@ -187,7 +202,9 @@ export default function DashboardPage() {
               <span className="font-display text-3xl font-bold text-vault-text-primary">
                 62
               </span>
-              <span className="font-mono text-xs text-vault-bronze">Starred</span>
+              <span className="font-mono text-xs text-vault-bronze">
+                Starred
+              </span>
             </div>
             <p className="mt-1 font-mono text-[11px] text-vault-text-muted">
               With deep engine variations
@@ -237,23 +254,36 @@ export default function DashboardPage() {
 
           <div className="grid gap-6 md:grid-cols-3">
             {recentGames.map((game, idx) => {
-              const perspective = getPlayerPerspective(game, platformUsernames, user?.username ?? undefined);
+              const perspective = getPlayerPerspective(
+                game,
+                platformUsernames,
+                user?.username ?? undefined,
+              );
               const { opening, variation, eco } = parseOpeningDetails(game);
 
               const resultBadgeClasses =
                 perspective.result === "win"
                   ? "bg-vault-win/15 text-vault-win border-vault-win/30"
                   : perspective.result === "loss"
-                  ? "bg-vault-loss/15 text-vault-loss border-vault-loss/30"
-                  : "bg-vault-draw/15 text-vault-draw border-vault-draw/30";
+                    ? "bg-vault-loss/15 text-vault-loss border-vault-loss/30"
+                    : "bg-vault-draw/15 text-vault-draw border-vault-draw/30";
 
               const resultBadgeText =
-                game.result === "draw" ? "½ - ½" : game.result === "white" ? "1 - 0" : "0 - 1";
+                game.result === "draw"
+                  ? "½ - ½"
+                  : game.result === "white"
+                    ? "1 - 0"
+                    : "0 - 1";
 
               const badgeLabel =
-                idx === 0 ? "38. Qxh7#" : idx === 1 ? "44... Rd2+ Resign" : "61. Re3 Repetition";
+                idx === 0
+                  ? "38. Qxh7#"
+                  : idx === 1
+                    ? "44... Rd2+ Resign"
+                    : "61. Re3 Repetition";
 
               return (
+                // We should probably make the whole card clickable and link to the game viewer instead of just the tiny btn on the bottom
                 <article
                   key={game.id}
                   className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5 flex flex-col justify-between hover:border-vault-border-interactive transition-all group"
@@ -261,11 +291,19 @@ export default function DashboardPage() {
                   <div>
                     {/* Top Row: Result and Format */}
                     <div className="flex items-center justify-between text-xs font-mono mb-4">
-                      <span className={`rounded-xs border px-2 py-0.5 font-bold ${resultBadgeClasses}`}>
+                      <span
+                        className={`rounded-xs border px-2 py-0.5 font-bold ${resultBadgeClasses}`}
+                      >
                         {resultBadgeText}
                       </span>
                       <span className="text-vault-text-muted">
-                        <span className="capitalize">{game.timeClass}</span> • {idx === 0 ? "Today, 17:42" : idx === 1 ? "Yesterday, 22:15" : "Nov 12"}
+                        <span className="capitalize">{game.timeClass}</span> •{" "}
+                        {idx === 0
+                          ? "Today, 17:42"
+                          : idx === 1
+                            ? "Yesterday, 22:15"
+                            : "Nov 12"}{" "}
+                        {/*This implementation should use game.playedAt and probably format with the date-fns library */}
                       </span>
                     </div>
 
@@ -276,8 +314,8 @@ export default function DashboardPage() {
                           idx === 0
                             ? "r1b2rk1/1pq1bppp/p1n1pn2/3p4/2PN4/1PN1P3/PB2BPPP/R2Q1RK1 w - - 0 11"
                             : idx === 1
-                            ? "r2q1rk1/pp1b1ppp/2n1pn2/2pp4/2PP4/2N1PN2/PP1QBPPP/R4RK1 w - - 0 10"
-                            : "r1bq1rk1/ppp2pbp/2np1np1/4p3/2PPP3/2N1BP2/PP2N1PP/R2QKB1R w KQ - 0 8"
+                              ? "r2q1rk1/pp1b1ppp/2n1pn2/2pp4/2PP4/2N1PN2/PP1QBPPP/R4RK1 w - - 0 10"
+                              : "r1bq1rk1/ppp2pbp/2np1np1/4p3/2PPP3/2N1BP2/PP2N1PP/R2QKB1R w KQ - 0 8"
                         }
                         orientation={perspective.playerColor}
                         badgeLabel={badgeLabel}
@@ -288,21 +326,39 @@ export default function DashboardPage() {
                     <div className="space-y-1 mt-4 text-xs font-mono">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
-                          <span className={`h-2 w-2 rounded-full ${game.whitePlayer.username.toLowerCase() === userName.toLowerCase() ? "bg-vault-bronze" : "bg-vault-text-muted"}`} />
+                          <span
+                            className={`h-2 w-2 rounded-full ${game.whitePlayer.username.toLowerCase() === userName.toLowerCase() ? "bg-vault-bronze" : "bg-vault-text-muted"}`}
+                          />
                           <span className="font-semibold text-vault-text-primary">
-                            {game.whitePlayer.username} {game.whitePlayer.username.toLowerCase() === userName.toLowerCase() ? "(You)" : ""}
+                            {game.whitePlayer.username}{" "}
+                            {game.whitePlayer.username.toLowerCase() ===
+                            userName.toLowerCase()
+                              ? "(You)"
+                              : ""}{" "}
+                            {/*This implementation should use the username from the useAccounts hook. aka platformUsernames*/}
                           </span>
                         </div>
-                        <span className="text-vault-text-secondary">{game.whitePlayer.rating}</span>
+                        <span className="text-vault-text-secondary">
+                          {game.whitePlayer.rating}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
-                          <span className={`h-2 w-2 rounded-full ${game.blackPlayer.username.toLowerCase() === userName.toLowerCase() ? "bg-vault-bronze" : "bg-vault-border-interactive"}`} />
+                          <span
+                            className={`h-2 w-2 rounded-full ${game.blackPlayer.username.toLowerCase() === userName.toLowerCase() ? "bg-vault-bronze" : "bg-vault-border-interactive"}`}
+                          />
                           <span className="font-semibold text-vault-text-primary">
-                            {game.blackPlayer.username} {game.blackPlayer.username.toLowerCase() === userName.toLowerCase() ? "(You)" : ""}
+                            {game.blackPlayer.username}{" "}
+                            {game.blackPlayer.username.toLowerCase() ===
+                            userName.toLowerCase()
+                              ? "(You)"
+                              : ""}{" "}
+                            {/*This implementation should use the username from the useAccounts hook. aka platformUsernames*/}
                           </span>
                         </div>
-                        <span className="text-vault-text-secondary">{game.blackPlayer.rating}</span>
+                        <span className="text-vault-text-secondary">
+                          {game.blackPlayer.rating}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -311,7 +367,8 @@ export default function DashboardPage() {
                   <div className="mt-4 pt-3 border-t border-vault-border-base flex items-center justify-between">
                     <div className="truncate pr-2">
                       <p className="font-mono text-[11px] text-vault-text-muted truncate">
-                        {eco ?? (idx === 0 ? "B90" : idx === 1 ? "E04" : "D37")} • {opening} {variation ? `(${variation})` : ""}
+                        {eco ?? (idx === 0 ? "B90" : idx === 1 ? "E04" : "D37")}{" "}
+                        • {opening} {variation ? `(${variation})` : ""}
                       </p>
                     </div>
                     <Link
@@ -399,7 +456,9 @@ export default function DashboardPage() {
                   <span className="text-vault-text-muted uppercase tracking-wider text-[10px]">
                     Recent Opening Drift
                   </span>
-                  <span className="text-vault-text-muted text-[10px]">Last 60 Days</span>
+                  <span className="text-vault-text-muted text-[10px]">
+                    Last 60 Days
+                  </span>
                 </div>
                 <div className="mt-1 flex items-baseline justify-between">
                   <h3 className="font-display text-lg font-bold text-vault-text-primary">
@@ -410,7 +469,9 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <p className="mt-2 text-xs leading-relaxed text-vault-text-secondary font-sans">
-                  You switched 42% of your 1.d4 games toward closed fianchetto structures, cutting middle-game tactical blunders by nearly half.
+                  You switched 42% of your 1.d4 games toward closed fianchetto
+                  structures, cutting middle-game tactical blunders by nearly
+                  half.
                 </p>
 
                 {/* W/D/L Ratio Bar */}
@@ -420,9 +481,21 @@ export default function DashboardPage() {
                     <span>22 Matches</span>
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-vault-surface-container flex">
-                    <div className="h-full bg-vault-win" style={{ width: "63%" }} title="14 Wins (63%)" />
-                    <div className="h-full bg-vault-draw" style={{ width: "18%" }} title="4 Draws (18%)" />
-                    <div className="h-full bg-vault-loss" style={{ width: "19%" }} title="4 Losses (19%)" />
+                    <div
+                      className="h-full bg-vault-win"
+                      style={{ width: "63%" }}
+                      title="14 Wins (63%)"
+                    />
+                    <div
+                      className="h-full bg-vault-draw"
+                      style={{ width: "18%" }}
+                      title="4 Draws (18%)"
+                    />
+                    <div
+                      className="h-full bg-vault-loss"
+                      style={{ width: "19%" }}
+                      title="4 Losses (19%)"
+                    />
                   </div>
                   <div className="mt-1.5 flex justify-between font-mono text-[10px] text-vault-text-muted">
                     <span>14 Wins (63%)</span>
@@ -441,7 +514,9 @@ export default function DashboardPage() {
                   <h4 className="font-display text-base font-bold text-vault-text-primary">
                     Rapid Peak: 2,185
                   </h4>
-                  <span className="font-mono text-xs text-vault-bronze">37 pts away</span>
+                  <span className="font-mono text-xs text-vault-bronze">
+                    37 pts away
+                  </span>
                 </div>
                 <p className="mt-1 text-xs text-vault-text-secondary font-sans leading-relaxed">
                   Highest archival evaluation stood at 2,185 in April 2023.
@@ -462,14 +537,17 @@ export default function DashboardPage() {
                 Direct PGN Import & Ledger Ingestion
               </h3>
               <p className="text-xs text-vault-text-secondary">
-                Paste match monographs, tournament bulletins, or sync remote archives directly.
+                Paste match monographs, tournament bulletins, or sync remote
+                archives directly.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             {syncFeedback && (
-              <span className="font-mono text-xs text-vault-win">{syncFeedback}</span>
+              <span className="font-mono text-xs text-vault-win">
+                {syncFeedback}
+              </span>
             )}
             <Button
               variant="secondary"
@@ -480,7 +558,7 @@ export default function DashboardPage() {
             </Button>
             <Button
               variant="solid-bronze"
-              onClick={handleForceSync}
+              onClick={handleForceSync} // This force sync doenst actually do anything and it should be decided what it should do later.
               disabled={isSyncing}
               className="font-mono text-xs uppercase"
             >
