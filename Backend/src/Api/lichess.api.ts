@@ -13,6 +13,7 @@ const lichessApi = {
       responseType: "stream",
       params: {
         pgnInJson: true,
+        opening: true,
         max: MAX_GAMES_PER_USER,
       },
     }),
