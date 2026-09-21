@@ -1,5 +1,5 @@
 import { SignIn, SignUp } from "@clerk/react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 type AuthPageProps = {
   mode: "sign-in" | "sign-up";
@@ -26,22 +26,22 @@ export default function AuthPage({ mode }: AuthPageProps) {
             {mode === "sign-in" ? (
               <>
                 Need an account?{" "}
-                <Link
+                <NavLink
                   to="/sign-up"
                   className="font-medium text-vault-secondary transition-colors hover:text-vault-on-secondary-container"
                 >
                   Create one
-                </Link>
+                </NavLink>
               </>
             ) : (
               <>
                 Already have an account?{" "}
-                <Link
+                <NavLink
                   to="/sign-in"
                   className="font-medium text-vault-secondary transition-colors hover:text-vault-on-secondary-container"
                 >
                   Sign in
-                </Link>
+                </NavLink>
               </>
             )}
           </p>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Platforms } from "@chess-vault/shared";
 import { Filter, Plus, Search } from "lucide-react";
-import { AppShell } from "../components/layout/AppShell";
+
 import { Button } from "../components/ui/Button";
 import { GameCard } from "../components/library/GameCard";
 import { useGames } from "../hooks/useGames";
@@ -41,7 +41,7 @@ export default function LibraryPage() {
   });
 
   return (
-    <AppShell>
+    <>
       <div className="mx-auto min-h-[calc(100vh-18rem)] max-w-content px-6 py-12">
         <div className="flex flex-wrap items-start justify-between gap-6 border-b border-vault-outline-variant/60 pb-8">
           <div>
@@ -146,7 +146,7 @@ export default function LibraryPage() {
           setIsOnboardingOpen(false);
         }}
       />
-    </AppShell>
+    </>
   );
 }
 

@@ -1,18 +1,18 @@
 import { ArrowRight, History } from "lucide-react";
 import type { Game } from "@chess-vault/shared";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useGames } from "../../hooks/useGames";
 import { getGameDate, getMoveCount, getPlayerPerspective } from "../../utils/game";
 import { usePlatformUsernames } from "../../hooks/useAccount";
 
 const resultLabel = { win: "W", loss: "L", draw: "D" };
-const scoreLabel = { win: "1-0", loss: "0-1", draw: "½-½" };
+const scoreLabel = { win: "1-0", loss: "0-1", draw: "½-½" };  
 
 function RecentGameRow({ game }: { game: Game }) {
   const platformUsernames = usePlatformUsernames();
   const perspective = getPlayerPerspective(game, platformUsernames);
 
-  // Derive contextual tag if any
+  // TODO: Fix the bs tag logic and just be honest if no tags are present.
   const tag =
     game.id === "game-1"
       ? "Analysis Saved"
@@ -21,7 +21,7 @@ function RecentGameRow({ game }: { game: Game }) {
       : null;
 
   return (
-    <Link to={`/game/${game.id}`}>
+    <NavLink to={`/game/${game.id}`}>
       <article className="group flex items-center gap-5 border-b border-vault-outline-variant/60 py-4 transition-colors hover:bg-[#f7f3ea]/80 px-2 rounded-vault">
         {/* Outcome Box */}
         <div className="grid h-12 w-12 shrink-0 place-items-center rounded-vault border border-vault-outline-variant/80 bg-white/90 text-center shadow-xs">
@@ -58,7 +58,7 @@ function RecentGameRow({ game }: { game: Game }) {
           )}
         </div>
       </article>
-    </Link>
+    </NavLink>
   );
 }
 
@@ -72,12 +72,12 @@ export function RecentGames() {
         <h2 className="flex items-center gap-2.5 font-display text-lg font-bold text-vault-primary">
           <History className="text-vault-ochre" size={18} strokeWidth={2} /> Recent Games
         </h2>
-        <Link
+        <NavLink
           to="/library"
           className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-vault-ochre hover:text-vault-ochre-hover transition-colors"
         >
           VIEW ALL <ArrowRight size={13} strokeWidth={2.2} />
-        </Link>
+        </NavLink>
       </div>
       <div className="divide-y divide-vault-outline-variant/40">
         {isLoading ? (
@@ -89,4 +89,3 @@ export function RecentGames() {
     </section>
   );
 }
-

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Shield,
@@ -61,7 +61,7 @@ export default function HomePage() {
       {/* Editorial Navigation Header */}
       <header className="border-b border-vault-border-base bg-vault-surface-container-lowest/90 backdrop-blur-md sticky top-0 z-40">
         <div className="mx-auto flex h-16 max-w-content items-center justify-between px-6">
-          <Link to="/" className="flex items-center gap-2.5">
+          <NavLink to="/" className="flex items-center gap-2.5">
             <div className="grid h-8 w-8 place-items-center rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 text-vault-primary">
               <Shield size={16} strokeWidth={2} />
             </div>
@@ -73,7 +73,7 @@ export default function HomePage() {
                 Archival Chess Registry
               </span>
             </div>
-          </Link>
+          </NavLink>
 
           <nav className="hidden items-center gap-7 text-xs font-mono md:flex text-vault-text-secondary">
             <a
@@ -109,20 +109,20 @@ export default function HomePage() {
           </nav>
 
           <div className="flex items-center gap-4 text-xs font-mono">
-            <Link
+            <NavLink
               to="/sign-in"
               className="text-vault-text-secondary hover:text-vault-text-primary transition-colors uppercase tracking-wider"
             >
               Sign In
-            </Link>
-            <Link to="/sign-up">
+            </NavLink>
+            <NavLink to="/sign-up">
               <Button
                 variant="primary"
                 className="text-xs uppercase tracking-widest px-4 py-1.5"
               >
                 Open Your Vault
               </Button>
-            </Link>
+            </NavLink>
           </div>
         </div>
       </header>
@@ -164,15 +164,15 @@ export default function HomePage() {
           </p>
 
           <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
-            <Link to="/sign-up">
+            <NavLink to="/sign-up">
               <Button
                 variant="solid-bronze"
                 className="px-6 py-3 text-xs tracking-widest uppercase"
               >
                 Open For Free Vault
               </Button>
-            </Link>
-            <Link to="/dashboard">
+            </NavLink>
+            <NavLink to="/dashboard">
               <Button
                 variant="secondary"
                 className="px-6 py-3 text-xs tracking-widest uppercase"
@@ -180,8 +180,9 @@ export default function HomePage() {
                 Explore Live Archive Demo{" "}
                 <ArrowRight size={13} className="ml-1" />
               </Button>
-            </Link>
+            </NavLink>
           </div>
+
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-[11px] font-mono text-vault-text-muted">
             <span>NO CREDIT CARD REQUIRED</span>
@@ -254,14 +255,14 @@ export default function HomePage() {
                   <span className="rounded-xs border border-vault-win/30 bg-vault-win/10 px-2 py-1 font-mono text-xs text-vault-win">
                     +4.82 (Eval)
                   </span>
-                  <Link to="/game/game-1">
+                  <NavLink to="/game/game-1">
                     <Button
                       variant="secondary"
                       className="text-[11px] px-3 py-1"
                     >
                       Inspect <ExternalLink size={11} className="ml-1" />
                     </Button>
-                  </Link>
+                  </NavLink>
                 </div>
               </div>
 
@@ -299,14 +300,14 @@ export default function HomePage() {
                   <span className="rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 px-2 py-1 font-mono text-xs text-vault-draw">
                     0.00 (Equal)
                   </span>
-                  <Link to="/game/game-3">
+                  <NavLink to="/game/game-3">
                     <Button
                       variant="secondary"
                       className="text-[11px] px-3 py-1"
                     >
                       View Lines <ExternalLink size={11} className="ml-1" />
                     </Button>
-                  </Link>
+                  </NavLink>
                 </div>
               </div>
 
@@ -345,16 +346,17 @@ export default function HomePage() {
                   <span className="rounded-xs border border-vault-loss/30 bg-vault-loss/10 px-2 py-1 font-mono text-xs text-vault-loss">
                     -M4 (Win Black)
                   </span>
-                  <Link to="/game/game-2">
+                  <NavLink to="/game/game-2">
                     <Button
                       variant="secondary"
                       className="text-[11px] px-3 py-1"
                     >
                       Deep Analysis <ExternalLink size={11} className="ml-1" />
                     </Button>
-                  </Link>
+                  </NavLink>
                 </div>
               </div>
+
             </div>
 
             {/* Bottom Bar */}
@@ -762,9 +764,9 @@ export default function HomePage() {
             </h4>
             <ul className="space-y-2 text-[11px]">
               <li>
-                <Link to="/dashboard" className="hover:text-vault-text-primary">
+                <NavLink to="/dashboard" className="hover:text-vault-text-primary">
                   Public Registry
-                </Link>
+                </NavLink>
               </li>
               <li>
                 <a href="#philosophy" className="hover:text-vault-text-primary">
@@ -813,11 +815,12 @@ export default function HomePage() {
           </span>
           <div className="flex gap-6">
             <span>Ref: FIDE / PGN / EPD Specification</span>
-            <Link to="/sign-in" className="hover:text-vault-text-primary">
+            <NavLink to="/sign-in" className="hover:text-vault-text-primary">
               Archival Preferences
-            </Link>
+            </NavLink>
           </div>
         </div>
+
       </footer>
     </div>
   );

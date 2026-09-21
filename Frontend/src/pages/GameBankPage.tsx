@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
   Search,
   Bookmark,
@@ -14,7 +14,6 @@ import {
   Square,
   Database,
 } from "lucide-react";
-import { AppShell } from "../components/layout/AppShell";
 import { Button } from "../components/ui/Button";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
 import { useGames } from "../hooks/useGames";
@@ -112,8 +111,7 @@ export default function GameBankPage() {
   }, [games]);
 
   return (
-    <AppShell>
-      <div className="mx-auto max-w-content px-6 py-10 font-body space-y-8">
+    <div className="mx-auto max-w-content px-6 py-10 font-body space-y-8">
         {/* HERO / CATALOG HEADER */}
         <section className="flex flex-col md:flex-row md:items-start justify-between gap-6 border-b border-vault-border-base pb-8">
           <div>
@@ -446,11 +444,11 @@ export default function GameBankPage() {
                   Reset Filters
                 </Button>
               )}
-              <Link to="/dashboard">
+              <NavLink to="/dashboard">
                 <Button variant="solid-bronze" className="text-xs font-mono uppercase px-4 py-2">
                   Back to Dashboard
                 </Button>
-              </Link>
+              </NavLink>
             </div>
           </div>
         ) : (
@@ -608,13 +606,13 @@ export default function GameBankPage() {
                       >
                         <Copy size={12} />
                       </button>
-                      <Link
+                      <NavLink
                         to={`/game/${game.id}`}
                         className="flex items-center gap-0.5 text-vault-bronze hover:text-vault-bronze-hover font-semibold uppercase tracking-wider ml-1"
                       >
                         <span>INSPECT</span>
                         <ExternalLink size={10} />
-                      </Link>
+                      </NavLink>
                     </div>
                   </div>
                 </article>
@@ -655,6 +653,5 @@ export default function GameBankPage() {
           </div>
         </section>
       </div>
-    </AppShell>
   );
 }

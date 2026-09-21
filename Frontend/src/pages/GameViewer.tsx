@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { Chess, type Move } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { useParams, Link } from "react-router-dom";
+import { useParams, NavLink } from "react-router-dom";
+
 import {
   ChevronLeft,
   ChevronRight,
@@ -25,7 +26,6 @@ import {
   Shield,
 } from "lucide-react";
 
-import { AppShell } from "../components/layout/AppShell";
 import { useGame } from "../hooks/useGames";
 import { usePlatformUsernames } from "../hooks/useAccount";
 import { Spinner } from "../components/ui/Spinner";
@@ -171,10 +171,10 @@ export default function GameViewer() {
 
   // Set default board orientation
   useEffect(() => {
-    if (currentGame) {
+    if (perspective.playerColor) {
       setBoardOrientation(perspective.playerColor);
     }
-  }, [currentGame, perspective.playerColor]);
+  }, [currentGame?.id, perspective.playerColor]);
 
   // Reset viewer to final position on load
   useEffect(() => {
@@ -185,7 +185,7 @@ export default function GameViewer() {
   // Sync notes text with currentGame
   useEffect(() => {
     setNotesText(currentGame?.notes ?? "");
-  }, [currentGame]);
+  }, [currentGame?.id, currentGame?.notes]);
 
   // Scroll active move into view
   useEffect(() => {
@@ -318,8 +318,7 @@ export default function GameViewer() {
   const evalDepth = "Depth 36";
 
   return (
-    <AppShell>
-      <div className="mx-auto max-w-content px-6 py-6 font-body">
+    <div className="mx-auto max-w-content px-6 py-6 font-body">
         {isLoading ? (
           <div className="py-24">
             <Spinner />
@@ -331,9 +330,9 @@ export default function GameViewer() {
             title="Game Not Found"
             description="The requested match ledger does not exist in your archive."
             action={
-              <Link to="/game-bank" className="rounded-vault bg-vault-bronze px-4 py-2 font-mono text-xs text-vault-surface">
+              <NavLink to="/game-bank" className="rounded-vault bg-vault-bronze px-4 py-2 font-mono text-xs text-vault-surface">
                 Back to Game Bank
-              </Link>
+              </NavLink>
             }
           />
         ) : (
@@ -341,13 +340,14 @@ export default function GameViewer() {
             {/* SUBHEADER BAR (Screenshot 3) */}
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-vault-border-base pb-4 mb-6 font-mono text-xs">
               <div className="flex items-center gap-3">
-                <Link
+                <NavLink
                   to="/game-bank"
                   className="flex items-center gap-1.5 text-vault-text-secondary hover:text-vault-text-primary transition-colors"
                 >
                   <ArrowLeft size={13} />
                   <span>VAULT INDEX</span>
-                </Link>
+                </NavLink>
+
                 <span className="text-vault-text-muted">•</span>
                 <span className="text-vault-text-muted">FOLIO #CV-2024-0419</span>
                 <span className="text-vault-text-muted">•</span>
@@ -819,6 +819,5 @@ export default function GameViewer() {
           </div>
         )}
       </div>
-    </AppShell>
   );
 }

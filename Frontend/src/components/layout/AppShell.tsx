@@ -1,6 +1,6 @@
 import { Search, Shield, Radio } from "lucide-react";
 import type { ReactNode } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useUser } from "@clerk/react";
 import { useAccountBootstrap } from "../../hooks/useAccount";
 
@@ -28,7 +28,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="border-b border-vault-border-base bg-vault-surface-container-lowest/90 backdrop-blur-md sticky top-0 z-30">
         <div className="mx-auto flex h-16 max-w-content items-center justify-between px-6">
           {/* Brand Mark */}
-          <Link to="/dashboard" className="flex items-center gap-2.5 group">
+          <NavLink to="/dashboard" className="flex items-center gap-2.5 group">
             <div className="grid h-8 w-8 place-items-center rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 text-vault-primary transition-colors group-hover:border-vault-bronze">
               <Shield size={16} strokeWidth={2} />
             </div>
@@ -40,7 +40,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 Archival Registry
               </span>
             </div>
-          </Link>
+          </NavLink>
 
           {/* Center Navigation */}
           <nav className="hidden items-center gap-7 md:flex">
@@ -86,7 +86,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
 
             {/* Profile Avatar */}
-            <Link
+            <NavLink
               to="/settings"
               title="Account & Preferences"
               className="grid h-8 w-8 place-items-center overflow-hidden rounded-full border border-vault-border-interactive bg-vault-surface-layer-2 text-xs font-semibold text-vault-primary transition-colors hover:border-vault-bronze"
@@ -102,7 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 />
               ) : null}
               <span>{profileName.slice(0, 1).toUpperCase()}</span>
-            </Link>
+            </NavLink>
           </div>
         </div>
       </header>
@@ -125,15 +125,16 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="flex items-center gap-6">
             <span>Ref: FIDE / PGN / EPD Specification</span>
-            <Link
+            <NavLink
               to="/settings"
               className="hover:text-vault-text-primary transition-colors"
             >
               Archival Preferences
-            </Link>
+            </NavLink>
           </div>
         </div>
       </footer>
     </div>
   );
 }
+

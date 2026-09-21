@@ -1,10 +1,8 @@
 import { CheckCircle2, Gamepad2, Link2, Save, UserRound } from "lucide-react";
-import { AppShell } from "../components/layout/AppShell";
 import { Button } from "../components/ui/Button";
 export default function SettingsPage() {
   return (
-    <AppShell>
-      <div className="mx-auto grid max-w-[1120px] gap-14 px-6 py-16 md:grid-cols-[260px_1fr]">
+    <div className="mx-auto grid max-w-[1120px] gap-14 px-6 py-16 md:grid-cols-[260px_1fr]">
         <aside>
           <h1 className="font-display text-5xl font-bold">Settings</h1>
           <nav className="mt-8 space-y-2">
@@ -101,7 +99,6 @@ export default function SettingsPage() {
           </section>
         </section>
       </div>
-    </AppShell>
   );
 }
 function Platform({

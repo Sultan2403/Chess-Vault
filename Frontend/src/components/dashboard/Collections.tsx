@@ -1,6 +1,6 @@
 import { BookOpen, Bookmark, ChevronRight, Folder, Star, Trophy } from "lucide-react";
 import { motion } from "motion/react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useFolders } from "../../hooks/useFolders";
 
 export function Collections() {
@@ -16,7 +16,7 @@ export function Collections() {
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Featured Left Card: Favorite Games with tactile chess image background */}
-        <Link to="/library?collection=favorites">
+        <NavLink to="/library?collection=favorites">
           <motion.article
             whileHover={{ y: -3 }}
             className="group relative min-h-[220px] h-full overflow-hidden rounded-vault border border-vault-outline-variant/60 bg-[#f5efe4] p-7 shadow-xs flex flex-col justify-between"
@@ -48,11 +48,11 @@ export function Collections() {
               </span>
             </div>
           </motion.article>
-        </Link>
+        </NavLink>
 
         {/* Right 2 Compact Cards */}
         <div className="grid gap-4">
-          <Link to="/library?collection=tournaments">
+          <NavLink to="/library?collection=tournaments">
             <motion.article
               whileHover={{ y: -2 }}
               className="rounded-vault border border-vault-outline-variant/60 bg-white/70 p-6 shadow-xs transition-colors hover:bg-white/90"
@@ -67,9 +67,9 @@ export function Collections() {
                 142 ENTRIES
               </p>
             </motion.article>
-          </Link>
+          </NavLink>
 
-          <Link to="/library?collection=openings">
+          <NavLink to="/library?collection=openings">
             <motion.article
               whileHover={{ y: -2 }}
               className="rounded-vault border border-vault-outline-variant/60 bg-white/70 p-6 shadow-xs transition-colors hover:bg-white/90"
@@ -84,11 +84,11 @@ export function Collections() {
                 12 ENTRIES
               </p>
             </motion.article>
-          </Link>
+          </NavLink>
         </div>
 
         {/* Bottom Full-Width Banner: Memorable Games */}
-        <Link to="/library?collection=memorable" className="md:col-span-2">
+        <NavLink to="/library?collection=memorable" className="md:col-span-2">
           <motion.article
             whileHover={{ y: -2 }}
             className="flex items-center gap-4 rounded-vault bg-[#2d221c] px-6 py-5 text-white shadow-sm transition-opacity hover:opacity-95"
@@ -109,9 +109,8 @@ export function Collections() {
               <ChevronRight className="text-[#d3c3bd]" size={16} />
             </div>
           </motion.article>
-        </Link>
+        </NavLink>
       </div>
     </section>
   );
 }
-

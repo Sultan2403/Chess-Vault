@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+
 import {
   Search,
   Plus,
@@ -9,7 +10,6 @@ import {
   FolderKanban,
   FolderPlus,
 } from "lucide-react";
-import { AppShell } from "../components/layout/AppShell";
 import { Button } from "../components/ui/Button";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
 import { useFolders, useCreateFolder } from "../hooks/useFolders";
@@ -118,8 +118,7 @@ export default function CollectionsPage() {
   };
 
   return (
-    <AppShell>
-      <div className="mx-auto max-w-content px-6 py-10 font-body space-y-8">
+    <div className="mx-auto max-w-content px-6 py-10 font-body space-y-8">
         {/* FOLDER / ANTHOLOGY HEADER */}
         <section className="flex flex-col md:flex-row md:items-start justify-between gap-6 border-b border-vault-border-base pb-8">
           <div>
@@ -485,11 +484,12 @@ export default function CollectionsPage() {
                     </span>
 
                     <div className="pt-2 space-y-1.5">
-                      <Link to={`/game/${game.id}`} className="block">
+                      <NavLink to={`/game/${game.id}`} className="block">
                         <Button variant="secondary" className="w-full text-[10px] py-1.5">
                           Launch Replay Suite <ExternalLink size={10} className="ml-1" />
                         </Button>
-                      </Link>
+                      </NavLink>
+
                       <button
                         type="button"
                         onClick={() => {
@@ -534,6 +534,5 @@ export default function CollectionsPage() {
           </div>
         </section>
       </div>
-    </AppShell>
   );
 }

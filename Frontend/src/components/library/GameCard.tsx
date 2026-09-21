@@ -1,5 +1,5 @@
 import type { Game } from "@chess-vault/shared";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { getGameDate, getPlayerPerspective } from "../../utils/game";
 
 const labels = { win: "Won", loss: "Lost", draw: "Draw" };
@@ -14,7 +14,7 @@ export function GameCard({ game, platformUsernames }: GameCardProps) {
   const [opening, variation] = (game.title ?? "Untitled game").split(": ");
 
   return (
-    <Link to={`/game/${game.id}`}>
+    <NavLink to={`/game/${game.id}`}>
       <article className="group h-full rounded-vault border border-vault-outline-variant/60 bg-[#f7f3ea] p-6 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md hover:bg-white/90 flex flex-col justify-between">
         <div>
           <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.16em]">
@@ -58,7 +58,8 @@ export function GameCard({ game, platformUsernames }: GameCardProps) {
           </div>
         </div>
       </article>
-    </Link>
+    </NavLink>
   );
 }
+
 

@@ -1,8 +1,7 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useUser } from "@clerk/react";
 import { ArrowRight, RefreshCw, FileCode, FolderPlus, Plus, Database } from "lucide-react";
-import { AppShell } from "../components/layout/AppShell";
 import { Button } from "../components/ui/Button";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
 import { useGames } from "../hooks/useGames";
@@ -111,7 +110,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <AppShell>
+    <>
       <div className="mx-auto max-w-content px-6 py-10 space-y-12">
         {/* HERO / WELCOME HEADER */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-vault-border-base pb-8">
@@ -148,14 +147,14 @@ export default function DashboardPage() {
                   : "No platforms connected"}
               </span>
             </div>
-            <Link to="/game-bank">
+            <NavLink to="/game-bank">
               <Button
                 variant="secondary"
                 className="font-mono text-xs px-4 py-2"
               >
                 Browse Game Bank <ArrowRight size={13} className="ml-1" />
               </Button>
-            </Link>
+            </NavLink>
           </div>
         </section>
 
@@ -251,12 +250,12 @@ export default function DashboardPage() {
                 Terminal Ledger Artifacts
               </span>
             </div>
-            <Link
+            <NavLink
               to="/game-bank"
               className="font-mono text-xs text-vault-text-secondary hover:text-vault-bronze transition-colors flex items-center gap-1"
             >
               VIEW FULL REGISTRY <ArrowRight size={12} />
-            </Link>
+            </NavLink>
           </div>
 
           {isGamesLoading ? (
@@ -294,11 +293,11 @@ export default function DashboardPage() {
                 >
                   Connect Platforms
                 </Button>
-                <Link to="/game-bank">
+                <NavLink to="/game-bank">
                   <Button variant="secondary" className="text-xs font-mono uppercase px-4 py-2">
                     Upload PGN
                   </Button>
-                </Link>
+                </NavLink>
               </div>
             </div>
           ) : (
@@ -342,7 +341,7 @@ export default function DashboardPage() {
                       user.username.toLowerCase());
 
                 return (
-                  <Link
+                  <NavLink
                     key={game.id}
                     to={`/game/${game.id}`}
                     className="block rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5 flex flex-col justify-between hover:border-vault-bronze hover:bg-vault-surface-layer-2/70 transition-all group cursor-pointer"
@@ -416,7 +415,7 @@ export default function DashboardPage() {
                         Inspect →
                       </span>
                     </div>
-                  </Link>
+                  </NavLink>
                 );
               })}
             </div>
@@ -436,12 +435,12 @@ export default function DashboardPage() {
                   Structured Repertoires
                 </span>
               </div>
-              <Link
+              <NavLink
                 to="/collections"
                 className="font-mono text-xs text-vault-text-secondary hover:text-vault-bronze transition-colors"
               >
                 INSPECT ALL {realFoldersCount} &gt;
-              </Link>
+              </NavLink>
             </div>
 
             {isFoldersLoading ? (
@@ -462,16 +461,16 @@ export default function DashboardPage() {
                 <p className="text-xs text-vault-text-secondary">
                   Organize your opening repertoires and tournament monographs into curated folders.
                 </p>
-                <Link to="/collections">
+                <NavLink to="/collections">
                   <Button variant="secondary" className="text-xs font-mono uppercase px-3 py-1.5 mt-2">
                     <Plus size={12} className="mr-1" /> Create Folder
                   </Button>
-                </Link>
+                </NavLink>
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
                 {userFolders.slice(0, 4).map((folder) => (
-                  <Link key={folder.id} to="/collections">
+                  <NavLink key={folder.id} to="/collections">
                     <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5 hover:border-vault-border-interactive hover:bg-vault-surface-layer-2 transition-all">
                       <div className="flex items-start gap-3">
                         <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 text-vault-bronze font-mono text-xs">
@@ -492,7 +491,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     </div>
-                  </Link>
+                  </NavLink>
                 ))}
               </div>
             )}
@@ -668,6 +667,6 @@ export default function DashboardPage() {
           setIsOnboardingOpen(false);
         }}
       />
-    </AppShell>
+    </>
   );
 }

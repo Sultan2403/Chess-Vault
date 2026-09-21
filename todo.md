@@ -32,6 +32,8 @@
 - Add a branded logo or visual identity treatment to auth pages and major app surfaces
 - Mini chessboard apparently renders the same freaking position for all games... investigate and fix
 
+- Theres a minor bug in the frontemd that makes pages feel slow. I think the issue is in how the components are rendered. Probably the react query hooks fetch in the bg before the ui actually updates or sumthing idk but it makes the app feel slow and is bad for ux. 
+
 ### Type Safety & Validation
 
 - Remove inappropriate `.optional()` usages where the field should not accept `undefined`; use the established default/null behavior instead

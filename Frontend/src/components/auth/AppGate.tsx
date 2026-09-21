@@ -3,6 +3,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAccountBootstrap } from "../../hooks/useAccount";
 import { Spinner } from "../ui/Spinner";
 import { ErrorBanner } from "../ui/ErrorBanner";
+import { AppShell } from "../layout/AppShell";
 
 function AppLoading() {
   return (
@@ -30,7 +31,11 @@ export function ProtectedAppGate() {
     return <Navigate replace to="/onboarding" />;
   }
 
-  return <Outlet />;
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  );
 }
 
 export function OnboardingGate() {
