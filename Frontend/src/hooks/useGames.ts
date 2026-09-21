@@ -5,6 +5,7 @@ import type {
   SearchGamesResponse,
   GameResponse,
   FrontendImportGamesPayload,
+  UpdateGamePayload,
 } from "../apis/api.games";
 import { QUERY_KEYS } from "../constants/queryKeys";
 import type { Game } from "@chess-vault/shared";
@@ -58,6 +59,32 @@ export const useGame = (id: string) => {
   });
 };
 
+export const useUpdateGame = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateGamePayload }) =>
+      gamesApi.updateGame(id, data),
+    onSuccess: (_result, { id }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.games.lists() });
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.games.detail(id),
+      });
+    },
+  });
+};
+
+export const useDeleteGame = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => gamesApi.deleteGame(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.games.lists() });
+    },
+  });
+};
+
 export const useImportGames = () => {
   const queryClient = useQueryClient();
 
@@ -69,4 +96,5 @@ export const useImportGames = () => {
     },
   });
 };
+
 

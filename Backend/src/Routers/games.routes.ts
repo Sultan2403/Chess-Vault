@@ -5,11 +5,14 @@ import {
   getGameController,
   importGamesController,
   searchGamesController,
+  updateGameController,
+  deleteGameController,
 } from "../Controllers/games.controller";
 import {
   gameParams,
   importGamesParams,
   searchGamesQuery,
+  updateGameBody,
 } from "../Schemas/games.schema";
 
 const router = Router();
@@ -26,6 +29,18 @@ router.get(
   getGameController,
 );
 
+router.patch(
+  "/:id",
+  validate({ params: gameParams, body: updateGameBody }),
+  updateGameController,
+);
+
+router.delete(
+  "/:id",
+  validate({ params: gameParams }),
+  deleteGameController,
+);
+
 router.post(
   "/import",
   validate({ body: importGamesParams }),
@@ -33,5 +48,6 @@ router.post(
 );
 
 export default router;
+
 
 

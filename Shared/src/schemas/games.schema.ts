@@ -133,3 +133,20 @@ export const gameParams = z.object({
     .min(1, "Game ID is required")
     .refine(isValidMongoId, { message: "Invalid game id" }),
 });
+
+export const updateGameBody = z.object({
+  title: z.string().trim().max(100).optional(),
+  notes: z.string().trim().max(1000).optional(),
+  tags: z.string().trim().max(20).optional(),
+  folderIds: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1)
+        .refine(isValidMongoId, { message: "Invalid folder id" }),
+    )
+    .nullable()
+    .optional(),
+});
+

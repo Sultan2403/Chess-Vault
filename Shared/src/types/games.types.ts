@@ -4,6 +4,7 @@ import {
   importGamesParams,
   searchGamesQuery,
   gameParams,
+  updateGameBody,
 } from "../schemas/games.schema.js";
 import type { PlatformType } from "../constants/platforms.js";
 
@@ -42,6 +43,8 @@ export type Game = z.infer<typeof GameSchema>;
  */
 export type NormalizedGame = Omit<Game, "id" | "createdAt" | "updatedAt">;
 export type GameParams = z.infer<typeof gameParams>;
+export type UpdateGameInput = z.infer<typeof updateGameBody>;
+
 
 
 export interface ImportResult {

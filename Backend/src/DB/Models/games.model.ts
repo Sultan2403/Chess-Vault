@@ -180,15 +180,20 @@ gameSchema.index({ userId: 1, "opening.name": 1 });
 gameSchema.index({ userId: 1, "opening.variation": 1 });
 
 gameSchema.set("toJSON", {
-  transform: (_, obj) => {
-    const { _id, __v, ...rest } = obj;
+  transform: (_, obj: Record<string, unknown>) => {
+    const { _id, __v, folderIds, ...rest } = obj;
 
     return {
-      id: _id.toString(),
+      id: String(_id),
+      folderIds: Array.isArray(folderIds)
+        ? folderIds.map((id) => String(id))
+        : null,
       ...rest,
     };
   },
 });
+
+
 
 const Game = mongoose.model("games", gameSchema, "games");
 

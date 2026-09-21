@@ -13,6 +13,7 @@ import {
   Game,
   ImportResult,
   GameSearchParams,
+  UpdateGameInput,
 } from "../Types/games.types";
 import lichessApi from "../Api/lichess.api";
 
@@ -338,3 +339,54 @@ export const getGameById = async (
     ...rest,
   };
 };
+
+export const updateGame = async (
+  id: string,
+  userId: string,
+  updateData: UpdateGameInput,
+): Promise<Game | null> => {
+  const { folderIds, ...rest } = updateData;
+  const updatePayload: Partial<{
+    title?: string;
+    notes?: string;
+    tags?: string;
+    folderIds?: mongoose.Types.ObjectId[] | null;
+  }> = { ...rest };
+
+  if (folderIds !== undefined) {
+    updatePayload.folderIds = folderIds
+      ? folderIds.map((fId) => new mongoose.Types.ObjectId(fId))
+      : null;
+  }
+
+  const game = await Games.findOneAndUpdate(
+    { _id: id, userId },
+    { $set: updatePayload },
+    { returnDocument: "after", runValidators: true },
+  ).lean();
+
+  if (!game) return null;
+
+  const { _id, folderIds: updatedFolderIds, ...gameRest } = game as unknown as {
+    _id: mongoose.Types.ObjectId | string;
+    folderIds?: (mongoose.Types.ObjectId | string)[] | null;
+  } & Omit<Game, "id" | "folderIds">;
+
+  return {
+    id: _id.toString(),
+    folderIds: updatedFolderIds
+      ? updatedFolderIds.map((fId) => fId.toString())
+      : null,
+    ...gameRest,
+  };
+};
+
+
+export const deleteGame = async (
+  id: string,
+  userId: string,
+): Promise<boolean> => {
+  const result = await Games.deleteOne({ _id: id, userId });
+  return result.deletedCount === 1;
+};
+

@@ -3,8 +3,10 @@ import {
   importGames,
   searchGames,
   getGameById,
+  updateGame,
+  deleteGame,
 } from "../Services/games.service";
-import { ImportGamesParams } from "../Types/games.types";
+import { ImportGamesParams, UpdateGameInput } from "../Types/games.types";
 import { getUserId } from "../Utils/auth";
 import {
   successResponse,
@@ -60,3 +62,43 @@ export const getGameController = async (req: Request, res: Response) => {
     return internalError({ res, error });
   }
 };
+
+export const updateGameController = async (req: Request, res: Response) => {
+  const userId = getUserId(req)!;
+  const id = String(req.params.id);
+  const updateData: UpdateGameInput = req.body;
+
+  try {
+    const game = await updateGame(id, userId, updateData);
+    if (!game) {
+      return errorResponse({
+        res,
+        statusCode: 404,
+        message: "Game not found",
+      });
+    }
+    return successResponse({ res, data: { game } });
+  } catch (error) {
+    return internalError({ res, error });
+  }
+};
+
+export const deleteGameController = async (req: Request, res: Response) => {
+  const userId = getUserId(req)!;
+  const id = String(req.params.id);
+
+  try {
+    const deleted = await deleteGame(id, userId);
+    if (!deleted) {
+      return errorResponse({
+        res,
+        statusCode: 404,
+        message: "Game not found",
+      });
+    }
+    return successResponse({ res, message: "Game deleted successfully" });
+  } catch (error) {
+    return internalError({ res, error });
+  }
+};
+
