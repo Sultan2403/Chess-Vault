@@ -11,6 +11,16 @@
 ## Backend
 
 - Add final tests where necessary
+- Add a `GET /analytics` endpoint that returns personal chess statistics such as:
+  - Platform distribution
+  - Result distribution
+  - Time-class distribution
+  - Game length statistics
+  - Most-played opponents
+  - Opening distribution
+  - Opponent/rating statistics and trends
+  - Games played over time / activity trends
+  - Other useful personal insights that can be derived from the user's archived games
 
 ## Frontend
 
