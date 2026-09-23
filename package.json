@@ -7,6 +7,7 @@
     "Shared"
   ],
   "scripts": {
+    "dev": "concurrently \"bun run dev:backend\" \"bun run dev:frontend\"",
     "dev:backend": "bun --cwd Backend dev",
     "dev:frontend": "bun --cwd Frontend dev",
     "test:backend": "bun --cwd Backend test",
@@ -15,5 +16,8 @@
     "build:frontend": "npm run build --workspace=chess-vault-frontend",
     "deploy:backend": "npm run build:shared && npm run build:backend",
     "deploy:frontend": "npm run build:shared && npm run build:frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
   }
 }
