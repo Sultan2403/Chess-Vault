@@ -37,6 +37,7 @@ const envSchema = z.object({
 
   PAYSTACK_API_KEY: z.string().min(5, "Paystack API key missing"),
   PAYSTACK_TEST_API_KEY: z.string().min(5, "Paystack test API key missing"),
+  GEMINI_API_KEY: z.string().min(5, "Gemini API key missing"),
 
   DEV_EMAIL: z.string().min(5, "Dev email not configured"),
 

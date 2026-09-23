@@ -17,6 +17,7 @@
   "dependencies": {
     "@chess-vault/shared": "*",
     "@clerk/express": "^2.1.46",
+    "@google/genai": "^2.24.0",
     "@types/cors": "^2.8.19",
     "@types/ndjson": "^2.0.4",
     "axios": "^1.18.1",
