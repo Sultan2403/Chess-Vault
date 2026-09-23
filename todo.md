@@ -5,6 +5,7 @@
 
 ## Overall
 
+- ANALYTICSSSSSSS!!!! IT'S IMPORTANT BRO!!!
 - Add stockfish wasm for analysis on the client side
 - Remove `.optional()` in Game.opening as it and it's kids are all required. This is just a knock off of the type safety task below but just more precise lol. 
 
