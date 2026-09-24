@@ -41,135 +41,203 @@ export const importGames = async ({
       };
     };
 
-    logger.info(
-      { username, ...getMemoryMetrics() },
-      "Starting Chess.com import",
-    );
+    let previousCpu = process.cpuUsage();
+    let previousTime = performance.now();
 
-    const response = await chessComApi.getPlayerArchives(username);
+    const debugInterval = setInterval(() => {
+      const now = performance.now();
+      const cpuDelta = process.cpuUsage(previousCpu);
 
-    logger.info(
-      {
-        username,
-        archiveCount: response.archives?.length ?? 0,
-        ...getMemoryMetrics(),
-      },
-      "Fetched Chess.com player archives",
-    );
+      const intervalMs = now - previousTime;
+      const elapsedMicros = intervalMs * 1000;
+      const cpuMicros = cpuDelta.user + cpuDelta.system;
 
-    const archiveUrls = response.archives;
+      const cpuPercentOfOneCore =
+        elapsedMicros > 0 ? (cpuMicros / elapsedMicros) * 100 : 0;
 
-    if (!archiveUrls || archiveUrls.length === 0) {
-      logger.warn(
+      const memory = process.memoryUsage();
+
+      logger.info(
+        {
+          intervalMs: Number(intervalMs.toFixed(1)),
+          cpuPercentOfOneCore: Number(cpuPercentOfOneCore.toFixed(1)),
+          rssMB: Number((memory.rss / 1024 / 1024).toFixed(1)),
+          heapUsedMB: Number((memory.heapUsed / 1024 / 1024).toFixed(1)),
+          heapTotalMB: Number((memory.heapTotal / 1024 / 1024).toFixed(1)),
+          externalMB: Number((memory.external / 1024 / 1024).toFixed(1)),
+          arrayBuffersMB: Number(
+            (memory.arrayBuffers / 1024 / 1024).toFixed(1),
+          ),
+        },
+        "Import resource usage",
+      );
+
+      previousCpu = process.cpuUsage();
+      previousTime = now;
+    }, 500);
+
+    debugInterval.unref();
+
+    try {
+      logger.info(
         { username, ...getMemoryMetrics() },
-        "No archives found for Chess.com user",
+        "Starting Chess.com import",
       );
-      return {
-        success: false,
-        message: `No game history found for Chess.com user: ${username}`,
-      };
-    }
 
-    logger.info(
-      { username, archiveCount: archiveUrls.length, ...getMemoryMetrics() },
-      "Found player archives on Chess.com",
-    );
-
-    const recentArchives = [...archiveUrls].reverse();
-
-    logger.info(
-      {
-        archiveCount: recentArchives.length,
-        ...getMemoryMetrics(),
-      },
-      "Reversed archive list",
-    );
-
-    let totalImported = 0;
-
-    for (const archiveUrl of recentArchives) {
-      if (totalImported >= MAX_GAMES_PER_USER) break;
+      const response = await chessComApi.getPlayerArchives(username);
 
       logger.info(
         {
-          archiveUrl,
-          totalImported,
+          username,
+          archiveCount: response.archives?.length ?? 0,
           ...getMemoryMetrics(),
         },
-        "Fetching monthly archive",
+        "Fetched Chess.com player archives",
       );
 
-      const monthlyData = await chessComApi.getGamesFromArchiveUrl(archiveUrl);
+      const archiveUrls = response.archives;
+
+      if (!archiveUrls || archiveUrls.length === 0) {
+        logger.warn(
+          { username, ...getMemoryMetrics() },
+          "No archives found for Chess.com user",
+        );
+
+        return {
+          success: false,
+          message: `No game history found for Chess.com user: ${username}`,
+        };
+      }
 
       logger.info(
         {
-          archiveUrl,
-          gamesCount: monthlyData.games?.length ?? 0,
-          totalImported,
+          username,
+          archiveCount: archiveUrls.length,
           ...getMemoryMetrics(),
         },
-        "Fetched monthly archive",
+        "Found player archives on Chess.com",
       );
 
-      if (!monthlyData.games || monthlyData.games.length === 0) continue;
+      const recentArchives = [...archiveUrls].reverse();
 
       logger.info(
         {
-          archiveUrl,
-          gamesCount: monthlyData.games.length,
-          totalImported,
+          archiveCount: recentArchives.length,
           ...getMemoryMetrics(),
         },
-        "Processing monthly archive",
+        "Reversed archive list",
       );
 
-      const monthlyGames = [...monthlyData.games].reverse();
+      let totalImported = 0;
 
-      logger.info(
-        {
-          archiveUrl,
-          monthlyGamesCount: monthlyGames.length,
-          totalImported,
-          ...getMemoryMetrics(),
-        },
-        "Reversed monthly games",
-      );
+      for (const archiveUrl of recentArchives) {
+        if (totalImported >= MAX_GAMES_PER_USER) break;
 
-      const gamesToInsert: NormalizedGame[] = [];
+        logger.info(
+          {
+            archiveUrl,
+            totalImported,
+            ...getMemoryMetrics(),
+          },
+          "Fetching monthly archive",
+        );
 
-      logger.info(
-        {
-          archiveUrl,
-          totalImported,
-          gamesToInsertCount: gamesToInsert.length,
-          ...getMemoryMetrics(),
-        },
-        "Starting game normalization",
-      );
+        const monthlyData =
+          await chessComApi.getGamesFromArchiveUrl(archiveUrl);
 
-      for (const game of monthlyGames) {
-        if (totalImported >= MAX_GAMES_PER_USER) {
-          logger.info(
-            {
-              limit: MAX_GAMES_PER_USER,
-              totalImported,
-              ...getMemoryMetrics(),
-            },
-            "Hard limit of games hit mid-archive",
-          );
-          break;
+        logger.info(
+          {
+            archiveUrl,
+            gamesCount: monthlyData.games?.length ?? 0,
+            totalImported,
+            ...getMemoryMetrics(),
+          },
+          "Fetched monthly archive",
+        );
+
+        if (!monthlyData.games || monthlyData.games.length === 0) continue;
+
+        logger.info(
+          {
+            archiveUrl,
+            gamesCount: monthlyData.games.length,
+            totalImported,
+            ...getMemoryMetrics(),
+          },
+          "Processing monthly archive",
+        );
+
+        const monthlyGames = [...monthlyData.games].reverse();
+
+        logger.info(
+          {
+            archiveUrl,
+            monthlyGamesCount: monthlyGames.length,
+            totalImported,
+            ...getMemoryMetrics(),
+          },
+          "Reversed monthly games",
+        );
+
+        const gamesToInsert: NormalizedGame[] = [];
+
+        logger.info(
+          {
+            archiveUrl,
+            totalImported,
+            gamesToInsertCount: gamesToInsert.length,
+            ...getMemoryMetrics(),
+          },
+          "Starting game normalization",
+        );
+
+        for (const game of monthlyGames) {
+          if (totalImported >= MAX_GAMES_PER_USER) {
+            logger.info(
+              {
+                limit: MAX_GAMES_PER_USER,
+                totalImported,
+                ...getMemoryMetrics(),
+              },
+              "Hard limit of games hit mid-archive",
+            );
+
+            break;
+          }
+
+          const normalizedGame = normalizeChessComGame({
+            game,
+            userId,
+            folderIds,
+          });
+
+          gamesToInsert.push(normalizedGame);
+          totalImported++;
+
+          if (gamesToInsert.length % 100 === 0) {
+            logger.info(
+              {
+                archiveUrl,
+                gamesToInsertCount: gamesToInsert.length,
+                totalImported,
+                ...getMemoryMetrics(),
+              },
+              "Game normalization progress",
+            );
+          }
         }
 
-        const normalizedGame = normalizeChessComGame({
-          game,
-          userId,
-          folderIds,
-        });
+        logger.info(
+          {
+            archiveUrl,
+            gamesToInsertCount: gamesToInsert.length,
+            totalImported,
+            ...getMemoryMetrics(),
+          },
+          "Finished game normalization",
+        );
 
-        gamesToInsert.push(normalizedGame);
-        totalImported++;
-
-        if (gamesToInsert.length % 100 === 0) {
+        if (gamesToInsert.length > 0) {
           logger.info(
             {
               archiveUrl,
@@ -177,89 +245,71 @@ export const importGames = async ({
               totalImported,
               ...getMemoryMetrics(),
             },
-            "Game normalization progress",
+            "Building MongoDB bulk operations",
+          );
+
+          const ops = gamesToInsert.map((game) => ({
+            updateOne: {
+              filter: {
+                userId: game.userId,
+                platform: game.platform,
+                platformGameId: game.platformGameId,
+              },
+              update: {
+                $setOnInsert: {
+                  ...game,
+                  folderIds: game.folderIds
+                    ? game.folderIds.map(
+                        (id) => new mongoose.Types.ObjectId(id),
+                      )
+                    : null,
+                },
+              },
+              upsert: true,
+            },
+          }));
+
+          logger.info(
+            {
+              archiveUrl,
+              gamesToInsertCount: gamesToInsert.length,
+              opsCount: ops.length,
+              totalImported,
+              ...getMemoryMetrics(),
+            },
+            "Built MongoDB bulk operations",
+          );
+
+          const res = await Games.bulkWrite(ops as any);
+
+          logger.info(
+            {
+              archiveUrl,
+              upsertedCount: res.upsertedCount,
+              matchedCount: res.matchedCount,
+              totalImported,
+              ...getMemoryMetrics(),
+            },
+            "Upserted Chess.com archive batch into DB",
           );
         }
       }
 
       logger.info(
         {
-          archiveUrl,
-          gamesToInsertCount: gamesToInsert.length,
           totalImported,
           ...getMemoryMetrics(),
         },
-        "Finished game normalization",
+        "Finished Chess.com import",
       );
 
-      if (gamesToInsert.length > 0) {
-        logger.info(
-          {
-            archiveUrl,
-            gamesToInsertCount: gamesToInsert.length,
-            totalImported,
-            ...getMemoryMetrics(),
-          },
-          "Building MongoDB bulk operations",
-        );
-
-        const ops = gamesToInsert.map((game) => ({
-          updateOne: {
-            filter: {
-              userId: game.userId,
-              platform: game.platform,
-              platformGameId: game.platformGameId,
-            },
-            update: {
-              $setOnInsert: {
-                ...game,
-                folderIds: game.folderIds
-                  ? game.folderIds.map((id) => new mongoose.Types.ObjectId(id))
-                  : null,
-              },
-            },
-            upsert: true,
-          },
-        }));
-
-        logger.info(
-          {
-            archiveUrl,
-            gamesToInsertCount: gamesToInsert.length,
-            opsCount: ops.length,
-            totalImported,
-            ...getMemoryMetrics(),
-          },
-          "Built MongoDB bulk operations",
-        );
-
-        const res = await Games.bulkWrite(ops as any);
-
-        logger.info(
-          {
-            archiveUrl,
-            upsertedCount: res.upsertedCount,
-            matchedCount: res.matchedCount,
-            totalImported,
-            ...getMemoryMetrics(),
-          },
-          "Upserted Chess.com archive batch into DB",
-        );
-      }
+      return {
+        success: true,
+        message: `Imported ${totalImported} games from Chess.com`,
+      };
+    } finally {
+      clearInterval(debugInterval);
     }
-
-    logger.info(
-      {
-        totalImported,
-        ...getMemoryMetrics(),
-      },
-      "Finished Chess.com import",
-    );
-
-    return {
-      success: true,
-      message: `Imported ${totalImported} games from Chess.com`,
-    };
   };
 
   const import_Lichess_Game = async ({
