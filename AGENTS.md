@@ -81,6 +81,15 @@ The authoritative Game model is defined as:
         title: string | undefined;
         notes: string | undefined;
         tags: string | undefined;
+        opening: {
+            eco?: string;
+            name?: string;
+            variation?: string;
+        } | undefined;
+        moves: {
+            count: number;
+            plies: number;
+        } | undefined;
         createdAt: Date | undefined;
         updatedAt: Date | undefined;
     }
@@ -103,6 +112,8 @@ The authoritative Game model is defined as:
 * `title`: Match title, formatted as `${whitePlayer.username} vs ${blackPlayer.username}` (or optional custom title). Note: Do NOT assume `title` contains opening details like `"Sicilian Defense: Najdorf"`.
 * `notes`: Optional user commentary or analysis (max 1000 chars).
 * `tags`: Optional custom tag assigned by user (max 20 chars).
+* `opening`: Optional opening classification containing `eco`, `name`, and `variation`.
+* `moves`: Optional move statistics object containing `count` (full moves) and `plies` (half-moves).
 * `createdAt`: Timestamp when saved into Chess Vault DB.
 * `updatedAt`: Timestamp when last updated in Chess Vault DB.
 

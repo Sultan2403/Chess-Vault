@@ -14,3 +14,43 @@ export const parsePositiveInt = (value: unknown, fallback: number) => {
   const parsed = Number.parseInt(String(value ?? ""), 10);
   return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
 };
+
+import { Chess } from "chess.js";
+import { GameMovesCount } from "../types/games.types.js";
+
+/**
+ * Calculates plies (half-moves) and full moves from a PGN string using chess.js.
+ */
+export function getPgnMoveCount(pgn?: string | null): GameMovesCount {
+  if (!pgn?.trim()) {
+    return { plies: 0, count: 0 };
+  }
+
+  try {
+    const chess = new Chess();
+    chess.loadPgn(pgn, { strict: false });
+
+    const plies = chess.history().length;
+    const count = Math.ceil(plies / 2);
+
+    return { plies, count };
+  } catch {
+    return { plies: 0, count: 0 };
+  }
+}
+
+/**
+ * Returns the total number of full moves for a game or PGN string.
+ * Leverages the game's cached `moves.count` if present, or parses via `getPgnMoveCount`.
+ */
+export function getMoveCount(
+  input?: string | { pgn?: string | null; moves?: GameMovesCount } | null,
+): number {
+  if (!input) return 0;
+  if (typeof input !== "string" && input.moves?.count !== undefined) {
+    return input.moves.count;
+  }
+  const pgn = typeof input === "string" ? input : input.pgn;
+  return getPgnMoveCount(pgn).count;
+}
+

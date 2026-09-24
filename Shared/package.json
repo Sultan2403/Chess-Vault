@@ -16,6 +16,7 @@
     "build": "tsc && echo \"✅ Shared build completed successfully\""
   },
   "dependencies": {
+    "chess.js": "^1.4.0",
     "zod": "^4.4.3"
   }
 }

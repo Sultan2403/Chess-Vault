@@ -35,6 +35,14 @@ export const openingSchema = z.object({
   variation: z.string().trim().max(100).optional(),
 });
 
+/** Move statistics: count (full moves) and plies (half-moves) */
+export const movesSchema = z.object({
+  /** Total number of full moves (rounds/turns) */
+  count: z.number().int().nonnegative(),
+  /** Total number of half-moves (plies) */
+  plies: z.number().int().nonnegative(),
+});
+
 export const GameSchema = z.object({
   /** MongoDB ObjectId string assigned upon persistence in Chess Vault */
   id: z.string().trim().min(1),
@@ -88,6 +96,9 @@ export const GameSchema = z.object({
 
   /** Opening details: ECO code, opening family name, and variation */
   opening: openingSchema.optional(),
+
+  /** Move statistics: count (full moves) and plies (half-moves) */
+  moves: movesSchema.optional(),
 
   /** Timestamp when persisted in Chess Vault DB */
   createdAt: z.coerce.date().optional(),

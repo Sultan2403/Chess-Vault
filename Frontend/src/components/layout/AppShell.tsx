@@ -1,7 +1,7 @@
-import { Search, Shield, Radio } from "lucide-react";
+import { Radio, Search, Settings, Shield } from "lucide-react";
 import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
-import { useUser } from "@clerk/react";
+import { UserButton } from "@clerk/react";
 import { useAccountBootstrap } from "../../hooks/useAccount";
 
 const navItems = [
@@ -11,9 +11,7 @@ const navItems = [
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { user } = useUser();
   const { data: accountData } = useAccountBootstrap();
-  const profileName = user?.firstName ?? user?.username ?? "Scholar";
 
   // Derive connected sources text
   const connectedCount = accountData?.linkedAccounts?.length ?? 0;
@@ -85,24 +83,19 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span className="tracking-wide">INDEX SEARCH</span>
             </button>
 
-            {/* Profile Avatar */}
-            <NavLink
-              to="/settings"
-              title="Account & Preferences"
-              className="grid h-8 w-8 place-items-center overflow-hidden rounded-full border border-vault-border-interactive bg-vault-surface-layer-2 text-xs font-semibold text-vault-primary transition-colors hover:border-vault-bronze"
+            {/* User Account / Profile Menu */}
+            <UserButton
+              userProfileMode="navigation"
+              userProfileUrl="/settings"
             >
-              {user?.imageUrl ? (
-                <img
-                  src={user.imageUrl}
-                  alt={profileName}
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = "none";
-                  }}
+              <UserButton.MenuItems>
+                <UserButton.Link
+                  label="Settings & Preferences"
+                  labelIcon={<Settings size={14} />}
+                  href="/settings"
                 />
-              ) : null}
-              <span>{profileName.slice(0, 1).toUpperCase()}</span>
-            </NavLink>
+              </UserButton.MenuItems>
+            </UserButton>
           </div>
         </div>
       </header>

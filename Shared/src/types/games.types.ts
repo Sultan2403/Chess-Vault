@@ -5,6 +5,7 @@ import {
   searchGamesQuery,
   gameParams,
   updateGameBody,
+  movesSchema,
 } from "../schemas/games.schema.js";
 import type { PlatformType } from "../constants/platforms.js";
 
@@ -26,7 +27,8 @@ import type { PlatformType } from "../constants/platforms.js";
  * @property playedAt - Timestamp when the game was completed on the original platform.
  * @property pgn - Full Portable Game Notation string including move sequence and headers.
  * @property notes - Optional user commentary or personal analysis (max 1000 chars).
- * @property tags - Optional custom tag for categorizing the game (max 20 chars).
+ * @property opening - Optional opening classification containing `eco`, `name`, and `variation`.
+ * @property moves - Optional move statistics containing `count` (full moves) and `plies` (half-moves).
  * @property createdAt - Timestamp when the record was persisted in Chess Vault.
  * @property updatedAt - Timestamp when the record was last modified in Chess Vault.
  */
@@ -44,8 +46,7 @@ export type Game = z.infer<typeof GameSchema>;
 export type NormalizedGame = Omit<Game, "id" | "createdAt" | "updatedAt">;
 export type GameParams = z.infer<typeof gameParams>;
 export type UpdateGameInput = z.infer<typeof updateGameBody>;
-
-
+export type GameMovesCount = z.infer<typeof movesSchema>;
 
 export interface ImportResult {
   success: boolean;
@@ -119,9 +120,9 @@ export interface Lichess_Game {
 
   /** Opening classification from Lichess. Present when the game reaches a known opening. */
   opening?: {
-    eco: string;   // ECO code, e.g. "C34"
-    name: string;  // Full name including variation, e.g. "King's Gambit Accepted: Fischer Defense"
-    ply: number;   // Half-moves into game where opening was identified (not stored on Game)
+    eco: string; // ECO code, e.g. "C34"
+    name: string; // Full name including variation, e.g. "King's Gambit Accepted: Fischer Defense"
+    ply: number; // Half-moves into game where opening was identified (not stored on Game)
   };
 
   moves: string;

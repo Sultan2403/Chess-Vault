@@ -3,6 +3,7 @@ import {
   Chess_Com_Game,
   NormalizedGame,
   Lichess_Game,
+  getPgnMoveCount,
 } from "../Types/games.types";
 import { parseLichessOpening, parseChessComOpening } from "../Utils/pgn";
 
@@ -30,6 +31,7 @@ export const normalizeLichessGame = ({
       : "Guest");
 
   const opening = parseLichessOpening(game.opening);
+  const moves = getPgnMoveCount(game.pgn || game.moves);
 
   return {
     userId,
@@ -52,6 +54,7 @@ export const normalizeLichessGame = ({
     pgn: game.pgn,
     isRated: game.rated,
     ...(opening && { opening }),
+    ...(moves && { moves }),
   };
 };
 
@@ -73,6 +76,7 @@ export const normalizeChessComGame = ({
         : "draw";
 
   const opening = parseChessComOpening(game.pgn);
+  const moves = getPgnMoveCount(game.pgn);
 
   return {
     userId,
@@ -95,5 +99,6 @@ export const normalizeChessComGame = ({
     pgn: game.pgn,
     isRated: game.rated,
     ...(opening && { opening }),
+    ...(moves && { moves }),
   };
 };

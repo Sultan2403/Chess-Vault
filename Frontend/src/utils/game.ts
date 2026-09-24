@@ -55,9 +55,7 @@ export function getGameDate(game: Game, pattern = "MMM dd, yyyy") {
   return format(dateObj, pattern);
 }
 
-export function getMoveCount(game: Game) {
-  return (game.pgn.match(/\d+\./g) ?? []).length;
-}
+export { getMoveCount, getPgnMoveCount } from "@chess-vault/shared";
 
 
 /**

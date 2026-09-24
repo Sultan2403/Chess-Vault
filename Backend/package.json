@@ -21,6 +21,7 @@
     "@types/cors": "^2.8.19",
     "@types/ndjson": "^2.0.4",
     "axios": "^1.18.1",
+    "chess.js": "^1.4.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "eslint": "^10.8.1",

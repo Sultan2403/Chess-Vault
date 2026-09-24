@@ -25,7 +25,7 @@
 
 ## Frontend
 
-- When users sign up with standard email + password, on navigation to `sign-up/verify-email-address` the app breaks. Investigate and fix. Probably because the appropriate clerk component isn't set up for that route. 
+- [x] ~~When users sign up with standard email + password, on navigation to `sign-up/verify-email-address` the app breaks. Investigate and fix.~~ (Fixed: added wildcard `/*` to auth routes in App.tsx) 
 - Maybe add time control/time rendering to game viewer? 
 - Polish frontend and fix any bugs
 - Make player context i.e username derived from account data

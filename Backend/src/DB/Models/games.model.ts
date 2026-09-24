@@ -119,9 +119,15 @@ const gameSchema = new mongoose.Schema(
 
     // Opening details (parsed from platform data or PGN headers)
     opening: {
-      eco:       { type: String, trim: true, maxlength: 10  },
-      name:      { type: String, trim: true, maxlength: 100 },
+      eco: { type: String, trim: true, maxlength: 10 },
+      name: { type: String, trim: true, maxlength: 100 },
       variation: { type: String, trim: true, maxlength: 100 },
+    },
+
+    // Move count (plies and full moves)
+    moves: {
+      plies: { type: Number, min: 0 },
+      count: { type: Number, min: 0 },
     },
   },
   {
@@ -192,8 +198,6 @@ gameSchema.set("toJSON", {
     };
   },
 });
-
-
 
 const Game = mongoose.model("games", gameSchema, "games");
 

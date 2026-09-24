@@ -113,9 +113,29 @@ describe("Game Normalizers", () => {
 
       expect(normalized.opening).toBeUndefined();
     });
+    it("should compute moves correctly for Chess.com game", () => {
+      const normalized = normalizeChessComGame({
+        game: MOCK_CHESS_COM_GAME,
+        userId: "user_123",
+      });
+
+      expect(normalized.moves).toBeDefined();
+      expect(normalized.moves?.count).toBeGreaterThan(0);
+      expect(normalized.moves?.plies).toBeGreaterThan(0);
+    });
   });
 
   describe("normalizeLichessGame", () => {
+    it("should compute moves correctly for Lichess game", () => {
+      const normalized = normalizeLichessGame({
+        game: MOCK_LICHESS_GAME,
+        userId: "user_123",
+      });
+
+      expect(normalized.moves).toBeDefined();
+      expect(normalized.moves?.count).toBeGreaterThan(0);
+      expect(normalized.moves?.plies).toBeGreaterThan(0);
+    });
     it("should correctly normalize a real Lichess game with a black win", () => {
       const normalized = normalizeLichessGame({
         game: MOCK_LICHESS_GAME,

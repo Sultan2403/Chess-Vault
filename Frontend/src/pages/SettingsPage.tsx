@@ -1,63 +1,78 @@
-import { CheckCircle2, Gamepad2, Link2, Save, UserRound } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, Gamepad2, Link2, LogOut, Save, UserRound } from "lucide-react";
+import { SignOutButton, UserProfile } from "@clerk/react";
 import { Button } from "../components/ui/Button";
+
+type SettingsTab = "profile" | "connections" | "preferences";
+
 export default function SettingsPage() {
+  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
+
+  const tabs: { id: SettingsTab; label: string; icon: typeof UserRound }[] = [
+    { id: "profile", label: "Profile", icon: UserRound },
+    { id: "connections", label: "Connections", icon: Link2 },
+    { id: "preferences", label: "Preferences", icon: Save },
+  ];
+
   return (
     <div className="mx-auto grid max-w-[1120px] gap-14 px-6 py-16 md:grid-cols-[260px_1fr]">
-        <aside>
-          <h1 className="font-display text-5xl font-bold">Settings</h1>
-          <nav className="mt-8 space-y-2">
-            {[
-              [UserRound, "Profile"],
-              [Link2, "Connections"],
-              [Save, "Preferences"],
-            ].map(([Icon, label]) => {
-              const Glyph = Icon as typeof UserRound;
-              return (
-                <button
-                  key={label as string}
-                  className={`flex w-full items-center gap-4 rounded-vault px-5 py-4 text-left text-sm font-bold tracking-[.1em] ${label === "Profile" ? "bg-vault-secondary-fixed text-vault-on-secondary-fixed-variant" : "hover:bg-vault-surface-soft"}`}
-                >
-                  <Glyph size={20} />
-                  {label as string}
-                </button>
-              );
-            })}
-          </nav>
-        </aside>
-        <section>
-          <div className="border-b border-vault-line pb-7">
-            <h2 className="text-2xl font-bold">Personal Details</h2>
-            <p className="mt-3 text-vault-text-secondary">
-              Manage your archive identity.
-            </p>
+      <aside>
+        <h1 className="font-display text-5xl font-bold">Settings</h1>
+        <nav className="mt-8 space-y-2">
+          {tabs.map(({ id, label, icon: Glyph }) => {
+            const isActive = activeTab === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setActiveTab(id)}
+                className={`flex w-full items-center gap-4 rounded-vault px-5 py-4 text-left text-sm font-bold tracking-[.1em] transition-colors cursor-pointer ${
+                  isActive
+                    ? "bg-vault-secondary-fixed text-vault-on-secondary-fixed-variant"
+                    : "hover:bg-vault-surface-soft text-vault-text-secondary"
+                }`}
+              >
+                <Glyph size={20} />
+                {label}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="mt-6 pt-6 border-t border-vault-line">
+          <SignOutButton redirectUrl="/">
+            <button
+              type="button"
+              className="flex w-full items-center gap-4 rounded-vault px-5 py-4 text-left text-sm font-bold tracking-[.1em] text-vault-error/80 transition-colors hover:bg-vault-error/10 hover:text-vault-error cursor-pointer"
+            >
+              <LogOut size={20} />
+              Sign Out
+            </button>
+          </SignOutButton>
+        </div>
+      </aside>
+
+      <section className="min-w-0">
+        {activeTab === "profile" && (
+          <div>
+            <div className="border-b border-vault-line pb-7">
+              <h2 className="text-2xl font-bold">Account Management</h2>
+              <p className="mt-3 text-vault-text-secondary">
+                Manage your profile details, security credentials, and authentication settings.
+              </p>
+            </div>
+            <div className="mt-8 flex justify-center sm:justify-start">
+              <UserProfile routing="hash" />
+            </div>
           </div>
-          <div className="mt-9 grid gap-8 sm:grid-cols-2">
-            <label className="text-xs font-bold uppercase tracking-[.15em]">
-              Username
-              <input
-                className="mt-3 w-full border-b border-vault-ink bg-transparent px-3 py-3 text-lg font-normal normal-case tracking-normal outline-none"
-                defaultValue="GrandmasterArchive"
-              />
-            </label>
-            <label className="text-xs font-bold uppercase tracking-[.15em]">
-              Email address
-              <input
-                className="mt-3 w-full border-b border-vault-ink bg-transparent px-3 py-3 text-lg font-normal normal-case tracking-normal outline-none"
-                defaultValue="scholar@chessvault.com"
-              />
-            </label>
-          </div>
-          <div className="mt-10 flex justify-end">
-            <Button variant="dark">
-              <Save size={17} /> Save changes
-            </Button>
-          </div>
-          <section className="mt-18">
+        )}
+
+        {activeTab === "connections" && (
+          <section>
             <div className="border-b border-vault-line pb-7">
               <h2 className="text-2xl font-bold">Connected Platforms</h2>
               <p className="mt-3 text-vault-text-secondary">
-                Link your accounts to automatically import games into your
-                archive.
+                Link your accounts to automatically import games into your archive.
               </p>
             </div>
             <div className="mt-9 space-y-5">
@@ -69,8 +84,16 @@ export default function SettingsPage() {
               <Platform name="Lichess" detail="Not connected" />
             </div>
           </section>
-          <section className="mt-18 border-t border-vault-line pt-8">
-            <h2 className="text-2xl font-bold">Archive Preferences</h2>
+        )}
+
+        {activeTab === "preferences" && (
+          <section>
+            <div className="border-b border-vault-line pb-7">
+              <h2 className="text-2xl font-bold">Archive Preferences</h2>
+              <p className="mt-3 text-vault-text-secondary">
+                Choose how moves are displayed and configure auto-analysis settings.
+              </p>
+            </div>
             <div className="mt-7 flex items-center justify-between border-b border-vault-line py-6">
               <div>
                 <h3 className="text-lg font-bold">Default Notation Style</h3>
@@ -90,15 +113,17 @@ export default function SettingsPage() {
                 </p>
               </div>
               <button
+                type="button"
                 aria-label="Toggle auto-analysis"
-                className="h-7 w-13 rounded-full bg-vault-secondary p-1"
+                className="h-7 w-13 rounded-full bg-vault-secondary p-1 cursor-pointer"
               >
                 <span className="block h-5 w-5 translate-x-6 rounded-full bg-vault-on-secondary transition" />
               </button>
             </div>
           </section>
-        </section>
-      </div>
+        )}
+      </section>
+    </div>
   );
 }
 function Platform({
