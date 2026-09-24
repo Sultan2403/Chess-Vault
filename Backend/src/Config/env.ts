@@ -43,7 +43,9 @@ const envSchema = z.object({
 
   ALLOWED_ORIGINS: z
     .string()
-    .default("http://localhost:5173,https://sultan2403.github.io")
+    .default(
+      "http://localhost:5173,https://sultan2403.github.io,https://chess-vault-pro.vercel.app",
+    )
     .transform((val) =>
       val
         .split(",")
