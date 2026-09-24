@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { User, ArrowRight, CheckCircle2 } from "lucide-react";
+import { User, ArrowRight, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Platforms } from "@chess-vault/shared";
 import type { PlatformType, VerifyLinkedAccountResult } from "@chess-vault/shared";
-
 
 type OnboardingModalProps = {
   isOpen: boolean;
@@ -118,43 +117,43 @@ export function OnboardingModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 10 }}
-          className="relative w-full max-w-2xl overflow-hidden rounded-vault border border-vault-outline-variant/80 bg-[#f7f3ea] p-8 sm:p-10 shadow-xl"
+          className="relative w-full max-w-2xl overflow-hidden rounded-vault border border-vault-border-interactive bg-vault-surface-layer-1 p-6 sm:p-8 shadow-2xl text-vault-text-primary"
         >
           {/* Top Brand Tag */}
-          <div className="text-center mb-8">
-            <h2 className="font-display text-2xl font-bold italic text-vault-primary">
+          <div className="text-center mb-6">
+            <h2 className="font-display text-2xl font-normal text-vault-text-primary tracking-tight">
               Chess Vault
             </h2>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-vault-text-secondary">
-              Personal Archive
+            <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-vault-bronze">
+              Personal Archive & Registry
             </p>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-[1.15fr_0.85fr] items-center">
+          <div className="grid gap-8 sm:grid-cols-[1.2fr_0.8fr] items-center">
             {/* Left Form */}
             <div>
-              <h1 className="font-display text-3xl font-bold text-vault-primary leading-tight">
+              <h1 className="font-display text-2xl sm:text-3xl font-normal text-vault-text-primary leading-tight tracking-tight">
                 Let's build your vault.
               </h1>
-              <p className="mt-3 text-xs leading-5 text-vault-text-secondary">
-                Tell us where you play chess and we'll bring your games into Chess Vault.
+              <p className="mt-2 text-xs leading-relaxed text-vault-text-secondary">
+                Tell us where you play chess and we'll bring your games into your permanent archive.
               </p>
-              <p className="mt-2 text-[11px] leading-5 text-vault-text-secondary">
-                Enter your exact public username from each platform. We’ll verify it before you connect it.
+              <p className="mt-1.5 font-mono text-[11px] leading-5 text-vault-text-muted">
+                Enter your exact public username. We'll verify it before connecting.
               </p>
 
-              <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              <form onSubmit={handleSubmit} className="mt-5 space-y-4">
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.16em] text-vault-text-secondary mb-1">
+                  <label className="block font-mono text-[10px] uppercase tracking-wider text-vault-text-muted mb-1.5">
                     Chess.com Username
                   </label>
-                  <div className="flex items-center gap-2 border border-vault-outline-variant/80 bg-white px-3 py-2 rounded-vault shadow-2xs">
-                    <User size={14} className="text-vault-text-secondary/70 shrink-0" />
+                  <div className="flex items-center gap-2.5 rounded-vault border border-vault-border-base bg-vault-surface-layer-2 px-3 py-2 transition-colors focus-within:border-vault-bronze">
+                    <User size={14} className="text-vault-text-muted shrink-0" />
                     <input
                       type="text"
                       placeholder="e.g. magnuscarlsen"
@@ -164,26 +163,32 @@ export function OnboardingModal({
                         setVerification((current) => ({ ...current, [Platforms.CHESS_COM]: { status: "idle" } }));
                       }}
                       onBlur={() => verifyAccount(Platforms.CHESS_COM, chessComUsername)}
-                      className="w-full bg-transparent text-xs text-vault-primary placeholder:text-vault-text-secondary/50 outline-none"
+                      className="w-full bg-transparent font-mono text-xs text-vault-text-primary placeholder:text-vault-text-muted/50 outline-none"
                     />
                   </div>
                   {verification["chess.com"]?.status === "checking" && (
-                    <p className="mt-1 text-[11px] text-vault-text-secondary">Checking Chess.com account...</p>
+                    <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-vault-text-muted">
+                      <Loader2 size={12} className="animate-spin text-vault-bronze" /> Checking Chess.com account...
+                    </p>
                   )}
                   {verification["chess.com"]?.status === "valid" && (
-                    <p className="mt-1 flex items-center gap-1 text-[11px] text-green-700"><CheckCircle2 size={12} /> {verification["chess.com"]?.message}</p>
+                    <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-emerald-400">
+                      <CheckCircle2 size={13} className="text-emerald-400 shrink-0" /> {verification["chess.com"]?.message}
+                    </p>
                   )}
                   {verification["chess.com"]?.status === "invalid" && (
-                    <p className="mt-1 text-[11px] text-red-700">{verification["chess.com"]?.message}</p>
+                    <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-rose-400">
+                      <AlertCircle size={13} className="text-rose-400 shrink-0" /> {verification["chess.com"]?.message}
+                    </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.16em] text-vault-text-secondary mb-1">
+                  <label className="block font-mono text-[10px] uppercase tracking-wider text-vault-text-muted mb-1.5">
                     Lichess Username
                   </label>
-                  <div className="flex items-center gap-2 border border-vault-outline-variant/80 bg-white px-3 py-2 rounded-vault shadow-2xs">
-                    <User size={14} className="text-vault-text-secondary/70 shrink-0" />
+                  <div className="flex items-center gap-2.5 rounded-vault border border-vault-border-base bg-vault-surface-layer-2 px-3 py-2 transition-colors focus-within:border-vault-bronze">
+                    <User size={14} className="text-vault-text-muted shrink-0" />
                     <input
                       type="text"
                       placeholder="e.g. DrNykterstein"
@@ -193,70 +198,89 @@ export function OnboardingModal({
                         setVerification((current) => ({ ...current, [Platforms.LICHESS]: { status: "idle" } }));
                       }}
                       onBlur={() => verifyAccount(Platforms.LICHESS, lichessUsername)}
-                      className="w-full bg-transparent text-xs text-vault-primary placeholder:text-vault-text-secondary/50 outline-none"
+                      className="w-full bg-transparent font-mono text-xs text-vault-text-primary placeholder:text-vault-text-muted/50 outline-none"
                     />
                   </div>
                   {verification.lichess?.status === "checking" && (
-                    <p className="mt-1 text-[11px] text-vault-text-secondary">Checking Lichess account...</p>
+                    <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-vault-text-muted">
+                      <Loader2 size={12} className="animate-spin text-vault-bronze" /> Checking Lichess account...
+                    </p>
                   )}
                   {verification.lichess?.status === "valid" && (
-                    <p className="mt-1 flex items-center gap-1 text-[11px] text-green-700"><CheckCircle2 size={12} /> {verification.lichess?.message}</p>
+                    <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-emerald-400">
+                      <CheckCircle2 size={13} className="text-emerald-400 shrink-0" /> {verification.lichess?.message}
+                    </p>
                   )}
                   {verification.lichess?.status === "invalid" && (
-                    <p className="mt-1 text-[11px] text-red-700">{verification.lichess?.message}</p>
+                    <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-rose-400">
+                      <AlertCircle size={13} className="text-rose-400 shrink-0" /> {verification.lichess?.message}
+                    </p>
                   )}
                 </div>
 
-                <div className="pt-4 flex items-center gap-3">
+                {error && (
+                  <div className="rounded-vault border border-vault-loss/40 bg-vault-loss/10 p-2.5 font-mono text-xs text-rose-300 flex items-start gap-2" role="alert">
+                    <AlertCircle size={14} className="shrink-0 mt-0.5 text-rose-400" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                <div className="pt-2 flex items-center gap-3">
                   {!required && (
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
                       onClick={onClose}
-                      className="rounded-vault border border-vault-outline-variant/60 bg-white/70 px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-vault-primary hover:bg-white transition-colors"
+                      className="font-mono text-xs uppercase px-4 py-2.5"
                     >
                       Skip for now
-                    </button>
+                    </Button>
                   )}
                   <Button
                     type="submit"
-                    className="flex-1 py-2.5 text-[10px] font-bold uppercase tracking-[0.14em]"
+                    variant="solid-bronze"
+                    className="flex-1 font-mono text-xs uppercase py-2.5"
                     disabled={!canConnect}
                   >
                     {isSubmitting ? "Connecting..." : "Connect accounts"} <ArrowRight size={13} />
                   </Button>
                 </div>
-                {error && (
-                  <p className="text-xs leading-5 text-red-700" role="alert">
-                    {error}
-                  </p>
-                )}
               </form>
             </div>
 
-            {/* Right Artwork Stack (Screenshot 1) */}
-            <div className="flex flex-col gap-3">
-              <div className="overflow-hidden rounded-vault border border-vault-outline-variant/60 shadow-xs aspect-4/3 bg-[#ebd8be]">
+            {/* Right Archival Preview */}
+            <div className="flex flex-col gap-3 rounded-vault border border-vault-border-base bg-vault-surface-layer-2 p-3.5">
+              <div className="relative overflow-hidden rounded-vault border border-vault-border-interactive aspect-4/3 bg-vault-surface-container-lowest">
                 <img
                   src="https://images.unsplash.com/photo-1528819622765-d6bcf132f793?w=500&auto=format&fit=crop&q=80"
-                  alt="Chess knight piece"
-                  className="h-full w-full object-cover sepia-50 brightness-95"
+                  alt="Chess piece archive"
+                  className="h-full w-full object-cover opacity-60 brightness-90 contrast-110 grayscale-[40%]"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-vault-surface-layer-1 via-vault-surface-layer-1/20 to-transparent" />
+                <div className="absolute bottom-2.5 left-2.5 right-2.5 font-mono text-[10px] text-vault-text-secondary">
+                  <span className="text-vault-bronze font-semibold">LEDGER REGISTRY</span>
+                  <p className="text-[11px] font-sans text-vault-text-primary mt-0.5 font-medium leading-tight">
+                    Multi-platform game ingestion & opening classification
+                  </p>
+                </div>
               </div>
-              <div className="overflow-hidden rounded-vault border border-vault-outline-variant/60 shadow-xs aspect-4/3 bg-[#e0ceb5] opacity-75">
-                <img
-                  src="https://images.unsplash.com/photo-1528819622765-d6bcf132f793?w=500&auto=format&fit=crop&q=80"
-                  alt="Chess piece blurred"
-                  className="h-full w-full object-cover sepia-75 brightness-90 blur-[1px]"
-                />
+              <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1/80 p-2.5 font-mono text-[10px] text-vault-text-muted space-y-1">
+                <div className="flex items-center justify-between">
+                  <span>FEDERATION</span>
+                  <span className="text-vault-win font-semibold">ONLINE</span>
+                </div>
+                <div className="text-vault-text-secondary font-sans text-xs">
+                  Chess.com &bull; Lichess.org
+                </div>
               </div>
             </div>
           </div>
 
           {/* Pagination Indicators */}
-          <div className="mt-8 flex justify-center items-center gap-1.5">
-            <span className="h-1 w-6 rounded-full bg-vault-ochre" />
-            <span className="h-1 w-1 rounded-full bg-vault-outline-variant" />
-            <span className="h-1 w-1 rounded-full bg-vault-outline-variant" />
+          <div className="mt-6 flex justify-center items-center gap-1.5">
+            <span className="h-1 w-6 rounded-full bg-vault-bronze" />
+            <span className="h-1 w-1.5 rounded-full bg-vault-border-interactive" />
+            <span className="h-1 w-1.5 rounded-full bg-vault-border-interactive" />
           </div>
         </motion.div>
       </div>

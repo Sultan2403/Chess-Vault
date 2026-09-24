@@ -11,9 +11,11 @@ import {
   usePlatformUsernames,
   useConnectLinkedAccounts,
   useVerifyLinkedAccount,
+  useSyncLinkedAccount,
 } from "../hooks/useAccount";
 import { getPlayerPerspective, parseOpeningDetails, getGameDate } from "../utils/game";
 import { OnboardingModal } from "../components/onboarding/OnboardingModal";
+import { BuildingVaultModal } from "../components/onboarding/BuildingVaultModal";
 import { Platforms } from "@chess-vault/shared";
 
 export default function DashboardPage() {
@@ -21,17 +23,19 @@ export default function DashboardPage() {
   const userName = user?.username || user?.firstName || "Vault Keeper";
 
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [isBuildingVaultOpen, setIsBuildingVaultOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
   // Queries
   const { data: gamesData, isLoading: isGamesLoading } = useGames({ limit: 6 });
   const { data: foldersData, isLoading: isFoldersLoading } = useFolders({ limit: 8 });
-  const { data: accountData, refetch: refetchAccount } = useAccountBootstrap();
+  const { data: accountData } = useAccountBootstrap();
   const platformUsernames = usePlatformUsernames();
 
   const connectMutation = useConnectLinkedAccounts();
   const verificationMutation = useVerifyLinkedAccount();
+  const syncMutation = useSyncLinkedAccount();
 
   // Metrics
   const realGamesCount = gamesData?.pagination?.total ?? 0;
@@ -93,12 +97,20 @@ export default function DashboardPage() {
     };
   }, [gamesData?.games, platformUsernames, user?.username]);
 
-  // Manual Force Sync trigger (Placeholder as documented in MISMATCHES_AND_TODOS.md)
+  // Manual Force Sync trigger
   const handleForceSync = async () => {
+    if (connectedAccounts.length === 0) {
+      setIsOnboardingOpen(true);
+      return;
+    }
+
+    setIsBuildingVaultOpen(true);
     setIsSyncing(true);
     setSyncFeedback(null);
     try {
-      await refetchAccount();
+      for (const account of connectedAccounts) {
+        await syncMutation.mutateAsync(account.id);
+      }
       setSyncFeedback("Sync complete. Repositories up to date.");
       setTimeout(() => setSyncFeedback(null), 4000);
     } catch {
@@ -665,6 +677,15 @@ export default function DashboardPage() {
           }
 
           setIsOnboardingOpen(false);
+        }}
+      />
+
+      {/* Building Vault Progress Modal */}
+      <BuildingVaultModal
+        isOpen={isBuildingVaultOpen}
+        onCancel={() => setIsBuildingVaultOpen(false)}
+        onComplete={() => {
+          setIsBuildingVaultOpen(false);
         }}
       />
     </>

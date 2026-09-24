@@ -35,22 +35,22 @@ export function ImportGamesPrompt() {
   };
 
   return (
-    <section className="mt-10 rounded-vault border border-vault-outline-variant/60 bg-[#f7f3ea] p-7 shadow-xs">
-      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-vault-ochre">
+    <section className="mt-10 rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-7 shadow-xs">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-vault-bronze">
         Your vault is ready
       </p>
-      <h2 className="mt-2 font-display text-2xl font-bold text-vault-primary">
+      <h2 className="mt-2 font-display text-2xl font-normal text-vault-text-primary tracking-tight">
         Bring in your chess history.
       </h2>
-      <p className="mt-2 max-w-xl text-sm leading-6 text-vault-text-secondary">
+      <p className="mt-2 max-w-xl text-xs leading-relaxed text-vault-text-secondary">
         Your connected accounts are ready. Import their games whenever you are ready to begin building your archive.
       </p>
       <div className="mt-5 flex flex-wrap items-center gap-4">
-        <Button onClick={handleImport} disabled={syncMutation.isPending}>
-          <Download size={16} />
+        <Button variant="solid-bronze" onClick={handleImport} disabled={syncMutation.isPending} className="font-mono text-xs uppercase">
+          <Download size={14} />
           {syncMutation.isPending ? "Importing games..." : "Import games"}
         </Button>
-        {message && <p className="text-xs text-vault-text-secondary">{message}</p>}
+        {message && <p className="font-mono text-xs text-vault-win">{message}</p>}
       </div>
     </section>
   );
