@@ -23,6 +23,10 @@ export const healthCheckController = async (_req: Request, res: Response) => {
     status: isHealthy ? "healthy" : "degraded",
     uptime: `${uptimeSeconds}s`,
     timestamp: new Date().toISOString(),
+    memory: {
+      heapUsedMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+      rssMB: Math.round(process.memoryUsage().rss / 1024 / 1024),
+    },
     services: {
       database: mongoStatus,
       // redis: redisStatus,

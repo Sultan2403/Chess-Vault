@@ -33,11 +33,17 @@ export const importGames = async ({
     const archiveUrls = response.archives;
 
     if (!archiveUrls || archiveUrls.length === 0) {
+      logger.warn({ username }, "No archives found for Chess.com user");
       return {
         success: false,
         message: `No game history found for Chess.com user: ${username}`,
       };
     }
+
+    logger.info(
+      { username, archiveCount: archiveUrls.length },
+      "Found player archives on Chess.com",
+    );
 
     const recentArchives = [...archiveUrls].reverse();
     let totalImported = 0;
@@ -47,6 +53,11 @@ export const importGames = async ({
 
       const monthlyData = await chessComApi.getGamesFromArchiveUrl(archiveUrl);
       if (!monthlyData.games || monthlyData.games.length === 0) continue;
+
+      logger.info(
+        { archiveUrl, gamesCount: monthlyData.games.length },
+        "Processing monthly archive",
+      );
 
       const monthlyGames = [...monthlyData.games].reverse();
       const gamesToInsert: NormalizedGame[] = [];

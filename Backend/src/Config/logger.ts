@@ -3,6 +3,10 @@ import env, { isProd } from "./env";
 
 export const logger = pino({
   level: env.LOG_LEVEL || (isProd ? "info" : "debug"),
+  serializers: {
+    err: pino.stdSerializers.err,
+    error: pino.stdSerializers.err,
+  },
   transport: !isProd
     ? {
         target: "pino-pretty",

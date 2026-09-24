@@ -27,7 +27,6 @@ app.use(requestLogger);
 
 app.use("/webhooks", webhookRoutes);
 
-
 app.use(express.json());
 
 // Routes
