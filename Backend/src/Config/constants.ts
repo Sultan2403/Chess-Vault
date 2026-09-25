@@ -5,3 +5,4 @@ export const CLERK_WEBHOOK_EVENTS = {
   USER_DELETED: "user.deleted",
   USER_UPDATED: "user.updated",
 } as const;
+

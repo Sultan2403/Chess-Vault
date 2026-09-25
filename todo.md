@@ -12,6 +12,7 @@
 
 ## Backend
 
+- Implement socket.io for real time feed for imports. But plan the architechture properly cus I have no idea on how to go about this fr. Well import service will need to semd stautus reports... But in the end imports will go through bullmq from now on so the api just dispatches a 202 accepted... 
 - Add final tests where necessary
 - Add a `GET /analytics` endpoint that returns personal chess statistics such as:
   - Platform distribution

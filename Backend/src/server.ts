@@ -2,14 +2,20 @@ import "./instrument";
 import * as Sentry from "@sentry/node";
 import app from "./app";
 import env from "./Config/env";
+import http from "http";
 import { logger } from "./Config/logger";
 import connectDB from "./DB/Connections/mongo";
+import { initSocket } from "./Config/socket";
 
 connectDB();
 
 const PORT = env.PORT;
 
-const server = app.listen(PORT, () => {
+const server = http.createServer(app);
+
+initSocket(server);
+
+server.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
 });
 
