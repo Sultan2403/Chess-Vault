@@ -1,6 +1,5 @@
 // Main
 import express, { Request, Response } from "express";
-import Sentry from "@sentry/node";
 
 // Middlewares
 import cors from "cors";
@@ -40,16 +39,6 @@ app.get("/", (_req: Request, res: Response) => {
 });
 
 app.get("/health", healthCheckController);
-
-app.get("/debug-sentry", () => {
-  // Send a log before throwing the error
-  Sentry.logger.info("User triggered test error", {
-    action: "test_error_endpoint",
-  });
-  // Send a test metric before throwing the error
-  Sentry.metrics.count("test_counter", 1);
-  throw new Error("My first Sentry error!");
-});
 
 app.use((_req: Request, res: Response) => {
   return errorResponse({
