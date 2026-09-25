@@ -15,11 +15,11 @@ export const parsePositiveInt = (value: unknown, fallback: number) => {
   return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
 };
 
-import { Chess } from "chess.js";
+import { parse } from "@mliebelt/pgn-parser";
 import { GameMovesCount } from "../types/games.types.js";
 
 /**
- * Calculates plies (half-moves) and full moves from a PGN string using chess.js.
+ * Calculates plies (half-moves) and full moves from a PGN string using @mliebelt/pgn-parser.
  */
 export function getPgnMoveCount(pgn?: string | null): GameMovesCount {
   if (!pgn?.trim()) {
@@ -27,10 +27,11 @@ export function getPgnMoveCount(pgn?: string | null): GameMovesCount {
   }
 
   try {
-    const chess = new Chess();
-    chess.loadPgn(pgn, { strict: false });
-
-    const plies = chess.history().length;
+    const parsed = parse(pgn, { startRule: "game" });
+    const moves = Array.isArray(parsed)
+      ? parsed[0]?.moves
+      : (parsed as any)?.moves;
+    const plies = moves ? moves.length : 0;
     const count = Math.ceil(plies / 2);
 
     return { plies, count };

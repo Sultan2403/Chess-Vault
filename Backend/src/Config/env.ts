@@ -41,7 +41,7 @@ const envSchema = z.object({
 
   DEV_EMAIL: z.string().min(5, "Dev email not configured"),
 
-  SENTRY_DSN: z.string().optional(),
+  SENTRY_DSN: isProd ? z.string().min(5) : z.string().optional(),
   SENTRY_TRACES_SAMPLE_RATE: z.coerce
     .number()
     .min(0)

@@ -67,16 +67,17 @@ export const normalizeChessComGame = ({
   userId: string;
   folderIds?: string[] | null;
 }): NormalizedGame => {
+  const opening = parseChessComOpening(game.pgn);
+  const moves = getPgnMoveCount(game.pgn);
+
   const title = `${game.white.username} vs ${game.black.username}`;
+
   const result =
     game.white.result === "win"
       ? "white"
       : game.black.result === "win"
         ? "black"
         : "draw";
-
-  const opening = parseChessComOpening(game.pgn);
-  const moves = getPgnMoveCount(game.pgn);
 
   return {
     userId,

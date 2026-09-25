@@ -5,6 +5,7 @@
 
 ## Overall
 
+- Implemnt socket.io for importing games. And make games a background task using bullmq
 - ANALYTICSSSSSSS!!!! IT'S IMPORTANT BRO!!!
 - Add stockfish wasm for analysis on the client side
 - Remove `.optional()` in Game.opening as it and it's kids are all required. This is just a knock off of the type safety task below but just more precise lol. 
@@ -25,7 +26,6 @@
 
 ## Frontend
 
-- [x] ~~When users sign up with standard email + password, on navigation to `sign-up/verify-email-address` the app breaks. Investigate and fix.~~ (Fixed: added wildcard `/*` to auth routes in App.tsx) 
 - Maybe add time control/time rendering to game viewer? 
 - Polish frontend and fix any bugs
 - Make player context i.e username derived from account data
