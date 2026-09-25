@@ -1,22 +1,21 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { successResponse, errorResponse } from "../Utils/responses";
-// import redis from "../DB/Connections/redis";
+import redis from "../DB/Connections/redis";
 
 export const healthCheckController = async (_req: Request, res: Response) => {
   const mongoStatus =
     mongoose.connection.readyState === 1 ? "connected" : "disconnected";
 
-  // Redis check commented out pending redis initialization
-  // let redisStatus = "disconnected";
-  // try {
-  //   const ping = await redis.ping();
-  //   if (ping === "PONG") redisStatus = "connected";
-  // } catch {
-  //   redisStatus = "error";
-  // }
+  let redisStatus = "disconnected";
+  try {
+    const ping = await redis.ping();
+    if (ping === "PONG") redisStatus = "connected";
+  } catch {
+    redisStatus = "error";
+  }
 
-  const isHealthy = mongoStatus === "connected";
+  const isHealthy = mongoStatus === "connected" && redisStatus === "connected";
   const uptimeSeconds = Math.floor(process.uptime());
 
   const healthData = {
@@ -29,7 +28,7 @@ export const healthCheckController = async (_req: Request, res: Response) => {
     },
     services: {
       database: mongoStatus,
-      // redis: redisStatus,
+      redis: redisStatus,
     },
   };
 
