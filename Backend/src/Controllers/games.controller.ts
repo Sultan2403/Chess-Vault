@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import {
-  importGames,
   searchGames,
   getGameById,
   updateGame,
@@ -13,20 +12,23 @@ import {
   errorResponse,
   internalError,
 } from "../Utils/responses";
+import { importQueue } from "../Jobs/import.queue";
 
 export const importGamesController = async (req: Request, res: Response) => {
   const userId = getUserId(req)!;
   const { folderIds, platform, username }: ImportGamesParams = req.body;
 
-  const result = await importGames({ platform, folderIds, username, userId });
-  if (result.success) {
-    return successResponse({ res, message: result.message });
-  }
+  const job = await importQueue.add("import-games", {
+    userId,
+    username,
+    platform,
+    folderIds: folderIds ?? null,
+  });
 
-  return errorResponse({
-    res,
-    statusCode: 500,
-    message: result.message || "Something went wrong",
+  return res.status(202).json({
+    success: true,
+    message: "Import started",
+    jobId: job.id,
   });
 };
 

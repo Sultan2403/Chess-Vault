@@ -14,15 +14,15 @@ import {
   ImportResult,
   GameSearchParams,
   UpdateGameInput,
+  ImportProgressPayload,
 } from "../Types/games.types";
 import lichessApi from "../Api/lichess.api";
 
-export const importGames = async ({
-  userId,
-  folderIds,
-  username,
-  platform,
-}: ImportGamesParams): Promise<ImportResult> => {
+export const importGames = async (
+  { userId, folderIds, username, platform }: ImportGamesParams,
+  onProgress?: (payload: ImportProgressPayload) => void | Promise<void>,
+): Promise<ImportResult> => {
+
   const import_Chess_Com_Games = async ({
     userId,
     folderIds,
@@ -109,6 +109,7 @@ export const importGames = async ({
           },
           "Upserted Chess.com archive batch into DB",
         );
+        await onProgress?.({ userId, processed: totalImported, platform: "chess.com", archiveUrl });
       }
     }
 
@@ -174,6 +175,7 @@ export const importGames = async ({
           },
           "Flushed Lichess chunk to DB",
         );
+        await onProgress?.({ userId, processed: totalUpserted + totalMatched, platform: "lichess" });
       };
 
       stream.on("data", async (rawGame: Lichess_Game) => {

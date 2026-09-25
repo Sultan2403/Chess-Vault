@@ -1,11 +1,11 @@
 import Redis from "ioredis";
-import env from "./env";
-import { logger } from "./logger";
+import env from "../../Config/env";
+import { logger } from "../../Config/logger";
 
 const redisClient = new Redis({
   host: env.REDIS_URL,
   port: env.REDIS_PORT,
-  maxRetriesPerRequest: null,
+  maxRetriesPerRequest: null, // Required by BullMQ
 });
 
 redisClient.on("connect", () => {
