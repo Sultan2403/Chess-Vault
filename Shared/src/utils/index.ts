@@ -15,11 +15,19 @@ export const parsePositiveInt = (value: unknown, fallback: number) => {
   return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
 };
 
-import { parseGame } from "@mliebelt/pgn-parser";
 import { GameMovesCount } from "../types/games.types.js";
 
 /**
- * Calculates plies (half-moves) and full moves from a PGN string using @mliebelt/pgn-parser.
+ * Calculates plies (half-moves) and full moves from a PGN string.
+ *
+ * Avoids a full PGN parse (which is synchronous and expensive at import scale).
+ * Instead, isolates the moves section and strips all non-move tokens, leaving
+ * one whitespace-separated token per ply.
+ *
+ * Handles: comments `{...}`, move numbers `1.` / `3...`, result tokens,
+ * NAG annotations `$6`, and move quality symbols `!?`.
+ *
+ * Accurate for standard game PGNs from Chess.com and Lichess.
  */
 export function getPgnMoveCount(pgn?: string | null): GameMovesCount {
   if (!pgn?.trim()) {
@@ -27,11 +35,23 @@ export function getPgnMoveCount(pgn?: string | null): GameMovesCount {
   }
 
   try {
-    const { moves } = parseGame(pgn);
-    const plies = moves.length;
-    const count = Math.ceil(plies / 2);
+    // Isolate the moves section — everything after the header block.
+    // PGN headers are separated from moves by a blank line (\n\n or \r\n\r\n).
+    const sep = pgn.search(/\n\r?\n/);
+    const movesSection = sep >= 0 ? pgn.slice(sep) : pgn;
 
-    return { plies, count };
+    const plies = movesSection
+      .replace(/\{[^}]*\}/g, " ") // strip { comments }
+      .replace(/\([^)]*\)/g, " ") // strip (variations) — non-nested
+      .replace(/\d+\.+/g, " ") // strip move numbers: 1. or 3...
+      .replace(/\$\d+/g, " ") // strip NAG annotations: $6
+      .replace(/[!?]+/g, " ") // strip move quality symbols: !, ?, !?
+      .replace(/1-0|0-1|1\/2-1\/2|\*/g, "") // strip result token
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length;
+
+    return { plies, count: Math.ceil(plies / 2) };
   } catch {
     return { plies: 0, count: 0 };
   }

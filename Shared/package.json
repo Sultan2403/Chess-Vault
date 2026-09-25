@@ -16,7 +16,6 @@
     "build": "tsc && echo \"✅ Shared build completed successfully\""
   },
   "dependencies": {
-    "@mliebelt/pgn-parser": "^1.4.19",
     "zod": "^4.4.3"
   }
 }
