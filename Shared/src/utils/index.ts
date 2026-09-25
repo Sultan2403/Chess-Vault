@@ -15,7 +15,7 @@ export const parsePositiveInt = (value: unknown, fallback: number) => {
   return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
 };
 
-import { parse } from "@mliebelt/pgn-parser";
+import { parseGame } from "@mliebelt/pgn-parser";
 import { GameMovesCount } from "../types/games.types.js";
 
 /**
@@ -27,11 +27,8 @@ export function getPgnMoveCount(pgn?: string | null): GameMovesCount {
   }
 
   try {
-    const parsed = parse(pgn, { startRule: "game" });
-    const moves = Array.isArray(parsed)
-      ? parsed[0]?.moves
-      : (parsed as any)?.moves;
-    const plies = moves ? moves.length : 0;
+    const { moves } = parseGame(pgn);
+    const plies = moves.length;
     const count = Math.ceil(plies / 2);
 
     return { plies, count };
@@ -54,4 +51,3 @@ export function getMoveCount(
   const pgn = typeof input === "string" ? input : input.pgn;
   return getPgnMoveCount(pgn).count;
 }
-
