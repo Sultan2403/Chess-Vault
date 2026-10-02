@@ -28,7 +28,21 @@ process.on("unhandledRejection", (reason) => {
 process.on("uncaughtException", (error) => {
   logger.fatal({ err: error }, "Uncaught Exception - shutting down");
   Sentry.captureException(error);
+
   server.close(() => {
+    logger.info("HTTP server closed after uncaught exception");
     process.exit(1);
   });
 });
+
+const shutdown = (signal: string) => {
+  logger.info({ signal }, "Shutting down server");
+
+  server.close(() => {
+    logger.info("HTTP server closed");
+    process.exit(0);
+  });
+};
+
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => shutdown("SIGTERM"));
