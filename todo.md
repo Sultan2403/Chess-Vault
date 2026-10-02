@@ -5,6 +5,7 @@
 
 ## Overall
 
+- Decide on how to store and render the in game clock. Frontend only is the happy path and it's relatively cheap. But considering future analytics, storing it in the db seems much more attractive for easy queries and such. This really isn't a dilemma I can solve rn at 12am. And I've got messages to reply to so yh good luck future Sultan :)
 - Implemnt socket.io for importing games. And make games a background task using bullmq
 - ANALYTICSSSSSSS!!!! IT'S IMPORTANT BRO!!!
 - Add stockfish wasm for analysis on the client side
