@@ -27,6 +27,7 @@ import type { PlatformType } from "../constants/platforms.js";
  * @property timeClass - Standardized time control category (`"ultraBullet"` | `"bullet"` | `"blitz"` | `"rapid"` | `"classical"` | `"daily"` | `"correspondence"`).
  * @property playedAt - Timestamp when the game was completed on the original platform.
  * @property pgn - Full Portable Game Notation string including move sequence and headers.
+ * @property finalFen - Optional board state in Forsyth-Edwards Notation (FEN) after the final move.
  * @property notes - Optional user commentary or personal analysis (max 1000 chars).
  * @property opening - Optional opening classification containing `eco`, `name`, and `variation`.
  * @property moves - Optional move statistics containing `count` (full moves) and `plies` (half-moves).

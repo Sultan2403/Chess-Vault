@@ -528,7 +528,8 @@ export default function GameBankPage() {
                     {/* Mini Board Diagram */}
                     <div className="my-4">
                       <MiniChessboard
-                        fen="r1b2rk1/1pq1bppp/p1n1pn2/3p4/2PN4/1PN1P3/PB2BPPP/R2Q1RK1 w - - 0 11"
+                        fen={game.finalFen}
+                        orientation={game.userPlayedAs}
                         badgeLabel={displayResult}
                       />
                     </div>

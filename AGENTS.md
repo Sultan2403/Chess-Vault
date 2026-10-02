@@ -79,6 +79,7 @@ The authoritative Game model is defined as:
         timeClass: "ultraBullet" | "bullet" | "blitz" | "rapid" | "classical" | "daily" | "correspondence";
         playedAt: Date;
         pgn: string;
+        finalFen: string | undefined;
         title: string | undefined;
         notes: string | undefined;
         tags: string | undefined;
@@ -111,6 +112,7 @@ The authoritative Game model is defined as:
 * `timeClass`: Standardized time control category (`"ultraBullet"`, `"bullet"`, `"blitz"`, `"rapid"`, `"classical"`, `"daily"`, `"correspondence"`).
 * `playedAt`: Timestamp when the game was played on the source platform.
 * `pgn`: Full Portable Game Notation string including moves and headers.
+* `finalFen`: Optional board position in Forsyth-Edwards Notation (FEN) after the final move.
 * `title`: Match title, formatted as `${whitePlayer.username} vs ${blackPlayer.username}` (or optional custom title). Note: Do NOT assume `title` contains opening details like `"Sicilian Defense: Najdorf"`.
 * `notes`: Optional user commentary or analysis (max 1000 chars).
 * `tags`: Optional custom tag assigned by user (max 20 chars).

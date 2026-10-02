@@ -96,6 +96,9 @@ export const GameSchema = z.object({
   /** Portable Game Notation string */
   pgn: z.string().min(1),
 
+  /** Final board state in Forsyth-Edwards Notation (FEN) */
+  finalFen: z.string().trim().min(1).optional(),
+
   /** User analysis or commentary */
   notes: z.string().trim().max(1000).optional(),
   /** User custom tag */

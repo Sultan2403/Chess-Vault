@@ -114,6 +114,12 @@ const gameSchema = new mongoose.Schema(
       required: true,
     },
 
+    finalFen: {
+      type: String,
+      required: false,
+      trim: true,
+    },
+
     notes: {
       type: String,
       required: false,

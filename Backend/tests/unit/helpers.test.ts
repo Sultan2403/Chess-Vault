@@ -45,6 +45,7 @@ describe("Game Normalizers", () => {
       expect(normalized.title).toBe(
         `${MOCK_CHESS_COM_GAME.white.username} vs ${MOCK_CHESS_COM_GAME.black.username}`,
       );
+      expect(normalized.finalFen).toBe(MOCK_CHESS_COM_GAME.fen);
       expect(normalized.playedAt).toEqual(
         new Date(MOCK_CHESS_COM_GAME.end_time * 1000),
       );
@@ -173,6 +174,7 @@ describe("Game Normalizers", () => {
       expect(normalized.blackPlayer.rating).toBe(
         MOCK_LICHESS_GAME.players.black.rating,
       );
+      expect(normalized.finalFen).toBeDefined();
       expect(normalized.playedAt).toEqual(new Date(MOCK_LICHESS_GAME.createdAt));
     });
 
