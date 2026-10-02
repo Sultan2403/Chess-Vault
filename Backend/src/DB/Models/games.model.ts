@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
-import { Platforms, Results, TimeClasses } from "../../Config/constants";
+import {
+  Platforms,
+  PlayerColors,
+  Results,
+  TimeClasses,
+} from "../../Config/constants";
 
 const PlatformValues = Object.values(Platforms);
 
@@ -24,6 +29,12 @@ const gameSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+    },
+
+    userPlayedAs: {
+      type: String,
+      enum: PlayerColors,
+      required: true,
     },
 
     folderIds: {
@@ -161,6 +172,11 @@ gameSchema.index({
 });
 
 // Common filter combinations
+gameSchema.index({
+  userId: 1,
+  userPlayedAs: 1,
+});
+
 gameSchema.index({
   userId: 1,
   result: 1,

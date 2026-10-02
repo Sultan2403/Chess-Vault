@@ -11,29 +11,34 @@ export type PlayerPerspective = {
 
 /**
  * Gets the player's perspective in the game.
- * Uses linked platform usernames and optional primary account handle to determine
- * whether the current user played White or Black.
+ * Uses the persisted `userPlayedAs` property on the game record,
+ * with fallback to platform username matching for legacy records.
  */
 export function getPlayerPerspective(
   game: Game,
-  platformUsernames: PlatformUsernames,
+  platformUsernames?: PlatformUsernames,
   userHandle?: string,
 ): PlayerPerspective {
-  const platformUser = platformUsernames[game.platform]?.toLowerCase();
-  const handle = userHandle?.toLowerCase();
+  let playerColor: "white" | "black" = game.userPlayedAs;
 
-  const whiteLower = game.whitePlayer.username.toLowerCase();
-  const blackLower = game.blackPlayer.username.toLowerCase();
+  if (!playerColor) {
+    const platformUser = platformUsernames?.[game.platform]?.toLowerCase();
+    const handle = userHandle?.toLowerCase();
 
-  const isWhite =
-    (platformUser && whiteLower === platformUser) ||
-    (handle && whiteLower === handle);
+    const whiteLower = game.whitePlayer.username.toLowerCase();
+    const blackLower = game.blackPlayer.username.toLowerCase();
 
-  const isBlack =
-    (platformUser && blackLower === platformUser) ||
-    (handle && blackLower === handle);
+    const isWhite =
+      (platformUser && whiteLower === platformUser) ||
+      (handle && whiteLower === handle);
 
-  const playerColor: "white" | "black" = isBlack && !isWhite ? "black" : "white";
+    const isBlack =
+      (platformUser && blackLower === platformUser) ||
+      (handle && blackLower === handle);
+
+    playerColor = isBlack && !isWhite ? "black" : "white";
+  }
+
   const player = playerColor === "white" ? game.whitePlayer : game.blackPlayer;
   const opponent = playerColor === "white" ? game.blackPlayer : game.whitePlayer;
 

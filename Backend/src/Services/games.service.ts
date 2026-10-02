@@ -74,6 +74,7 @@ export const importGames = async (
         const normalizedGame = normalizeChessComGame({
           game,
           userId,
+          username,
           folderIds,
         });
 
@@ -182,6 +183,7 @@ export const importGames = async (
         const normalized = normalizeLichessGame({
           game: rawGame,
           userId,
+          username,
           folderIds,
         });
 

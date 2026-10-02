@@ -75,6 +75,23 @@ describe("Zod Validation Schemas", () => {
       }
     });
 
+    it("should accept valid userPlayedAs values in searchGamesQuery", () => {
+      const resultWhite = searchGamesQuery.safeParse({ userPlayedAs: "white" });
+      expect(resultWhite.success).toBe(true);
+      if (resultWhite.success) {
+        expect(resultWhite.data.userPlayedAs).toBe("white");
+      }
+
+      const resultBlack = searchGamesQuery.safeParse({ userPlayedAs: "black" });
+      expect(resultBlack.success).toBe(true);
+      if (resultBlack.success) {
+        expect(resultBlack.data.userPlayedAs).toBe("black");
+      }
+
+      const resultInvalid = searchGamesQuery.safeParse({ userPlayedAs: "green" });
+      expect(resultInvalid.success).toBe(false);
+    });
+
     it("should reject page numbers less than 1", () => {
       const result = searchGamesQuery.safeParse({ page: 0 });
       expect(result.success).toBe(false);

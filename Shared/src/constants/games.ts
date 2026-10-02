@@ -1,3 +1,6 @@
+export const PlayerColors = ["white", "black"] as const;
+export type PlayerColorType = (typeof PlayerColors)[number];
+
 export const Results = ["white", "black", "draw"] as const;
 
 export type ResultType = (typeof Results)[number];
@@ -15,3 +18,4 @@ export const TimeClasses = [
 export type TimeClassType = (typeof TimeClasses)[number];
 
 export const MAX_GAMES_PER_USER = 1000;
+

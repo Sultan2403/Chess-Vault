@@ -16,11 +16,13 @@ describe("Game Normalizers", () => {
       const normalized = normalizeChessComGame({
         game: MOCK_CHESS_COM_GAME,
         userId: "user_123",
+        username: "mada1974",
         folderIds: ["65f1a2b3c4d5e6f7a8b9c0d1"],
       });
 
       // Verify core identity and ownership
       expect(normalized.userId).toBe("user_123");
+      expect(normalized.userPlayedAs).toBe("white");
       expect(normalized.platform).toBe("chess.com");
       expect(normalized.platformGameId).toBe(MOCK_CHESS_COM_GAME.uuid);
       expect(normalized.sourceUrl).toBe(MOCK_CHESS_COM_GAME.url);
@@ -48,7 +50,7 @@ describe("Game Normalizers", () => {
       );
     });
 
-    it("should correctly identify a black win", () => {
+    it("should correctly identify a black win and userPlayedAs black", () => {
       const blackWinGame = {
         ...MOCK_CHESS_COM_GAME,
         white: { ...MOCK_CHESS_COM_GAME.white, result: "checkmated" },
@@ -58,18 +60,22 @@ describe("Game Normalizers", () => {
       const normalized = normalizeChessComGame({
         game: blackWinGame,
         userId: "user_123",
+        username: "sultan2403",
       });
 
       expect(normalized.result).toBe("black");
+      expect(normalized.userPlayedAs).toBe("black");
     });
 
     it("should recognize a real drawn game by agreement ('agreed')", () => {
       const normalized = normalizeChessComGame({
         game: MOCK_CHESS_COM_DRAWN_GAME,
         userId: "user_123",
+        username: "sultan2403",
       });
 
       expect(normalized.result).toBe("draw");
+      expect(normalized.userPlayedAs).toBe("white");
       expect(normalized.whitePlayer.username).toBe(
         MOCK_CHESS_COM_DRAWN_GAME.white.username,
       );
@@ -83,6 +89,7 @@ describe("Game Normalizers", () => {
       const normalized = normalizeChessComGame({
         game: MOCK_CHESS_COM_GAME,
         userId: "user_123",
+        username: "mada1974",
       });
 
       expect(normalized.folderIds).toBeNull();
@@ -92,6 +99,7 @@ describe("Game Normalizers", () => {
       const normalized = normalizeChessComGame({
         game: MOCK_CHESS_COM_GAME,
         userId: "user_123",
+        username: "mada1974",
       });
 
       expect(normalized.opening).toBeDefined();
@@ -109,6 +117,7 @@ describe("Game Normalizers", () => {
       const normalized = normalizeChessComGame({
         game: noHeaderGame,
         userId: "user_123",
+        username: "sultan2403",
       });
 
       expect(normalized.opening).toBeUndefined();
@@ -117,6 +126,7 @@ describe("Game Normalizers", () => {
       const normalized = normalizeChessComGame({
         game: MOCK_CHESS_COM_GAME,
         userId: "user_123",
+        username: "mada1974",
       });
 
       expect(normalized.moves).toBeDefined();
@@ -130,6 +140,7 @@ describe("Game Normalizers", () => {
       const normalized = normalizeLichessGame({
         game: MOCK_LICHESS_GAME,
         userId: "user_123",
+        username: "sultan2403",
       });
 
       expect(normalized.moves).toBeDefined();
@@ -140,9 +151,11 @@ describe("Game Normalizers", () => {
       const normalized = normalizeLichessGame({
         game: MOCK_LICHESS_GAME,
         userId: "user_123",
+        username: "sultan2403",
       });
 
       expect(normalized.userId).toBe("user_123");
+      expect(normalized.userPlayedAs).toBe("black");
       expect(normalized.platform).toBe("lichess");
       expect(normalized.platformGameId).toBe(MOCK_LICHESS_GAME.id);
       expect(normalized.sourceUrl).toBe(`https://lichess.org/${MOCK_LICHESS_GAME.id}`);
@@ -167,9 +180,11 @@ describe("Game Normalizers", () => {
       const normalized = normalizeLichessGame({
         game: MOCK_LICHESS_DRAWN_GAME,
         userId: "user_123",
+        username: "sultan2403",
       });
 
       expect(normalized.result).toBe("draw");
+      expect(normalized.userPlayedAs).toBe("white");
       expect(normalized.whitePlayer.username).toBe(
         MOCK_LICHESS_DRAWN_GAME.players.white.user?.name,
       );
@@ -182,8 +197,10 @@ describe("Game Normalizers", () => {
       const normalized = normalizeLichessGame({
         game: MOCK_LICHESS_AI_GAME,
         userId: "user_123",
+        username: "sultan2403",
       });
 
+      expect(normalized.userPlayedAs).toBe("white");
       expect(normalized.blackPlayer.username).toBe(
         `AI (Level ${MOCK_LICHESS_AI_GAME.players.black.aiLevel})`,
       );
@@ -207,8 +224,10 @@ describe("Game Normalizers", () => {
       const normalized = normalizeLichessGame({
         game: guestGame as any,
         userId: "user_123",
+        username: "PlayerTwo",
       });
 
+      expect(normalized.userPlayedAs).toBe("black");
       expect(normalized.whitePlayer.username).toBe("Guest");
       expect(normalized.whitePlayer.rating).toBe(0);
     });
@@ -217,6 +236,7 @@ describe("Game Normalizers", () => {
       const normalized = normalizeLichessGame({
         game: MOCK_LICHESS_GAME,
         userId: "user_123",
+        username: "sultan2403",
       });
 
       expect(normalized.opening).toBeDefined();
@@ -229,6 +249,7 @@ describe("Game Normalizers", () => {
       const normalized = normalizeLichessGame({
         game: MOCK_LICHESS_DRAWN_GAME,
         userId: "user_123",
+        username: "sultan2403",
       });
 
       expect(normalized.opening).toBeUndefined();

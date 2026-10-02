@@ -9,6 +9,7 @@ export const mockGames: Game[] = [
   {
     id: "game-1",
     userId: "user-1",
+    userPlayedAs: "white",
     folderIds: ["folder-tournament"],
     platform: "chess.com",
     platformGameId: "cv-2024-0419",
@@ -40,6 +41,7 @@ export const mockGames: Game[] = [
   {
     id: "game-2",
     userId: "user-1",
+    userPlayedAs: "white",
     folderIds: ["folder-openings"],
     platform: "chess.com",
     platformGameId: "cv-2024-0420",
@@ -71,6 +73,7 @@ export const mockGames: Game[] = [
   {
     id: "game-3",
     userId: "user-1",
+    userPlayedAs: "black",
     folderIds: ["folder-repertoire"],
     platform: "lichess",
     platformGameId: "cv-2024-0421",
@@ -101,6 +104,7 @@ export const mockGames: Game[] = [
   {
     id: "game-4",
     userId: "user-1",
+    userPlayedAs: "white",
     folderIds: ["folder-classical"],
     platform: "chess.com",
     platformGameId: "cv-2024-0422",

@@ -17,6 +17,7 @@ describe("Games Service Unit Tests (Update & Delete)", () => {
       const mockDbResult = {
         _id: new mongoose.Types.ObjectId(mockGameId),
         userId: mockUserId,
+        userPlayedAs: "white",
         folderIds: [new mongoose.Types.ObjectId(mockFolderId)],
         platform: "chess.com",
         platformGameId: "123456",

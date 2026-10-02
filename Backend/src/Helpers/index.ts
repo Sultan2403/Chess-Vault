@@ -10,10 +10,12 @@ import { parseLichessOpening, parseChessComOpening } from "../Utils/pgn";
 export const normalizeLichessGame = ({
   game,
   userId,
+  username,
   folderIds,
 }: {
   game: Lichess_Game;
   userId: string;
+  username: string;
   folderIds?: string[] | null;
 }): NormalizedGame => {
   const sourceUrl = `https://lichess.org/${game.id}`;
@@ -33,8 +35,12 @@ export const normalizeLichessGame = ({
   const opening = parseLichessOpening(game.opening);
   const moves = getPgnMoveCount(game.pgn || game.moves);
 
+  const userPlayedAs: "white" | "black" =
+    whiteName.toLowerCase() === username.toLowerCase() ? "white" : "black";
+
   return {
     userId,
+    userPlayedAs,
     folderIds: folderIds ?? null,
     platform: "lichess",
     platformGameId: game.id,
@@ -61,10 +67,12 @@ export const normalizeLichessGame = ({
 export const normalizeChessComGame = ({
   game,
   userId,
+  username,
   folderIds,
 }: {
   game: Chess_Com_Game;
   userId: string;
+  username: string;
   folderIds?: string[] | null;
 }): NormalizedGame => {
   const opening = parseChessComOpening(game.pgn);
@@ -79,8 +87,14 @@ export const normalizeChessComGame = ({
         ? "black"
         : "draw";
 
+  const userPlayedAs: "white" | "black" =
+    game.white.username.toLowerCase() === username.toLowerCase()
+      ? "white"
+      : "black";
+
   return {
     userId,
+    userPlayedAs,
     folderIds: folderIds ?? null,
     platform: "chess.com",
     platformGameId: game.uuid,
@@ -103,3 +117,4 @@ export const normalizeChessComGame = ({
     ...(moves && { moves }),
   };
 };
+

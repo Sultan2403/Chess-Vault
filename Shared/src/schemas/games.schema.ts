@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { Platforms, Results, TimeClasses } from "../constants/index.js";
+import {
+  Platforms,
+  PlayerColors,
+  Results,
+  TimeClasses,
+} from "../constants/index.js";
 import { isValidMongoId } from "../utils/index.js";
 
 export const PlatformValues = Object.values(Platforms);
@@ -48,6 +53,8 @@ export const GameSchema = z.object({
   id: z.string().trim().min(1),
   /** Clerk User ID of the owner of this game */
   userId: z.string().trim().min(1),
+  /** Color played by the vault user in this match ("white" | "black") */
+  userPlayedAs: z.enum(PlayerColors),
   /** Folder ObjectIds containing this game, or null if unorganized */
   folderIds: z
     .array(
@@ -121,6 +128,7 @@ export const searchGamesQuery = z.object({
   search: z.string().trim().max(100).optional(),
 
   platform: z.enum(PlatformValues).optional(),
+  userPlayedAs: z.enum(PlayerColors).optional(),
   result: z.enum(Results).optional(),
   timeClass: z.enum(TimeClasses).optional(),
 
