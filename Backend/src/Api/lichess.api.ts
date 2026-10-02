@@ -15,6 +15,7 @@ const lichessApi = {
         pgnInJson: true,
         opening: true,
         max: MAX_GAMES_PER_USER,
+        lastFen: true,
         clocks: true
       },
     }),

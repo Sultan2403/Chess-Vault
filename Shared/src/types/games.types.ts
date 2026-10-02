@@ -129,6 +129,7 @@ export interface Lichess_Game {
 
   moves: string;
   pgn: string;
+  lastFen: string;
 
   clock?: {
     initial: number;

@@ -1,7 +1,7 @@
 // import fs from "fs";
 // import path from "path";
 // import { Chess } from "chess.js";
-// import lichessApi from "./lichess.api";
+import lichessApi from "./lichess.api";
 
 // // 1. Read real Lichess games from test.ndjson
 // const ndjsonContent = fs.readFileSync(path.join(__dirname, "test.ndjson"), "utf-8");
@@ -95,8 +95,8 @@
 // console.log(`\nAverage time per game across ${lichessGames.length} games: ${(totalBatchTime / lichessGames.length).toFixed(3)} ms\n`);
 
 
-// async function testLichessClocksFlag(){
-//   console.log(await lichessApi.getUserGames("Sultan2403"))
-// }
+async function testLichessClocksFlag(){
+  console.log(await lichessApi.getUserGames("Sultan2403"))
+}
 
-// testLichessClocksFlag()
+testLichessClocksFlag()

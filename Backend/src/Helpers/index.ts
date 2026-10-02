@@ -1,4 +1,3 @@
-import { Chess } from "chess.js";
 import { TimeClassType } from "../Config/constants";
 import {
   Chess_Com_Game,
@@ -39,17 +38,6 @@ export const normalizeLichessGame = ({
   const userPlayedAs: "white" | "black" =
     whiteName.toLowerCase() === username.toLowerCase() ? "white" : "black";
 
-  let finalFen: string | undefined;
-  if (game.pgn) {
-    try {
-      const chess = new Chess();
-      chess.loadPgn(game.pgn);
-      finalFen = chess.fen();
-    } catch {
-      // Graceful fallback if PGN format is invalid
-    }
-  }
-
   return {
     userId,
     userPlayedAs,
@@ -70,7 +58,7 @@ export const normalizeLichessGame = ({
     timeClass: game.speed as TimeClassType,
     playedAt: new Date(game.createdAt),
     pgn: game.pgn,
-    ...(finalFen && { finalFen }),
+    finalFen: game.lastFen,
     isRated: game.rated,
     ...(opening && { opening }),
     ...(moves && { moves }),
@@ -105,17 +93,6 @@ export const normalizeChessComGame = ({
       ? "white"
       : "black";
 
-  let finalFen = game.fen;
-  if (!finalFen && game.pgn) {
-    try {
-      const chess = new Chess();
-      chess.loadPgn(game.pgn);
-      finalFen = chess.fen();
-    } catch {
-      // Graceful fallback
-    }
-  }
-
   return {
     userId,
     userPlayedAs,
@@ -136,11 +113,9 @@ export const normalizeChessComGame = ({
     timeClass: game.time_class as TimeClassType,
     playedAt: new Date(game.end_time * 1000),
     pgn: game.pgn,
-    ...(finalFen && { finalFen }),
+    finalFen: game.fen,
     isRated: game.rated,
     ...(opening && { opening }),
     ...(moves && { moves }),
   };
 };
-
-
