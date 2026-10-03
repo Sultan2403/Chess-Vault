@@ -121,7 +121,7 @@ The authoritative Game model is defined as:
   * `timeClass`: Standardized time control category (`"ultraBullet"`, `"bullet"`, `"blitz"`, `"rapid"`, `"classical"`, `"daily"`, `"correspondence"`).
   * `initial`: Optional initial clock duration in integer milliseconds (Live chess).
   * `increment`: Optional increment in integer milliseconds (Live chess, `0` if no increment).
-  * `daysPerTurn`: Optional number of days per turn (Daily/correspondence chess).
+  * `daysPerTurn`: Optional number of days per turn (Daily/correspondence chess, e.g. 1, 2, 3, 5, 7, 14 days).
   * `clocks`: Optional array of remaining clock times in integer milliseconds immediately after each mainline ply.
 * `playedAt`: Timestamp when the game was played on the source platform.
 * `pgn`: Full Portable Game Notation string including moves and headers.

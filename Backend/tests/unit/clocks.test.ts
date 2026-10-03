@@ -79,19 +79,19 @@ describe("Game Clock Pipeline & Canonical GameTime", () => {
       });
     });
 
-    it("should parse daily time control in 1/<seconds> format", () => {
-      // 259200 seconds / 86400 = 3 days
-      expect(parseChessComTimeControl("1/259200")).toEqual({
-        daysPerTurn: 3,
-      });
-      // 604800 seconds / 86400 = 7 days
-      expect(parseChessComTimeControl("1/604800")).toEqual({
-        daysPerTurn: 7,
-      });
-      // 86400 seconds / 86400 = 1 day
-      expect(parseChessComTimeControl("1/86400")).toEqual({
-        daysPerTurn: 1,
-      });
+    it("should parse daily time controls in 1/<seconds> format (1, 2, 3, 5, 7, 14 days)", () => {
+      // 1 day = 86400s
+      expect(parseChessComTimeControl("1/86400")).toEqual({ daysPerTurn: 1 });
+      // 2 days = 172800s
+      expect(parseChessComTimeControl("1/172800")).toEqual({ daysPerTurn: 2 });
+      // 3 days = 259200s
+      expect(parseChessComTimeControl("1/259200")).toEqual({ daysPerTurn: 3 });
+      // 5 days = 432000s
+      expect(parseChessComTimeControl("1/432000")).toEqual({ daysPerTurn: 5 });
+      // 7 days = 604800s
+      expect(parseChessComTimeControl("1/604800")).toEqual({ daysPerTurn: 7 });
+      // 14 days = 1209600s
+      expect(parseChessComTimeControl("1/1209600")).toEqual({ daysPerTurn: 14 });
     });
 
     it("should safely return empty object for invalid or missing inputs", () => {
@@ -202,40 +202,34 @@ describe("Game Clock Pipeline & Canonical GameTime", () => {
       });
     });
 
-    it("3. Chess.com Daily conversion from 1/<seconds>", () => {
-      const game3Day = {
-        ...MOCK_CHESS_COM_GAME,
-        time_control: "1/259200",
-        time_class: "daily",
-      };
+    it("3. Chess.com Daily conversion from 1/<seconds> (1, 2, 3, 5, 7, 14 days)", () => {
+      const dailyCases = [
+        { seconds: "1/86400", expectedDays: 1 },
+        { seconds: "1/172800", expectedDays: 2 },
+        { seconds: "1/259200", expectedDays: 3 },
+        { seconds: "1/432000", expectedDays: 5 },
+        { seconds: "1/604800", expectedDays: 7 },
+        { seconds: "1/1209600", expectedDays: 14 },
+      ];
 
-      const normalized3Day = normalizeChessComGame({
-        game: game3Day,
-        userId: "user_123",
-        username: "mada1974",
-      });
+      for (const { seconds, expectedDays } of dailyCases) {
+        const game = {
+          ...MOCK_CHESS_COM_GAME,
+          time_control: seconds,
+          time_class: "daily",
+        };
 
-      expect(normalized3Day.time).toEqual({
-        timeClass: "daily",
-        daysPerTurn: 3,
-      });
+        const normalized = normalizeChessComGame({
+          game,
+          userId: "user_123",
+          username: "mada1974",
+        });
 
-      const game7Day = {
-        ...MOCK_CHESS_COM_GAME,
-        time_control: "1/604800",
-        time_class: "daily",
-      };
-
-      const normalized7Day = normalizeChessComGame({
-        game: game7Day,
-        userId: "user_123",
-        username: "mada1974",
-      });
-
-      expect(normalized7Day.time).toEqual({
-        timeClass: "daily",
-        daysPerTurn: 7,
-      });
+        expect(normalized.time).toEqual({
+          timeClass: "daily",
+          daysPerTurn: expectedDays,
+        });
+      }
     });
 
     it("4. Lichess live time-control normalization", () => {

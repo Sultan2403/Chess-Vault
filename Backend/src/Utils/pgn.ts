@@ -181,7 +181,8 @@ export function normalizeLichessClocks(
  * Parses a Chess.com time_control string into structured time parameters:
  * - Live with increment (e.g. "180+2") -> initial: 180000 ms, increment: 2000 ms
  * - Live without increment (e.g. "180", "600") -> initial: 180000/600000 ms, increment: 0 ms
- * - Daily/correspondence (e.g. "1/259200") -> daysPerTurn: 3 (259200 / 86400)
+ * - Daily/correspondence (e.g. "1/86400" -> 1 day, "1/172800" -> 2 days, "1/259200" -> 3 days,
+ *   "1/432000" -> 5 days, "1/604800" -> 7 days, "1/1209600" -> 14 days)
  *
  * Returns an object with available fields (initial, increment, daysPerTurn).
  */
