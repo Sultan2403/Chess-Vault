@@ -13,6 +13,15 @@ import {
   parseChessComTimeControl,
 } from "../Utils/pgn";
 
+/**
+ * Normalizes a raw Lichess game response into the canonical Chess Vault `NormalizedGame` model.
+ *
+ * Normalization details:
+ * - Uses `game.speed` as the canonical `time.timeClass` (avoiding `perf`).
+ * - Normalizes structured live clock parameters (`initial`, `increment`) to integer milliseconds.
+ * - Captures correspondence `daysPerTurn` when provided.
+ * - Extracts mainline ply clocks from structured `clocks` (or falls back to PGN annotations).
+ */
 export const normalizeLichessGame = ({
   game,
   userId,
@@ -92,6 +101,15 @@ export const normalizeLichessGame = ({
   };
 };
 
+/**
+ * Normalizes a raw Chess.com game response into the canonical Chess Vault `NormalizedGame` model.
+ *
+ * Normalization details:
+ * - Uses `game.time_class` as the canonical `time.timeClass`.
+ * - Parses `game.time_control` for live controls (`<initial>`, `<initial>+<increment>`) converted to milliseconds.
+ * - Converts Daily time controls (`1/<seconds>`) into integer `daysPerTurn`.
+ * - Extracts mainline ply clocks in milliseconds from PGN `%clk` annotations.
+ */
 export const normalizeChessComGame = ({
   game,
   userId,

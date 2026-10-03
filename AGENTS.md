@@ -58,6 +58,14 @@ The Game type is the core model of the entire application and must not be modifi
 
 The authoritative Game model is defined as:
 
+    type GameTime = {
+        timeClass: "ultraBullet" | "bullet" | "blitz" | "rapid" | "classical" | "daily" | "correspondence";
+        initial?: number;      // integer milliseconds
+        increment?: number;    // integer milliseconds
+        daysPerTurn?: number;  // days per turn for correspondence/daily games
+        clocks?: number[];     // remaining integer milliseconds after each mainline ply
+    }
+
     type Game = {
         id: string;
         userId: string;
@@ -76,7 +84,7 @@ The authoritative Game model is defined as:
         };
         result: "white" | "black" | "draw";
         isRated: boolean;
-        timeClass: "ultraBullet" | "bullet" | "blitz" | "rapid" | "classical" | "daily" | "correspondence";
+        time: GameTime;
         playedAt: Date;
         pgn: string;
         finalFen: string | undefined;
@@ -109,7 +117,12 @@ The authoritative Game model is defined as:
 * `blackPlayer`: Object containing Black player `username` and non-negative `rating`.
 * `result`: Outcome (`"white"`, `"black"`, or `"draw"`).
 * `isRated`: Boolean indicating whether the match was rated.
-* `timeClass`: Standardized time control category (`"ultraBullet"`, `"bullet"`, `"blitz"`, `"rapid"`, `"classical"`, `"daily"`, `"correspondence"`).
+* `time`: Unified time object containing:
+  * `timeClass`: Standardized time control category (`"ultraBullet"`, `"bullet"`, `"blitz"`, `"rapid"`, `"classical"`, `"daily"`, `"correspondence"`).
+  * `initial`: Optional initial clock duration in integer milliseconds (Live chess).
+  * `increment`: Optional increment in integer milliseconds (Live chess, `0` if no increment).
+  * `daysPerTurn`: Optional number of days per turn (Daily/correspondence chess).
+  * `clocks`: Optional array of remaining clock times in integer milliseconds immediately after each mainline ply.
 * `playedAt`: Timestamp when the game was played on the source platform.
 * `pgn`: Full Portable Game Notation string including moves and headers.
 * `finalFen`: Optional board position in Forsyth-Edwards Notation (FEN) after the final move.
