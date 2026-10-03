@@ -30,7 +30,6 @@
 
 - Maybe add time control/time rendering to game viewer? 
 - Polish frontend and fix any bugs
-- Make player context i.e username derived from account data
 - Onboarding validation enforced but UI is shitty soo fix that.
 - Make the UI feel more alive with subtle interactive animations and motion polish across auth, dashboard, and key flows
 - Add a branded logo or visual identity treatment to auth pages and major app surfaces
