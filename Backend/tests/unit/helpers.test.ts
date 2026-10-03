@@ -41,7 +41,8 @@ describe("Game Normalizers", () => {
       // Verify result, stats, and timestamp transformation (seconds -> ms -> Date)
       expect(normalized.result).toBe("white");
       expect(normalized.isRated).toBe(MOCK_CHESS_COM_GAME.rated);
-      expect(normalized.timeClass).toBe(MOCK_CHESS_COM_GAME.time_class);
+      expect(normalized.time.timeClass).toBe(MOCK_CHESS_COM_GAME.time_class);
+      expect(normalized.time.daysPerTurn).toBe(3);
       expect(normalized.title).toBe(
         `${MOCK_CHESS_COM_GAME.white.username} vs ${MOCK_CHESS_COM_GAME.black.username}`,
       );
@@ -83,7 +84,9 @@ describe("Game Normalizers", () => {
       expect(normalized.blackPlayer.username).toBe(
         MOCK_CHESS_COM_DRAWN_GAME.black.username,
       );
-      expect(normalized.timeClass).toBe(MOCK_CHESS_COM_DRAWN_GAME.time_class);
+      expect(normalized.time.timeClass).toBe(MOCK_CHESS_COM_DRAWN_GAME.time_class);
+      expect(normalized.time.initial).toBe(600000);
+      expect(normalized.time.increment).toBe(0);
     });
 
     it("should default folderIds to null when not provided", () => {
@@ -161,7 +164,9 @@ describe("Game Normalizers", () => {
       expect(normalized.platformGameId).toBe(MOCK_LICHESS_GAME.id);
       expect(normalized.sourceUrl).toBe(`https://lichess.org/${MOCK_LICHESS_GAME.id}`);
       expect(normalized.result).toBe("black");
-      expect(normalized.timeClass).toBe(MOCK_LICHESS_GAME.speed);
+      expect(normalized.time.timeClass).toBe(MOCK_LICHESS_GAME.speed);
+      expect(normalized.time.initial).toBe(600000);
+      expect(normalized.time.increment).toBe(0);
       expect(normalized.whitePlayer.username).toBe(
         MOCK_LICHESS_GAME.players.white.user?.name,
       );

@@ -48,6 +48,24 @@ export const movesSchema = z.object({
   plies: z.number().int().nonnegative(),
 });
 
+/** Standardized game time control and clock history */
+export const gameTimeSchema = z.object({
+  /** Standardized time control category */
+  timeClass: z.enum(TimeClasses),
+
+  /** Initial clock duration in integer milliseconds (Live chess) */
+  initial: z.number().int().nonnegative().optional(),
+
+  /** Increment in integer milliseconds (Live chess) */
+  increment: z.number().int().nonnegative().optional(),
+
+  /** Number of days per turn (Daily/correspondence chess) */
+  daysPerTurn: z.number().positive().optional(),
+
+  /** Remaining clock times in integer milliseconds immediately after each mainline ply */
+  clocks: z.array(z.number().int().nonnegative()).optional(),
+});
+
 export const GameSchema = z.object({
   /** MongoDB ObjectId string assigned upon persistence in Chess Vault */
   id: z.string().trim().min(1),
@@ -88,8 +106,8 @@ export const GameSchema = z.object({
   /** Whether the game was a rated match */
   isRated: z.boolean(),
 
-  /** Standardized time control category */
-  timeClass: z.enum(TimeClasses),
+  /** Standardized time model containing category, live/daily time control, and mainline clocks */
+  time: gameTimeSchema,
 
   /** Timestamp when game was played on source platform */
   playedAt: z.coerce.date(),
@@ -109,9 +127,6 @@ export const GameSchema = z.object({
 
   /** Move statistics: count (full moves) and plies (half-moves) */
   moves: movesSchema.optional(),
-
-  /** Remaining clock times in integer milliseconds immediately after each mainline ply */
-  clocks: z.array(z.number().int().nonnegative()).optional(),
 
   /** Timestamp when persisted in Chess Vault DB */
   createdAt: z.coerce.date().optional(),

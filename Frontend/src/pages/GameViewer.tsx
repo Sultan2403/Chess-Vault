@@ -635,7 +635,7 @@ export default function GameViewer() {
                     <div>
                       <span className="text-vault-text-muted uppercase text-[9px] block">Time Format</span>
                       <span className="text-vault-text-primary font-semibold">
-                        {currentGame.timeClass} • 90m + 30s
+                        {currentGame.time.timeClass} • 90m + 30s
                       </span>
                     </div>
                     <div>

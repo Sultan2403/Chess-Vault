@@ -10,6 +10,7 @@ import {
   parseChessComOpening,
   parsePgnClocks,
   normalizeLichessClocks,
+  parseChessComTimeControl,
 } from "../Utils/pgn";
 
 export const normalizeLichessGame = ({
@@ -42,6 +43,19 @@ export const normalizeLichessGame = ({
   const clocks =
     normalizeLichessClocks(game.clocks) ?? parsePgnClocks(game.pgn);
 
+  const initial =
+    game.clock?.initial !== undefined
+      ? Math.round(game.clock.initial * 1000)
+      : undefined;
+  const increment =
+    game.clock !== undefined
+      ? Math.round((game.clock.increment ?? 0) * 1000)
+      : undefined;
+  const daysPerTurn =
+    typeof game.daysPerTurn === "number" && game.daysPerTurn > 0
+      ? game.daysPerTurn
+      : undefined;
+
   const userPlayedAs: "white" | "black" =
     whiteName.toLowerCase() === username.toLowerCase() ? "white" : "black";
 
@@ -62,14 +76,19 @@ export const normalizeLichessGame = ({
       rating: game.players.black?.rating || 0,
     },
     result: game.winner || "draw",
-    timeClass: game.speed as TimeClassType,
+    time: {
+      timeClass: game.speed as TimeClassType,
+      ...(initial !== undefined && { initial }),
+      ...(increment !== undefined && { increment }),
+      ...(daysPerTurn !== undefined && { daysPerTurn }),
+      ...(clocks && { clocks }),
+    },
     playedAt: new Date(game.createdAt),
     pgn: game.pgn,
     finalFen: game.lastFen,
     isRated: game.rated,
     ...(opening && { opening }),
     ...(moves && { moves }),
-    ...(clocks && { clocks }),
   };
 };
 
@@ -87,6 +106,7 @@ export const normalizeChessComGame = ({
   const opening = parseChessComOpening(game.pgn);
   const moves = getPgnMoveCount(game.pgn);
   const clocks = parsePgnClocks(game.pgn);
+  const parsedTime = parseChessComTimeControl(game.time_control);
 
   const title = `${game.white.username} vs ${game.black.username}`;
 
@@ -119,13 +139,23 @@ export const normalizeChessComGame = ({
       rating: game.black.rating,
     },
     result,
-    timeClass: game.time_class as TimeClassType,
+    time: {
+      timeClass: game.time_class as TimeClassType,
+      ...(parsedTime.initial !== undefined && { initial: parsedTime.initial }),
+      ...(parsedTime.increment !== undefined && {
+        increment: parsedTime.increment,
+      }),
+      ...(parsedTime.daysPerTurn !== undefined && {
+        daysPerTurn: parsedTime.daysPerTurn,
+      }),
+      ...(clocks && { clocks }),
+    },
     playedAt: new Date(game.end_time * 1000),
     pgn: game.pgn,
     finalFen: game.fen,
     isRated: game.rated,
     ...(opening && { opening }),
     ...(moves && { moves }),
-    ...(clocks && { clocks }),
   };
 };
+

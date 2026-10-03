@@ -458,7 +458,7 @@ export default function GameBankPage() {
               const { opening, variation, eco } = parseOpeningDetails(game);
               const displayTitle = opening || game.title || "Archived Encounter";
               const displayEco = eco ? `ECO ${eco}` : "ECO ---";
-              const displayCadence = `${game.timeClass}`;
+              const displayCadence = `${game.time.timeClass}`;
               const displayPlatform = game.platform.toUpperCase();
               const displayResult =
                 game.result === "draw"

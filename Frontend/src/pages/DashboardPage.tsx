@@ -367,7 +367,7 @@ export default function DashboardPage() {
                           {resultBadgeText}
                         </span>
                         <span className="text-vault-text-muted">
-                          <span className="capitalize">{game.timeClass}</span> •{" "}
+                          <span className="capitalize">{game.time.timeClass}</span> •{" "}
                           {getGameDate(game, "MMM dd, yyyy")}
                         </span>
                       </div>

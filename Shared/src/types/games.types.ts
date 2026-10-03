@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   GameSchema,
+  gameTimeSchema,
   importGamesParams,
   searchGamesQuery,
   gameParams,
@@ -8,6 +9,11 @@ import {
   movesSchema,
 } from "../schemas/games.schema.js";
 import type { PlatformType } from "../constants/platforms.js";
+
+/**
+ * Standardized time model containing time class category, live/daily time controls, and clock history.
+ */
+export type GameTime = z.infer<typeof gameTimeSchema>;
 
 /**
  * Core domain representation of a game persisted in Chess Vault.
@@ -24,14 +30,13 @@ import type { PlatformType } from "../constants/platforms.js";
  * @property blackPlayer - Details of the Black player (`username` and rating).
  * @property result - Outcome of the game (`"white"` | `"black"` | `"draw"`).
  * @property isRated - Whether the game was played as a rated match (`true`) or unrated (`false`).
- * @property timeClass - Standardized time control category (`"ultraBullet"` | `"bullet"` | `"blitz"` | `"rapid"` | `"classical"` | `"daily"` | `"correspondence"`).
+ * @property time - Canonical time model containing `timeClass`, live `initial`/`increment`, correspondence `daysPerTurn`, and mainline `clocks`.
  * @property playedAt - Timestamp when the game was completed on the original platform.
  * @property pgn - Full Portable Game Notation string including move sequence and headers.
  * @property finalFen - Optional board state in Forsyth-Edwards Notation (FEN) after the final move.
  * @property notes - Optional user commentary or personal analysis (max 1000 chars).
  * @property opening - Optional opening classification containing `eco`, `name`, and `variation`.
  * @property moves - Optional move statistics containing `count` (full moves) and `plies` (half-moves).
- * @property clocks - Optional array of remaining clock times in integer milliseconds immediately after each mainline ply.
  * @property createdAt - Timestamp when the record was persisted in Chess Vault.
  * @property updatedAt - Timestamp when the record was last modified in Chess Vault.
  */
@@ -137,6 +142,9 @@ export interface Lichess_Game {
     increment: number;
     totalTime: number;
   };
+
+  /** Days per turn for correspondence games */
+  daysPerTurn?: number;
 
   /** Clock times in centiseconds remaining after each move (present when clocks=true in API request) */
   clocks?: number[];

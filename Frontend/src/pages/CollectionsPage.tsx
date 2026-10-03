@@ -444,7 +444,7 @@ export default function CollectionsPage() {
 
                     {/* Match Details */}
                     <p className="text-[11px] text-vault-text-muted">
-                      {opening || game.title || "Archived Game"} {eco ? `• ECO ${eco}` : ""} • {getMoveCount(game)} Moves • {game.timeClass} • {getGameDate(game, "MMM dd, yyyy")}
+                      {opening || game.title || "Archived Game"} {eco ? `• ECO ${eco}` : ""} • {getMoveCount(game)} Moves • {game.time.timeClass} • {getGameDate(game, "MMM dd, yyyy")}
                     </p>
 
                     {/* Monograph Note Callout Box */}

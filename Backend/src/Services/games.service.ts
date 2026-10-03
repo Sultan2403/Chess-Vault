@@ -277,10 +277,11 @@ export const searchGames = async ({
 }> => {
   const skip = (page - 1) * limit;
 
-  const { folderIds, ...restParams } = params;
+  const { folderIds, timeClass, ...restParams } = params;
 
   const query = {
     ...restParams,
+    ...(timeClass && { "time.timeClass": timeClass }),
     ...(folderIds && folderIds.length > 0
       ? {
           folderIds: {

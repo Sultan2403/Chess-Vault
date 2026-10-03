@@ -31,7 +31,7 @@ export function GameCard({ game, platformUsernames }: GameCardProps) {
             {opening}
           </h2>
           <p className="mt-1 text-xs text-vault-text-secondary line-clamp-1">
-            {variation ?? game.timeClass}
+            {variation ?? game.time.timeClass}
           </p>
         </div>
 

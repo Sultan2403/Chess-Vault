@@ -3,12 +3,13 @@ import {
   parseClockStringToMs,
   parsePgnClocks,
   normalizeLichessClocks,
+  parseChessComTimeControl,
 } from "../../src/Utils/pgn";
 import { normalizeChessComGame, normalizeLichessGame } from "../../src/Helpers";
 import { MOCK_CHESS_COM_GAME } from "../fixtures/chess_com_game.fixture";
 import { MOCK_LICHESS_GAME } from "../fixtures/lichess_game.fixture";
 
-describe("Game Clock Pipeline", () => {
+describe("Game Clock Pipeline & Canonical GameTime", () => {
   describe("parseClockStringToMs", () => {
     it("should parse whole-second clocks in H:MM:SS format", () => {
       expect(parseClockStringToMs("0:05:00")).toBe(300000);
@@ -52,6 +53,52 @@ describe("Game Clock Pipeline", () => {
       expect(parseClockStringToMs("0:00:-5")).toBeUndefined();
       expect(parseClockStringToMs(null as any)).toBeUndefined();
       expect(parseClockStringToMs(undefined as any)).toBeUndefined();
+    });
+  });
+
+  describe("parseChessComTimeControl", () => {
+    it("should parse live time control without increment", () => {
+      expect(parseChessComTimeControl("180")).toEqual({
+        initial: 180000,
+        increment: 0,
+      });
+      expect(parseChessComTimeControl("600")).toEqual({
+        initial: 600000,
+        increment: 0,
+      });
+    });
+
+    it("should parse live time control with increment", () => {
+      expect(parseChessComTimeControl("180+2")).toEqual({
+        initial: 180000,
+        increment: 2000,
+      });
+      expect(parseChessComTimeControl("600+5")).toEqual({
+        initial: 600000,
+        increment: 5000,
+      });
+    });
+
+    it("should parse daily time control in 1/<seconds> format", () => {
+      // 259200 seconds / 86400 = 3 days
+      expect(parseChessComTimeControl("1/259200")).toEqual({
+        daysPerTurn: 3,
+      });
+      // 604800 seconds / 86400 = 7 days
+      expect(parseChessComTimeControl("1/604800")).toEqual({
+        daysPerTurn: 7,
+      });
+      // 86400 seconds / 86400 = 1 day
+      expect(parseChessComTimeControl("1/86400")).toEqual({
+        daysPerTurn: 1,
+      });
+    });
+
+    it("should safely return empty object for invalid or missing inputs", () => {
+      expect(parseChessComTimeControl("")).toEqual({});
+      expect(parseChessComTimeControl(undefined)).toEqual({});
+      expect(parseChessComTimeControl(null)).toEqual({});
+      expect(parseChessComTimeControl("custom-unparsed")).toEqual({});
     });
   });
 
@@ -115,9 +162,131 @@ describe("Game Clock Pipeline", () => {
   });
 
   describe("End-to-End Normalization & Acceptance Criteria", () => {
-    it("should normalize clocks from a Chess.com game with PGN clock annotations", () => {
+    it("1. Chess.com live time control without increment", () => {
+      const game = {
+        ...MOCK_CHESS_COM_GAME,
+        time_control: "180",
+        time_class: "blitz",
+      };
+
+      const normalized = normalizeChessComGame({
+        game,
+        userId: "user_123",
+        username: "mada1974",
+      });
+
+      expect(normalized.time).toEqual({
+        timeClass: "blitz",
+        initial: 180000,
+        increment: 0,
+      });
+    });
+
+    it("2. Chess.com live time control with increment", () => {
+      const game = {
+        ...MOCK_CHESS_COM_GAME,
+        time_control: "180+2",
+        time_class: "blitz",
+      };
+
+      const normalized = normalizeChessComGame({
+        game,
+        userId: "user_123",
+        username: "mada1974",
+      });
+
+      expect(normalized.time).toEqual({
+        timeClass: "blitz",
+        initial: 180000,
+        increment: 2000,
+      });
+    });
+
+    it("3. Chess.com Daily conversion from 1/<seconds>", () => {
+      const game3Day = {
+        ...MOCK_CHESS_COM_GAME,
+        time_control: "1/259200",
+        time_class: "daily",
+      };
+
+      const normalized3Day = normalizeChessComGame({
+        game: game3Day,
+        userId: "user_123",
+        username: "mada1974",
+      });
+
+      expect(normalized3Day.time).toEqual({
+        timeClass: "daily",
+        daysPerTurn: 3,
+      });
+
+      const game7Day = {
+        ...MOCK_CHESS_COM_GAME,
+        time_control: "1/604800",
+        time_class: "daily",
+      };
+
+      const normalized7Day = normalizeChessComGame({
+        game: game7Day,
+        userId: "user_123",
+        username: "mada1974",
+      });
+
+      expect(normalized7Day.time).toEqual({
+        timeClass: "daily",
+        daysPerTurn: 7,
+      });
+    });
+
+    it("4. Lichess live time-control normalization", () => {
+      const lichessGame = {
+        ...MOCK_LICHESS_GAME,
+        speed: "blitz",
+        clock: {
+          initial: 180,
+          increment: 2,
+          totalTime: 260,
+        },
+      };
+
+      const normalized = normalizeLichessGame({
+        game: lichessGame,
+        userId: "user_123",
+        username: "Sultan2403",
+      });
+
+      expect(normalized.time.timeClass).toBe("blitz");
+      expect(normalized.time.initial).toBe(180000);
+      expect(normalized.time.increment).toBe(2000);
+      // Ensure totalTime is not stored
+      expect((normalized.time as any).totalTime).toBeUndefined();
+    });
+
+    it("5. Lichess Daily/correspondence normalization when source data supports it", () => {
+      const lichessCorrespondence = {
+        ...MOCK_LICHESS_GAME,
+        speed: "correspondence",
+        clock: undefined,
+        daysPerTurn: 5,
+      };
+
+      const normalized = normalizeLichessGame({
+        game: lichessCorrespondence,
+        userId: "user_123",
+        username: "Sultan2403",
+      });
+
+      expect(normalized.time).toEqual({
+        timeClass: "correspondence",
+        daysPerTurn: 5,
+      });
+    });
+
+    it("6. Clock arrays remain correctly normalized to milliseconds", () => {
       const chessComGame = {
         ...MOCK_CHESS_COM_GAME,
+        time_control: "180+2",
+        time_class: "blitz",
         pgn: `[Event "Live Chess"]\n[ECO "B01"]\n\n1. e4 {[%clk 0:03:00]} 1... d5 {[%clk 0:02:58.8]} 2. exd5 {[%clk 0:02:59.2]} 2... Qxd5 {[%clk 0:02:55]} 1-0`,
       };
 
@@ -127,68 +296,48 @@ describe("Game Clock Pipeline", () => {
         username: "mada1974",
       });
 
-      expect(normalized.clocks).toEqual([180000, 178800, 179200, 175000]);
+      expect(normalized.time.clocks).toEqual([180000, 178800, 179200, 175000]);
     });
 
-    it("should omit clocks when Chess.com game PGN has no clock annotations", () => {
-      const chessComGame = {
-        ...MOCK_CHESS_COM_GAME,
-        pgn: `1. e4 d5 2. exd5 Qxd5 1-0`,
-      };
-
-      const normalized = normalizeChessComGame({
-        game: chessComGame,
-        userId: "user_123",
-        username: "mada1974",
-      });
-
-      expect(normalized.clocks).toBeUndefined();
-    });
-
-    it("should use structured clocks as primary source for Lichess game without re-parsing PGN", () => {
-      const lichessGame = {
+    it("7. Missing optional time fields are handled safely", () => {
+      const noClockLichess = {
         ...MOCK_LICHESS_GAME,
-        clocks: [60000, 59820, 59500, 59200],
-        pgn: `1. e4 {[%clk 0:01:00]} 1... c6 {[%clk 0:01:00]} 0-1`, // Differs from structured
-      };
-
-      const normalized = normalizeLichessGame({
-        game: lichessGame,
-        userId: "user_123",
-        username: "Sultan2403",
-      });
-
-      // Must prefer structured data [60000, 59820, 59500, 59200] -> * 10 ms
-      expect(normalized.clocks).toEqual([600000, 598200, 595000, 592000]);
-    });
-
-    it("should fallback to PGN clock parsing when Lichess structured clocks are absent or empty", () => {
-      const lichessGame = {
-        ...MOCK_LICHESS_GAME,
+        clock: undefined,
+        daysPerTurn: undefined,
         clocks: undefined,
-        pgn: `1. e4 {[%clk 0:10:00]} 1... c6 {[%clk 0:09:58.2]} 2. Bc4 {[%clk 0:09:55]} 0-1`,
+        speed: "classical",
       };
 
       const normalized = normalizeLichessGame({
-        game: lichessGame,
+        game: noClockLichess,
         userId: "user_123",
         username: "Sultan2403",
       });
 
-      expect(normalized.clocks).toEqual([600000, 598200, 595000]);
+      expect(normalized.time).toEqual({
+        timeClass: "classical",
+      });
     });
 
-    it("should produce the same canonical representation for equivalent Chess.com and Lichess games", () => {
-      // Chess.com source (via PGN annotations)
+    it("8. Equivalent Chess.com/Lichess live time controls produce equivalent canonical GameTime objects", () => {
+      // Chess.com 3+2 game
       const chessComGame = {
         ...MOCK_CHESS_COM_GAME,
-        pgn: `1. e4 {[%clk 0:05:00]} 1... c5 {[%clk 0:04:58.8]} 2. Nf3 {[%clk 0:04:57.4]} 2... d6 {[%clk 0:04:55]} 1-0`,
+        time_class: "blitz",
+        time_control: "180+2",
+        pgn: `1. e4 {[%clk 0:03:00]} 1... c5 {[%clk 0:02:58.8]} 2. Nf3 {[%clk 0:02:57.4]} 2... d6 {[%clk 0:02:55]} 1-0`,
       };
 
-      // Lichess source (via structured clocks: centiseconds)
+      // Lichess 3+2 game (structured clocks in cs: [18000, 17880, 17740, 17500])
       const lichessGame = {
         ...MOCK_LICHESS_GAME,
-        clocks: [30000, 29880, 29740, 29500],
+        speed: "blitz",
+        clock: {
+          initial: 180,
+          increment: 2,
+          totalTime: 260,
+        },
+        clocks: [18000, 17880, 17740, 17500],
       };
 
       const normalizedChessCom = normalizeChessComGame({
@@ -203,11 +352,17 @@ describe("Game Clock Pipeline", () => {
         username: "Sultan2403",
       });
 
-      const expectedCanonicalClocks = [300000, 298800, 297400, 295000];
+      const expectedGameTime = {
+        timeClass: "blitz",
+        initial: 180000,
+        increment: 2000,
+        clocks: [180000, 178800, 177400, 175000],
+      };
 
-      expect(normalizedChessCom.clocks).toEqual(expectedCanonicalClocks);
-      expect(normalizedLichess.clocks).toEqual(expectedCanonicalClocks);
-      expect(normalizedChessCom.clocks).toEqual(normalizedLichess.clocks);
+      expect(normalizedChessCom.time).toEqual(expectedGameTime);
+      expect(normalizedLichess.time).toEqual(expectedGameTime);
+      expect(normalizedChessCom.time).toEqual(normalizedLichess.time);
     });
   });
 });
+

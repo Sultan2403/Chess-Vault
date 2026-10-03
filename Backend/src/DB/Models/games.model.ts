@@ -22,6 +22,39 @@ const playerSchema = {
   },
 };
 
+const timeSchema = {
+  timeClass: {
+    type: String,
+    enum: TimeClasses,
+    required: true,
+    trim: true,
+  },
+
+  initial: {
+    type: Number,
+    required: false,
+    min: 0,
+  },
+
+  increment: {
+    type: Number,
+    required: false,
+    min: 0,
+  },
+
+  daysPerTurn: {
+    type: Number,
+    required: false,
+    min: 0,
+  },
+
+  clocks: {
+    type: [Number],
+    required: false,
+    default: undefined,
+  },
+};
+
 const gameSchema = new mongoose.Schema(
   {
     // Ownership
@@ -96,11 +129,9 @@ const gameSchema = new mongoose.Schema(
       required: true,
     },
 
-    timeClass: {
-      type: String,
-      enum: TimeClasses,
+    time: {
+      type: timeSchema,
       required: true,
-      trim: true,
     },
 
     playedAt: {
@@ -146,13 +177,6 @@ const gameSchema = new mongoose.Schema(
       plies: { type: Number, min: 0 },
       count: { type: Number, min: 0 },
     },
-
-    // Clock times in integer milliseconds remaining immediately after each mainline ply
-    clocks: {
-      type: [Number],
-      required: false,
-      default: undefined,
-    },
   },
   {
     strict: true,
@@ -197,7 +221,7 @@ gameSchema.index({
 
 gameSchema.index({
   userId: 1,
-  timeClass: 1,
+  "time.timeClass": 1,
 });
 
 gameSchema.index({

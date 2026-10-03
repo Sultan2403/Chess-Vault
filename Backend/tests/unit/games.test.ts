@@ -26,7 +26,9 @@ describe("Games Service Unit Tests (Update & Delete)", () => {
         blackPlayer: { username: "Hikaru", rating: 2820 },
         result: "white",
         isRated: true,
-        timeClass: "blitz",
+        time: {
+          timeClass: "blitz",
+        },
         playedAt: new Date("2026-01-01T00:00:00Z"),
         pgn: "1. e4 e5",
         title: "Magnus vs Hikaru Blitz Final",

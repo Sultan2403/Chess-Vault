@@ -42,7 +42,7 @@ function RecentGameRow({ game }: { game: Game }) {
           </h3>
           <p className="mt-0.5 text-xs text-vault-text-secondary">
             vs. {perspective.opponent.username} • {getMoveCount(game)} moves •{" "}
-            <span className="capitalize">{game.timeClass}</span>
+            <span className="capitalize">{game.time.timeClass}</span>
           </p>
         </div>
 

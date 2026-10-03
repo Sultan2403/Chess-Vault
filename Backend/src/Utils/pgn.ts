@@ -177,3 +177,61 @@ export function normalizeLichessClocks(
   return normalized.length > 0 ? normalized : undefined;
 }
 
+/**
+ * Parses a Chess.com time_control string into structured time parameters:
+ * - Live with increment (e.g. "180+2") -> initial: 180000 ms, increment: 2000 ms
+ * - Live without increment (e.g. "180", "600") -> initial: 180000/600000 ms, increment: 0 ms
+ * - Daily/correspondence (e.g. "1/259200") -> daysPerTurn: 3 (259200 / 86400)
+ *
+ * Returns an object with available fields (initial, increment, daysPerTurn).
+ */
+export function parseChessComTimeControl(timeControl?: string | null): {
+  initial?: number;
+  increment?: number;
+  daysPerTurn?: number;
+} {
+  if (!timeControl || typeof timeControl !== "string") {
+    return {};
+  }
+
+  const trimmed = timeControl.trim();
+
+  // Daily format: "1/<seconds-per-turn>"
+  const dailyMatch = /^1\/(\d+)$/.exec(trimmed);
+  if (dailyMatch) {
+    const seconds = parseInt(dailyMatch[1], 10);
+    if (!isNaN(seconds) && seconds > 0) {
+      return {
+        daysPerTurn: seconds / 86400,
+      };
+    }
+  }
+
+  // Live format with increment: "<initial-seconds>+<increment-seconds>"
+  const incMatch = /^(\d+)\+(\d+)$/.exec(trimmed);
+  if (incMatch) {
+    const initialSec = parseInt(incMatch[1], 10);
+    const incSec = parseInt(incMatch[2], 10);
+    if (!isNaN(initialSec) && !isNaN(incSec) && initialSec >= 0 && incSec >= 0) {
+      return {
+        initial: initialSec * 1000,
+        increment: incSec * 1000,
+      };
+    }
+  }
+
+  // Live format without increment: "<initial-seconds>"
+  const baseMatch = /^(\d+)$/.exec(trimmed);
+  if (baseMatch) {
+    const initialSec = parseInt(baseMatch[1], 10);
+    if (!isNaN(initialSec) && initialSec >= 0) {
+      return {
+        initial: initialSec * 1000,
+        increment: 0,
+      };
+    }
+  }
+
+  return {};
+}
+

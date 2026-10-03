@@ -19,7 +19,9 @@ export const mockGames: Game[] = [
     blackPlayer: { username: "M. Chigorin", rating: 2089 },
     result: "white",
     isRated: true,
-    timeClass: "classical",
+    time: {
+      timeClass: "classical",
+    },
     playedAt: new Date("2024-10-12T17:42:00Z"),
     pgn: `[Event "City Championship 2024"]
 [Site "Zurich Hall"]
@@ -52,7 +54,9 @@ export const mockGames: Game[] = [
     blackPlayer: { username: "M_Artemiev", rating: 2192 },
     result: "white",
     isRated: true,
-    timeClass: "rapid",
+    time: {
+      timeClass: "rapid",
+    },
     playedAt: new Date("2024-10-24T17:42:00Z"),
     pgn: `[Event "Live Chess Rapid"]
 [Site "Chess.com"]
@@ -85,7 +89,9 @@ export const mockGames: Game[] = [
     blackPlayer: { username: "Sultan", rating: 2141 },
     result: "black",
     isRated: true,
-    timeClass: "blitz",
+    time: {
+      timeClass: "blitz",
+    },
     playedAt: new Date("2024-10-22T22:15:00Z"),
     pgn: `[Event "Lichess Rated Blitz"]
 [Site "lichess.org"]
@@ -117,7 +123,9 @@ export const mockGames: Game[] = [
     blackPlayer: { username: "D_Nakamura_Sr", rating: 2110 },
     result: "draw",
     isRated: true,
-    timeClass: "classical",
+    time: {
+      timeClass: "classical",
+    },
     playedAt: new Date("2024-11-12T14:00:00Z"),
     pgn: `[Event "Classical OTB League"]
 [Site "Zurich"]
