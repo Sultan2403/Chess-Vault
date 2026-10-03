@@ -1,7 +1,8 @@
 import { getToken } from "@clerk/react";
 import axios from "axios";
+import env from "../config/env.ts";
 
-const url = import.meta.env.VITE_API_URL;
+const url = env.VITE_API_URL;
 
 const api = axios.create({
   baseURL: url,
