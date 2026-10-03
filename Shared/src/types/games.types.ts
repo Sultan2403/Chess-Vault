@@ -31,6 +31,7 @@ import type { PlatformType } from "../constants/platforms.js";
  * @property notes - Optional user commentary or personal analysis (max 1000 chars).
  * @property opening - Optional opening classification containing `eco`, `name`, and `variation`.
  * @property moves - Optional move statistics containing `count` (full moves) and `plies` (half-moves).
+ * @property clocks - Optional array of remaining clock times in integer milliseconds immediately after each mainline ply.
  * @property createdAt - Timestamp when the record was persisted in Chess Vault.
  * @property updatedAt - Timestamp when the record was last modified in Chess Vault.
  */
@@ -136,6 +137,9 @@ export interface Lichess_Game {
     increment: number;
     totalTime: number;
   };
+
+  /** Clock times in centiseconds remaining after each move (present when clocks=true in API request) */
+  clocks?: number[];
 }
 
 export type GameSearchParams = z.infer<typeof searchGamesQuery> & {

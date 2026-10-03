@@ -146,6 +146,13 @@ const gameSchema = new mongoose.Schema(
       plies: { type: Number, min: 0 },
       count: { type: Number, min: 0 },
     },
+
+    // Clock times in integer milliseconds remaining immediately after each mainline ply
+    clocks: {
+      type: [Number],
+      required: false,
+      default: undefined,
+    },
   },
   {
     strict: true,

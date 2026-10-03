@@ -59,3 +59,121 @@ export function parseChessComOpening(
 
   return { eco, name, variation };
 }
+
+/**
+ * Parses a clock string in H:MM:SS or MM:SS format (with optional fractional seconds)
+ * into an integer number of milliseconds.
+ *
+ * @example
+ * parseClockStringToMs("0:00:28.8") // -> 28800
+ * parseClockStringToMs("0:05:00")   // -> 300000
+ * parseClockStringToMs("1:15:30")   // -> 4530000
+ * parseClockStringToMs("0:00:00")   // -> 0
+ */
+export function parseClockStringToMs(clockStr: string): number | undefined {
+  if (!clockStr || typeof clockStr !== "string") return undefined;
+
+  const parts = clockStr.trim().split(":");
+  let hours = 0;
+  let minutes = 0;
+  let seconds = 0;
+
+  if (parts.length === 3) {
+    hours = parseInt(parts[0], 10);
+    minutes = parseInt(parts[1], 10);
+    seconds = parseFloat(parts[2]);
+  } else if (parts.length === 2) {
+    minutes = parseInt(parts[0], 10);
+    seconds = parseFloat(parts[1]);
+  } else {
+    return undefined;
+  }
+
+  if (
+    isNaN(hours) ||
+    isNaN(minutes) ||
+    isNaN(seconds) ||
+    hours < 0 ||
+    minutes < 0 ||
+    seconds < 0
+  ) {
+    return undefined;
+  }
+
+  const ms = Math.round(hours * 3600000 + minutes * 60000 + seconds * 1000);
+  return Number.isFinite(ms) && ms >= 0 ? ms : undefined;
+}
+
+/**
+ * Strips parenthesized variations from PGN move text, retaining only the mainline.
+ */
+function stripVariations(text: string): string {
+  let result = "";
+  let depth = 0;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (char === "(") {
+      depth++;
+    } else if (char === ")") {
+      if (depth > 0) depth--;
+    } else if (depth === 0) {
+      result += char;
+    }
+  }
+  return result;
+}
+
+/**
+ * Extracts and parses every [%clk ...] annotation from the mainline PGN.
+ * Returns an array of remaining clock times in integer milliseconds in ply order.
+ * Returns `undefined` if no clock annotations are found.
+ */
+export function parsePgnClocks(pgn?: string | null): number[] | undefined {
+  if (!pgn || !pgn.trim()) return undefined;
+
+  // Isolate moves section (after headers)
+  const sep = pgn.search(/\n\r?\n/);
+  const movesSection = sep >= 0 ? pgn.slice(sep) : pgn;
+
+  // Strip out non-mainline variations
+  const mainline = stripVariations(movesSection);
+
+  const regex = /\[%clk\s+([0-9]+(?::[0-9]+)+(?:\.[0-9]+)?)\]/gi;
+  const clocks: number[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(mainline)) !== null) {
+    const ms = parseClockStringToMs(match[1]);
+    if (ms !== undefined) {
+      clocks.push(ms);
+    }
+  }
+
+  return clocks.length > 0 ? clocks : undefined;
+}
+
+/**
+ * Normalizes a Lichess structured `clocks` array (where values are in centiseconds)
+ * into integer milliseconds.
+ *
+ * Returns `undefined` if clocks data is empty, absent, or malformed, triggering
+ * fallback to PGN clock parsing.
+ */
+export function normalizeLichessClocks(
+  clocks?: number[] | null,
+): number[] | undefined {
+  if (!Array.isArray(clocks) || clocks.length === 0) {
+    return undefined;
+  }
+
+  const normalized: number[] = [];
+  for (const cs of clocks) {
+    if (typeof cs !== "number" || isNaN(cs) || cs < 0) {
+      return undefined;
+    }
+    normalized.push(Math.round(cs * 10));
+  }
+
+  return normalized.length > 0 ? normalized : undefined;
+}
+

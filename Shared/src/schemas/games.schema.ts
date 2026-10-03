@@ -110,6 +110,9 @@ export const GameSchema = z.object({
   /** Move statistics: count (full moves) and plies (half-moves) */
   moves: movesSchema.optional(),
 
+  /** Remaining clock times in integer milliseconds immediately after each mainline ply */
+  clocks: z.array(z.number().int().nonnegative()).optional(),
+
   /** Timestamp when persisted in Chess Vault DB */
   createdAt: z.coerce.date().optional(),
   /** Timestamp when last updated in Chess Vault DB */

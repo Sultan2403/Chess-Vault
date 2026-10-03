@@ -5,7 +5,12 @@ import {
   Lichess_Game,
   getPgnMoveCount,
 } from "../Types/games.types";
-import { parseLichessOpening, parseChessComOpening } from "../Utils/pgn";
+import {
+  parseLichessOpening,
+  parseChessComOpening,
+  parsePgnClocks,
+  normalizeLichessClocks,
+} from "../Utils/pgn";
 
 export const normalizeLichessGame = ({
   game,
@@ -34,6 +39,8 @@ export const normalizeLichessGame = ({
 
   const opening = parseLichessOpening(game.opening);
   const moves = getPgnMoveCount(game.pgn || game.moves);
+  const clocks =
+    normalizeLichessClocks(game.clocks) ?? parsePgnClocks(game.pgn);
 
   const userPlayedAs: "white" | "black" =
     whiteName.toLowerCase() === username.toLowerCase() ? "white" : "black";
@@ -62,6 +69,7 @@ export const normalizeLichessGame = ({
     isRated: game.rated,
     ...(opening && { opening }),
     ...(moves && { moves }),
+    ...(clocks && { clocks }),
   };
 };
 
@@ -78,6 +86,7 @@ export const normalizeChessComGame = ({
 }): NormalizedGame => {
   const opening = parseChessComOpening(game.pgn);
   const moves = getPgnMoveCount(game.pgn);
+  const clocks = parsePgnClocks(game.pgn);
 
   const title = `${game.white.username} vs ${game.black.username}`;
 
@@ -117,5 +126,6 @@ export const normalizeChessComGame = ({
     isRated: game.rated,
     ...(opening && { opening }),
     ...(moves && { moves }),
+    ...(clocks && { clocks }),
   };
 };

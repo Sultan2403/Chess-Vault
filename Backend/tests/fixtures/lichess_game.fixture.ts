@@ -36,6 +36,7 @@ export const MOCK_LICHESS_GAME: Lichess_Game = {
   },
   moves: "e4 c6 Bc4 d5 exd5 cxd5",
   pgn: "1. e4 c6 2. Bc4 d5 0-1",
+  lastFen: "rnbqkbnr/pp2pppp/8/3p4/2BP4/8/PPP2PPP/RNBQK1NR w KQkq - 0 3",
   clock: {
     initial: 600,
     increment: 0,
