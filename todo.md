@@ -5,6 +5,9 @@
 
 ## Overall
 
+- Once it's time, make evrything in the app account oriented. For examples max-games should be per account from `Account.plan.gameBankLimit`. Similarly for analysis minutes and such.
+
+- Investigate game storage as some games get past the game cap.
 - Decide on how to store and render the in game clock. Frontend only is the happy path and it's relatively cheap. But considering future analytics, storing it in the db seems much more attractive for easy queries and such. This really isn't a dilemma I can solve rn at 12am. And I've got messages to reply to so yh good luck future Sultan :)
 - Sync up socket.io implementation with the frontend and add explicit flows for importing games
 - ANALYTICSSSSSSS!!!! IT'S IMPORTANT BRO!!!
