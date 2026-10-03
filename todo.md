@@ -6,7 +6,7 @@
 ## Overall
 
 - Decide on how to store and render the in game clock. Frontend only is the happy path and it's relatively cheap. But considering future analytics, storing it in the db seems much more attractive for easy queries and such. This really isn't a dilemma I can solve rn at 12am. And I've got messages to reply to so yh good luck future Sultan :)
-- Implemnt socket.io for importing games. And make games a background task using bullmq
+- Sync up socket.io implementation with the frontend and add explicit flows for importing games
 - ANALYTICSSSSSSS!!!! IT'S IMPORTANT BRO!!!
 - Add stockfish wasm for analysis on the client side
 - Remove `.optional()` in Game.opening as it and it's kids are all required. This is just a knock off of the type safety task below but just more precise lol. 
@@ -34,9 +34,8 @@
 - Onboarding validation enforced but UI is shitty soo fix that.
 - Make the UI feel more alive with subtle interactive animations and motion polish across auth, dashboard, and key flows
 - Add a branded logo or visual identity treatment to auth pages and major app surfaces
-- Mini chessboard apparently renders the same freaking position for all games... investigate and fix
 
-- Theres a minor bug in the frontemd that makes pages feel slow. I think the issue is in how the components are rendered. Probably the react query hooks fetch in the bg before the ui actually updates or sumthing idk but it makes the app feel slow and is bad for ux. 
+- Theres a minor bug in the frontemd that makes pages feel slow. I think the issue is in how the components are rendered. Probably the react query hooks fetch in the bg before the ui actually updates or sumthing idk but it makes the app feel slow and is bad for ux.
 
 ### Type Safety & Validation
 
