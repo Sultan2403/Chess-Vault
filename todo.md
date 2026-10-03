@@ -16,6 +16,10 @@
 
 ## Backend
 
+- Add flags for the chess importers so we don't attempt to process non-standard chess games i.e chess variations like bughouse, 4 player chess and so on. I mean we can allow them but add flags to indicate that they are non-standard. If we do allow them, maybe something like chess960 that won't break the entire model. 
+
+For lichess games, the flag is `variant: "standard"` and for chess.com its `rules: "chess"` 
+
 - Implement socket.io for real time feed for imports. But plan the architechture properly cus I have no idea on how to go about this fr. Well import service will need to semd stautus reports... But in the end imports will go through bullmq from now on so the api just dispatches a 202 accepted...
 - Add final tests where necessary
 - Add a `GET /analytics` endpoint that returns personal chess statistics such as:
