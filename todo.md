@@ -5,6 +5,8 @@
 
 ## Overall
 
+- Make game model support how a game ended e.g stalemate, resignation and so on. This can be derived easily during the import pipeline
+
 - I actually wanted to do CI but I'm hungry rn. Hopefully we'll do that later. Anyways I think we've modified the game model enough to support a huge ton of features and render some useful things on the UI so.... BACK TO FRONTEND BRO!!!!!! I'M SERIOUS! lol. 
 - Once it's time, make evrything in the app account oriented. For examples max-games should be per account from `Account.plan.gameBankLimit`. Similarly for analysis minutes and such.
 
