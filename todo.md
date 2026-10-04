@@ -18,6 +18,8 @@
 
 ## Backend
 
+- Add proper tests for tags to make sure they are normalized the right way and deduplicated
+
 - Add flags for the chess importers so we don't attempt to process non-standard chess games i.e chess variations like bughouse, 4 player chess and so on. I mean we can allow them but add flags to indicate that they are non-standard. If we do allow them, maybe something like chess960 that won't break the entire model. 
 
 For lichess games, the flag is `variant: "standard"` and for chess.com its `rules: "chess"` 
