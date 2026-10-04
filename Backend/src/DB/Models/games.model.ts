@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 import {
-  Platforms,
   PlayerColors,
+  PlatformValues,
   Results,
   TimeClasses,
+  TerminationValues,
+  TerminationValuesMap,
 } from "../../Config/constants";
-
-const PlatformValues = Object.values(Platforms);
 
 const playerSchema = {
   username: {
@@ -122,6 +122,13 @@ const gameSchema = new mongoose.Schema(
       type: String,
       enum: Results,
       required: true,
+    },
+
+    termination: {
+      type: String,
+      enum: TerminationValues,
+      required: true,
+      default: TerminationValuesMap.unknown
     },
 
     isRated: {

@@ -10,6 +10,7 @@ import {
   tagsSchema,
 } from "../schemas/games.schema.js";
 import type { PlatformType } from "../constants/platforms.js";
+import { LichessTerminationValuesType } from "../constants/games.js";
 
 /**
  * Standardized time model containing time class category, live/daily time controls, and clock history.
@@ -119,7 +120,7 @@ export interface Lichess_Game {
   createdAt: number;
   lastMoveAt: number;
 
-  status: string;
+  status: LichessTerminationValuesType;
   source: string;
 
   winner?: "white" | "black";

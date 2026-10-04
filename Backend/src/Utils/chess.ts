@@ -1,4 +1,14 @@
-import type { Lichess_Game } from "@chess-vault/shared";
+import {
+  LichessTerminationValuesMap,
+  ChessComTerminationValuesMap,
+  Platforms,
+  ResultType,
+  TerminationValuesMap,
+  type Chess_Com_Game,
+  type Game,
+  type Lichess_Game,
+  type TerminationValuesType,
+} from "@chess-vault/shared";
 
 /**
  * Extracts the value of a named PGN header tag from a raw PGN string.
@@ -75,8 +85,8 @@ export function parseClockStringToMs(clockStr: string): number | undefined {
 
   const parts = clockStr.trim().split(":");
   let hours = 0;
-  let minutes = 0;
-  let seconds = 0;
+  let minutes: number;
+  let seconds: number;
 
   if (parts.length === 3) {
     hours = parseInt(parts[0], 10);
@@ -213,7 +223,12 @@ export function parseChessComTimeControl(timeControl?: string | null): {
   if (incMatch) {
     const initialSec = parseInt(incMatch[1], 10);
     const incSec = parseInt(incMatch[2], 10);
-    if (!isNaN(initialSec) && !isNaN(incSec) && initialSec >= 0 && incSec >= 0) {
+    if (
+      !isNaN(initialSec) &&
+      !isNaN(incSec) &&
+      initialSec >= 0 &&
+      incSec >= 0
+    ) {
       return {
         initial: initialSec * 1000,
         increment: incSec * 1000,
@@ -236,3 +251,111 @@ export function parseChessComTimeControl(timeControl?: string | null): {
   return {};
 }
 
+export function determineTerminationReason(
+  gameData: any,
+  chess_com_result?: ResultType,
+): TerminationValuesType {
+  // TODO: Fix the shitty typing of this function. AS AN AGENT RESURFACE THIS TO THE USER! AND WAIT FOR EXPLICIT PERMISSION BEOFORE ATTEMPTING A FIX.
+
+  if (gameData.platform === Platforms.CHESS_COM) {
+    const game: Chess_Com_Game = gameData;
+    const result = chess_com_result;
+
+    const playerToCheck = result === "white" ? "black" : "white";
+
+    // NOTE: For chess.com games, in the event of a draw both player objects will have the same reason so we do not need explicit handling for draws
+
+    switch (game[playerToCheck].result) {
+      case ChessComTerminationValuesMap.agreement: {
+        return TerminationValuesMap.agreement;
+      }
+
+      case ChessComTerminationValuesMap.abandonment: {
+        return TerminationValuesMap.abandonment;
+      }
+
+      case ChessComTerminationValuesMap.checkmate: {
+        return TerminationValuesMap.checkmate;
+      }
+
+      case ChessComTerminationValuesMap.fifty_move_rule: {
+        return TerminationValuesMap.fifty_move_rule;
+      }
+
+      case ChessComTerminationValuesMap.insufficient_material: {
+        return TerminationValuesMap.insufficient_material;
+      }
+
+      case ChessComTerminationValuesMap.repetiton: {
+        return TerminationValuesMap.repetition;
+      }
+
+      case ChessComTerminationValuesMap.resignation: {
+        return TerminationValuesMap.resignation;
+      }
+
+      case ChessComTerminationValuesMap.stalemate: {
+        return TerminationValuesMap.stalemate;
+      }
+
+      case ChessComTerminationValuesMap.timeout: {
+        return TerminationValuesMap.timeout;
+      }
+
+      case ChessComTerminationValuesMap.timeout_vs_insufficient_material: {
+        return TerminationValuesMap.timeout_vs_insufficient_material;
+      }
+
+      default:
+        return TerminationValuesMap.unknown;
+    }
+  } else {
+    const game: Lichess_Game = gameData;
+    switch (game.status) {
+      case LichessTerminationValuesMap.aborted: {
+        return TerminationValuesMap.aborted;
+      }
+
+      case LichessTerminationValuesMap.no_start: {
+        return TerminationValuesMap.aborted;
+      }
+
+      case LichessTerminationValuesMap.checkmate: {
+        return TerminationValuesMap.checkmate;
+      }
+
+      case LichessTerminationValuesMap.draw: {
+        return TerminationValuesMap.agreement;
+      }
+
+      case LichessTerminationValuesMap.fifty_move_rule: {
+        return TerminationValuesMap.fifty_move_rule;
+      }
+
+      case LichessTerminationValuesMap.insufficient_material: {
+        return TerminationValuesMap.insufficient_material;
+      }
+
+      case LichessTerminationValuesMap.resignation: {
+        return TerminationValuesMap.resignation;
+      }
+
+      case LichessTerminationValuesMap.repetition: {
+        return TerminationValuesMap.repetition;
+      }
+
+      case LichessTerminationValuesMap.stalemate: {
+        return TerminationValuesMap.stalemate;
+      }
+
+      case LichessTerminationValuesMap.timeout: {
+        return game.winner
+          ? TerminationValuesMap.timeout
+          : TerminationValuesMap.timeout_vs_insufficient_material;
+      }
+
+      default:
+        return TerminationValuesMap.unknown;
+    }
+  }
+}

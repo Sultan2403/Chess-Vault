@@ -11,7 +11,8 @@ import {
   parsePgnClocks,
   normalizeLichessClocks,
   parseChessComTimeControl,
-} from "../Utils/pgn";
+  determineTerminationReason,
+} from "../Utils/chess";
 
 /**
  * Normalizes a raw Lichess game response into the canonical Chess Vault `NormalizedGame` model.
@@ -68,6 +69,15 @@ export const normalizeLichessGame = ({
   const userPlayedAs: "white" | "black" =
     whiteName.toLowerCase() === username.toLowerCase() ? "white" : "black";
 
+  const speed =
+    game.speed === "correspondence"
+      ? "daily"
+      : game.speed === "ultraBullet"
+        ? "ultra-bullet"
+        : game.speed;
+
+  const termination = determineTerminationReason(game);
+
   return {
     userId,
     userPlayedAs,
@@ -85,8 +95,9 @@ export const normalizeLichessGame = ({
       rating: game.players.black?.rating || 0,
     },
     result: game.winner || "draw",
+    termination,
     time: {
-      timeClass: game.speed as TimeClassType,
+      timeClass: speed as TimeClassType,
       ...(initial !== undefined && { initial }),
       ...(increment !== undefined && { increment }),
       ...(daysPerTurn !== undefined && { daysPerTurn }),
@@ -140,6 +151,8 @@ export const normalizeChessComGame = ({
       ? "white"
       : "black";
 
+  const termination = determineTerminationReason(game, result);
+
   return {
     userId,
     userPlayedAs,
@@ -157,6 +170,7 @@ export const normalizeChessComGame = ({
       rating: game.black.rating,
     },
     result,
+    termination,
     time: {
       timeClass: game.time_class as TimeClassType,
       ...(parsedTime.initial !== undefined && { initial: parsedTime.initial }),
@@ -176,4 +190,3 @@ export const normalizeChessComGame = ({
     ...(moves && { moves }),
   };
 };
-

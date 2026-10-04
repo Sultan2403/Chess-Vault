@@ -1,13 +1,12 @@
 import { z } from "zod";
 import {
-  Platforms,
+  PlatformValues,
   PlayerColors,
   Results,
+  TerminationValues,
   TimeClasses,
 } from "../constants/index.js";
 import { isValidMongoId } from "../utils/index.js";
-
-export const PlatformValues = Object.values(Platforms);
 
 export const importGamesParams = z.object({
   folderIds: z
@@ -114,6 +113,9 @@ export const GameSchema = z.object({
   blackPlayer: playerInputSchema,
   /** Outcome of the match ("white" | "black" | "draw") */
   result: z.enum(Results),
+
+  /** The reason the game ended */
+  termination: z.enum(TerminationValues),
 
   /** Whether the game was a rated match */
   isRated: z.boolean(),
