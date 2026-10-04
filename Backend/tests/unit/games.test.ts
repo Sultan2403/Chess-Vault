@@ -33,7 +33,7 @@ describe("Games Service Unit Tests (Update & Delete)", () => {
         pgn: "1. e4 e5",
         title: "Magnus vs Hikaru Blitz Final",
         notes: "Great game",
-        tags: "blitz",
+        tags: ["blitz"],
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -45,7 +45,7 @@ describe("Games Service Unit Tests (Update & Delete)", () => {
       const result = await updateGame(mockGameId, mockUserId, {
         title: "Magnus vs Hikaru Blitz Final",
         notes: "Great game",
-        tags: "blitz",
+        tags: ["blitz"],
         folderIds: [mockFolderId],
       });
 
@@ -53,7 +53,7 @@ describe("Games Service Unit Tests (Update & Delete)", () => {
       expect(result?.id).toBe(mockGameId);
       expect(result?.title).toBe("Magnus vs Hikaru Blitz Final");
       expect(result?.notes).toBe("Great game");
-      expect(result?.tags).toBe("blitz");
+      expect(result?.tags).toBe(["blitz"]);
       expect(result?.folderIds).toEqual([mockFolderId]);
     });
 

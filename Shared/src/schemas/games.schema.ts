@@ -40,6 +40,18 @@ export const openingSchema = z.object({
   variation: z.string().trim().max(100).optional(),
 });
 
+export const tagsSchema = z
+  .array(
+    z
+      .string()
+      .trim()
+      .max(50)
+      .transform((tag) => tag.toLowerCase()),
+  )
+  .max(20)
+  .transform((tags) => [...new Set(tags)])
+  .optional();
+
 /** Move statistics: count (full moves) and plies (half-moves) */
 export const movesSchema = z.object({
   /** Total number of full moves (rounds/turns) */
@@ -119,8 +131,8 @@ export const GameSchema = z.object({
 
   /** User analysis or commentary */
   notes: z.string().trim().max(1000).optional(),
-  /** User custom tag */
-  tags: z.string().trim().max(20).optional(),
+  /** Array of custom user tags */
+  tags: tagsSchema,
 
   /** Opening details: ECO code, opening family name, and variation */
   opening: openingSchema.optional(),
@@ -177,7 +189,8 @@ export const gameParams = z.object({
 export const updateGameBody = z.object({
   title: z.string().trim().max(100).optional(),
   notes: z.string().trim().max(1000).optional(),
-  tags: z.string().trim().max(20).optional(),
+  tags: tagsSchema,
+
   folderIds: z
     .array(
       z
@@ -189,4 +202,3 @@ export const updateGameBody = z.object({
     .nullable()
     .optional(),
 });
-

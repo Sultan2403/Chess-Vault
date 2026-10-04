@@ -4,12 +4,10 @@ import {
   importGamesParams,
   gameParams,
   updateGameBody,
-  GameSchema,
 } from "@chess-vault/shared";
 import {
   createFolderBody,
   folderParams,
-  updateFolderBody,
 } from "../../src/Schemas/folder.schema";
 
 describe("Zod Validation Schemas", () => {
@@ -111,7 +109,7 @@ describe("Zod Validation Schemas", () => {
       const valid = updateGameBody.safeParse({
         title: "Magnus vs Hikaru Epic Blitz",
         notes: "Great game in the Sicilian Defense",
-        tags: "blitz-tactics",
+        tags: ["blitz-tactics"],
         folderIds: ["65f1a2b3c4d5e6f7a8b9c0d1"],
       });
       expect(valid.success).toBe(true);
@@ -136,7 +134,7 @@ describe("Zod Validation Schemas", () => {
 
     it("should reject updateGameBody exceeding field lengths", () => {
       const invalidTag = updateGameBody.safeParse({
-        tags: "a".repeat(21),
+        tags: ["a".repeat(51)],
       });
       expect(invalidTag.success).toBe(false);
 

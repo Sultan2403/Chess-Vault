@@ -365,7 +365,7 @@ export const updateGame = async (
   const updatePayload: Partial<{
     title?: string;
     notes?: string;
-    tags?: string;
+    tags?: string[];
     folderIds?: mongoose.Types.ObjectId[] | null;
   }> = { ...rest };
 

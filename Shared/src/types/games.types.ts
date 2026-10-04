@@ -7,6 +7,7 @@ import {
   gameParams,
   updateGameBody,
   movesSchema,
+  tagsSchema,
 } from "../schemas/games.schema.js";
 import type { PlatformType } from "../constants/platforms.js";
 
@@ -35,6 +36,7 @@ export type GameTime = z.infer<typeof gameTimeSchema>;
  * @property pgn - Full Portable Game Notation string including move sequence and headers.
  * @property finalFen - Optional board state in Forsyth-Edwards Notation (FEN) after the final move.
  * @property notes - Optional user commentary or personal analysis (max 1000 chars).
+ * @property tags - Array of user generated game tags (max of 20 tags per game and 50chars each). 
  * @property opening - Optional opening classification containing `eco`, `name`, and `variation`.
  * @property moves - Optional move statistics containing `count` (full moves) and `plies` (half-moves).
  * @property createdAt - Timestamp when the record was persisted in Chess Vault.
@@ -55,6 +57,7 @@ export type NormalizedGame = Omit<Game, "id" | "createdAt" | "updatedAt">;
 export type GameParams = z.infer<typeof gameParams>;
 export type UpdateGameInput = z.infer<typeof updateGameBody>;
 export type GameMovesCount = z.infer<typeof movesSchema>;
+export type TagsType = z.infer<typeof tagsSchema> 
 
 export interface ImportResult {
   success: boolean;

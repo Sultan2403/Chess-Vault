@@ -39,7 +39,7 @@ export const mockGames: Game[] = [
     finalFen: "r5k1/p2n3p/4b1pQ/3B1q2/3P2N1/7P/P4PPK/8 b - - 0 34",
     notes:
       "Found the knight sacrifice on move 23 after remembering Kasparov's game vs Anand (1995). Black's king had nowhere to shelter once the f-file pried open. Move 34. Bxd5 eliminated his only active defensive diagonal. Chigorin stared at the board for 11 minutes before resigning.",
-    tags: "Tournament Games",
+    tags: ["Tournament Games"],
   },
   {
     id: "game-2",
@@ -74,7 +74,7 @@ export const mockGames: Game[] = [
     finalFen: "5r2/1r1BNp1Q/3p2p1/2n1p1P1/1p5P/1P3P2/2PB4/1K1R4 b - - 0 38",
     notes:
       "Sacrifice at d5 unlocked rook battery along the e-file. Positional bind retained throughout.",
-    tags: "Najdorf Lab",
+    tags: ["Najdorf Lab"],
   },
   {
     id: "game-3",
@@ -108,7 +108,7 @@ export const mockGames: Game[] = [
     finalFen: "6k1/1R4b1/p7/Pr5P/5PK1/6P1/3r4/8 w - - 1 45",
     notes:
       "Perpetual check sealed after opposite-color bishop blockade. Sharp endgame tactical squeeze.",
-    tags: "Tactical Monoliths",
+    tags: ["Tactical Monoliths"],
   },
   {
     id: "game-4",
@@ -143,6 +143,6 @@ export const mockGames: Game[] = [
     finalFen: "7k/5p2/8/7p/8/6K1/8/5r2 w - - 0 56",
     notes:
       "Held notoriously tense rook and pawn transition. Balanced dynamic repetition agreement.",
-    tags: "Classical League",
+    tags: ["Classical League"],
   },
 ];

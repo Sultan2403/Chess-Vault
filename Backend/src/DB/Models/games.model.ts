@@ -159,10 +159,17 @@ const gameSchema = new mongoose.Schema(
     },
 
     tags: {
-      type: String,
-      required: false,
-      trim: true,
-      maxlength: 20,
+      type: [
+        {
+          type: String,
+          trim: true,
+          maxlength: 50,
+        },
+      ],
+      validate: {
+        validator: (tags: string[]) => tags.length <= 20,
+        message: "A game can have at most 20 tags",
+      },
     },
 
     // Opening details (parsed from platform data or PGN headers)
