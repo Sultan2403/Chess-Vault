@@ -13,12 +13,13 @@ import {
   internalError,
 } from "../Utils/responses";
 import { importQueue } from "../Jobs/import.queue";
+import { JOB_NAMES } from "../Config/constants";
 
 export const importGamesController = async (req: Request, res: Response) => {
   const userId = getUserId(req)!;
   const { folderIds, platform, username }: ImportGamesParams = req.body;
 
-  const job = await importQueue.add("import-games", {
+  const job = await importQueue.add(JOB_NAMES.IMPORT, {
     userId,
     username,
     platform,

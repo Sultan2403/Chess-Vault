@@ -5,7 +5,7 @@ import env from "./Config/env";
 import http from "http";
 import { logger } from "./Config/logger";
 import connectDB from "./DB/Connections/mongo";
-import { initSocket } from "./Config/socket";
+import { initSocket } from "./Sockets/socket";
 import "./Jobs/import.worker"; // Side-effect: registers BullMQ worker on boot
 
 connectDB();

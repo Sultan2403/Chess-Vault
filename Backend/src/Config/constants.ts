@@ -9,3 +9,7 @@ export const CLERK_WEBHOOK_EVENTS = {
 export const QUEUE_NAMES = {
   IMPORT: "import_queue"
 } as const;
+
+export const JOB_NAMES = {
+  IMPORT: "import_games"
+} as const;

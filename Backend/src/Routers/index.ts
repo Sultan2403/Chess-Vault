@@ -6,8 +6,10 @@ import requireAuth from "../Middlewares/Auth/users.auth";
 
 const router = Router();
 
-router.use("/games", requireAuth, gamesRouter);
-router.use("/folders", requireAuth, foldersRouter);
-router.use("/account", requireAuth, accountsRouter);
+router.use(requireAuth);
+
+router.use("/games", gamesRouter);
+router.use("/folders", foldersRouter);
+router.use("/account", accountsRouter);
 
 export default router;

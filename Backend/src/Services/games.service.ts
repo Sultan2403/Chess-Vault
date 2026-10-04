@@ -110,7 +110,7 @@ export const importGames = async (
           },
           "Upserted Chess.com archive batch into DB",
         );
-        await onProgress?.({ userId, processed: totalImported, platform: "chess.com", archiveUrl });
+        await onProgress?.({ userId, processed: totalImported, platform: "chess.com" });
       }
     }
 

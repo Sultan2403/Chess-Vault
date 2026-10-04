@@ -1,6 +1,5 @@
 import { Router } from "express";
 import validate from "express-zod-safe";
-import requireAuth from "../Middlewares/Auth/users.auth";
 import {
   getGameController,
   importGamesController,
