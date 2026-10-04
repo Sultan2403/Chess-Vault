@@ -19,7 +19,7 @@ export const importGamesController = async (req: Request, res: Response) => {
   const userId = getUserId(req)!;
   const { folderIds, platform, username }: ImportGamesParams = req.body;
 
-  const job = await importQueue.add(JOB_NAMES.IMPORT, {
+  const job = await importQueue.add(`${JOB_NAMES.IMPORT}_${platform}`, {
     userId,
     username,
     platform,
