@@ -10,7 +10,7 @@ import { requestLogger } from "./Middlewares/request_logger";
 import webhookRoutes from "./Routers/webhooks.routes";
 import apiRouter from "./Routers";
 import { healthCheckController } from "./Controllers/health.controller";
-import { errorResponse } from "./Utils/responses";
+import { errorResponse } from "./Utils";
 import env from "./Config/env";
 
 // Init

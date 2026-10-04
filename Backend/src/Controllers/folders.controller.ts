@@ -6,13 +6,13 @@ import {
   getUserFolders,
   updateFolder,
 } from "../Services/folders.service";
-import { getUserId } from "../Utils/auth";
+import { getUserId } from "../Utils";
 import { parsePositiveInt } from "../Utils";
 import {
   successResponse,
   errorResponse,
   internalError,
-} from "../Utils/responses";
+} from "../Utils";
 
 export const listFoldersController = async (req: Request, res: Response) => {
   const userId = getUserId(req)!;

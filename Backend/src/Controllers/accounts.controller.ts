@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { getUserId } from "../Utils/auth";
+import { getUserId } from "../Utils";
 import {
   successResponse,
   errorResponse,
   internalError,
-} from "../Utils/responses";
+} from "../Utils";
 import {
   connectLinkedAccounts,
   getAccountBootstrap,

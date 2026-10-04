@@ -6,12 +6,12 @@ import {
   deleteGame,
 } from "../Services/games.service";
 import { ImportGamesParams, UpdateGameInput } from "../Types/games.types";
-import { getUserId } from "../Utils/auth";
+import { getUserId } from "../Utils";
 import {
   successResponse,
   errorResponse,
   internalError,
-} from "../Utils/responses";
+} from "../Utils";
 import { importQueue } from "../Jobs/import.queue";
 import { JOB_NAMES } from "../Config/constants";
 

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
-import { successResponse, errorResponse } from "../Utils/responses";
+import { successResponse, errorResponse } from "../Utils";
 import redis from "../DB/Connections/redis";
 
 export const healthCheckController = async (_req: Request, res: Response) => {

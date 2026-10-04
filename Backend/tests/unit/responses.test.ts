@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import type { Response } from "express";
-import { successResponse, errorResponse, internalError } from "../../src/Utils/responses";
+import { successResponse, errorResponse, internalError } from "../../src/Utils";
 import { logger } from "../../src/Config/logger";
 
 // Helper to create a fake Express Response object

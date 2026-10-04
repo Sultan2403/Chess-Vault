@@ -4,7 +4,7 @@ import env from "../Config/env";
 import Accounts from "../DB/Models/accounts.model";
 import { CLERK_WEBHOOK_EVENTS } from "../Config/constants";
 import { logger } from "../Config/logger";
-import { successResponse, errorResponse } from "../Utils/responses";
+import { successResponse, errorResponse } from "../Utils";
 
 export const handleClerkWebhook = async (req: Request, res: Response) => {
   const secret = env.CLERK_WEBHOOK_SECRET;

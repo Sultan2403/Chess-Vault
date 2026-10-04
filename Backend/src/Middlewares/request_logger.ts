@@ -1,7 +1,7 @@
 import pinoHttp from "pino-http";
 import { randomUUID } from "crypto";
 import { logger } from "../Config/logger";
-import { getUserId } from "../Utils/auth";
+import { getUserId } from "../Utils";
 
 export const requestLogger = pinoHttp({
   logger,
