@@ -61,7 +61,7 @@ export default function DashboardPage() {
     const openingMap: Record<string, { count: number; wins: number; name: string }> = {};
 
     games.forEach((g) => {
-      const p = getPlayerPerspective(g, platformUsernames, user?.username ?? undefined);
+      const p = getPlayerPerspective(g);
       if (p.result === "win") wins++;
       else if (p.result === "draw") draws++;
       else losses++;
@@ -316,9 +316,7 @@ export default function DashboardPage() {
             <div className="grid gap-6 md:grid-cols-3">
               {recentGames.map((game) => {
                 const perspective = getPlayerPerspective(
-                  game,
-                  platformUsernames,
-                  user?.username ?? undefined,
+                  game
                 );
                 const { opening, variation, eco } = parseOpeningDetails(game);
 

@@ -1,7 +1,6 @@
 import { format } from "date-fns";
 import type { Game } from "@chess-vault/shared";
 
-type PlatformUsernames = Partial<Record<Game["platform"], string>>;
 export type PlayerPerspective = {
   player: Game["whitePlayer"];
   opponent: Game["blackPlayer"];
@@ -12,32 +11,13 @@ export type PlayerPerspective = {
 /**
  * Gets the player's perspective in the game.
  * Uses the persisted `userPlayedAs` property on the game record,
- * with fallback to platform username matching for legacy records.
+ * 
+ * @param game - The game played 
  */
 export function getPlayerPerspective(
-  game: Game,
-  platformUsernames?: PlatformUsernames,
-  userHandle?: string,
+  game: Game
 ): PlayerPerspective {
-  let playerColor: "white" | "black" = game.userPlayedAs;
-
-  if (!playerColor) {
-    const platformUser = platformUsernames?.[game.platform]?.toLowerCase();
-    const handle = userHandle?.toLowerCase();
-
-    const whiteLower = game.whitePlayer.username.toLowerCase();
-    const blackLower = game.blackPlayer.username.toLowerCase();
-
-    const isWhite =
-      (platformUser && whiteLower === platformUser) ||
-      (handle && whiteLower === handle);
-
-    const isBlack =
-      (platformUser && blackLower === platformUser) ||
-      (handle && blackLower === handle);
-
-    playerColor = isBlack && !isWhite ? "black" : "white";
-  }
+  const playerColor = game.userPlayedAs;
 
   const player = playerColor === "white" ? game.whitePlayer : game.blackPlayer;
   const opponent = playerColor === "white" ? game.blackPlayer : game.whitePlayer;

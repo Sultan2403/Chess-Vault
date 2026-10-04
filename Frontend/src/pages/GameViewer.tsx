@@ -34,6 +34,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { getGameDate, getPlayerPerspective, parseOpeningDetails } from "../utils/game";
 import { useUser } from "@clerk/react";
 
+// TODO: REFACTOR THIS COMPONENT FOR GOD'S SAKE!!!
 export default function GameViewer() {
   const { id } = useParams<{ id: string }>();
   const { user } = useUser();
@@ -158,6 +159,7 @@ export default function GameViewer() {
 
   // Perspective
   const perspective = useMemo(() => {
+    // TODO: BS like this should be removed cause the UI should just render Game not found or something. Instead of dumb defaults and fallbacks. 
     if (!currentGame) {
       return {
         player: { username: "", rating: 0 },
@@ -166,7 +168,7 @@ export default function GameViewer() {
         result: "draw" as const,
       };
     }
-    return getPlayerPerspective(currentGame, platformUsernames, userName);
+    return getPlayerPerspective(currentGame);
   }, [currentGame, platformUsernames, userName]);
 
   // Set default board orientation
@@ -629,13 +631,15 @@ export default function GameViewer() {
                     <div>
                       <span className="text-vault-text-muted uppercase text-[9px] block">ECO Code</span>
                       <span className="text-vault-text-primary font-semibold">
-                        {eco ?? "C52"} • {opening}
+                        {eco} • {opening}
                       </span>
                     </div>
                     <div>
                       <span className="text-vault-text-muted uppercase text-[9px] block">Time Format</span>
                       <span className="text-vault-text-primary font-semibold">
-                        {currentGame.time.timeClass} • 90m + 30s
+
+                        {/* TODO: Create a frontend helper to help format these data in such a way that its suitable for rendering. like capitalizing first letter of time class, and converting initial and increment to seconds/mins/hours as appropriate */}
+                        {currentGame.time.timeClass} • {currentGame.time.initial / 1000}m  + {currentGame.time.increment}s
                       </span>
                     </div>
                     <div>
