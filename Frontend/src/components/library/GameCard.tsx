@@ -6,11 +6,10 @@ const labels = { win: "Won", loss: "Lost", draw: "Draw" };
 
 type GameCardProps = {
   game: Game;
-  platformUsernames: Partial<Record<Game["platform"], string>>;
 };
 
-export function GameCard({ game, platformUsernames }: GameCardProps) {
-  const perspective = getPlayerPerspective(game, platformUsernames);
+export function GameCard({ game }: GameCardProps) {
+  const perspective = getPlayerPerspective(game);
   const [opening, variation] = (game.title ?? "Untitled game").split(": ");
 
   return (

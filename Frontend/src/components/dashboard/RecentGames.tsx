@@ -3,14 +3,12 @@ import type { Game } from "@chess-vault/shared";
 import { NavLink } from "react-router-dom";
 import { useGames } from "../../hooks/useGames";
 import { getGameDate, getMoveCount, getPlayerPerspective } from "../../utils/game";
-import { usePlatformUsernames } from "../../hooks/useAccount";
 
 const resultLabel = { win: "W", loss: "L", draw: "D" };
 const scoreLabel = { win: "1-0", loss: "0-1", draw: "½-½" };  
 
 function RecentGameRow({ game }: { game: Game }) {
-  const platformUsernames = usePlatformUsernames();
-  const perspective = getPlayerPerspective(game, platformUsernames);
+  const perspective = getPlayerPerspective(game);
 
   // TODO: Fix the bs tag logic and just be honest if no tags are present.
   const tag =

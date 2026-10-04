@@ -7,7 +7,6 @@ import { GameCard } from "../components/library/GameCard";
 import { useGames } from "../hooks/useGames";
 import {
   useConnectLinkedAccounts,
-  usePlatformUsernames,
   useVerifyLinkedAccount,
 } from "../hooks/useAccount";
 import { OnboardingModal } from "../components/onboarding/OnboardingModal";
@@ -26,7 +25,6 @@ export default function LibraryPage() {
 
   const connectMutation = useConnectLinkedAccounts();
   const verificationMutation = useVerifyLinkedAccount();
-  const platformUsernames = usePlatformUsernames();
 
   const gamesList = gamesData?.games ?? [];
 
@@ -102,7 +100,7 @@ export default function LibraryPage() {
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {filteredGames.map((game) => (
-                <GameCard key={game.id} game={game} platformUsernames={platformUsernames} />
+                <GameCard key={game.id} game={game} />
               ))}
             </div>
           )}

@@ -640,7 +640,7 @@ export default function GameViewer() {
                       <span className="text-vault-text-primary font-semibold">
 
                         {/* TODO: Create a frontend helper to help format these data in such a way that its suitable for rendering. like capitalizing first letter of time class, and converting initial and increment to seconds/mins/hours as appropriate */}
-                        {currentGame.time.timeClass} • {currentGame.time.initial / 1000}m  + {currentGame.time.increment}s
+                        {currentGame.time.timeClass} • {currentGame.time?.initial && currentGame.time?.increment ? `${currentGame.time.initial}m + ${currentGame.time.increment}s` : currentGame.time.daysPerTurn || "N/A"}
                       </span>
                     </div>
                     <div>

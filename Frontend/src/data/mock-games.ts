@@ -18,6 +18,7 @@ export const mockGames: Game[] = [
     whitePlayer: { username: "Sultan", rating: 2140 },
     blackPlayer: { username: "M. Chigorin", rating: 2089 },
     result: "white",
+    termination: "checkmate",
     isRated: true,
     time: {
       timeClass: "classical",
@@ -53,6 +54,7 @@ export const mockGames: Game[] = [
     whitePlayer: { username: "Sultan", rating: 2148 },
     blackPlayer: { username: "M_Artemiev", rating: 2192 },
     result: "white",
+    termination: "resignation",
     isRated: true,
     time: {
       timeClass: "rapid",
@@ -88,6 +90,7 @@ export const mockGames: Game[] = [
     whitePlayer: { username: "K_Vogel_FM", rating: 2315 },
     blackPlayer: { username: "Sultan", rating: 2141 },
     result: "black",
+    termination: "repetition",
     isRated: true,
     time: {
       timeClass: "blitz",
@@ -122,6 +125,7 @@ export const mockGames: Game[] = [
     whitePlayer: { username: "Sultan", rating: 2084 },
     blackPlayer: { username: "D_Nakamura_Sr", rating: 2110 },
     result: "draw",
+    termination: "insufficient-material",
     isRated: true,
     time: {
       timeClass: "classical",

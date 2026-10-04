@@ -66,9 +66,7 @@ export default function CollectionsPage() {
     return games
       .filter((g) => {
         const perspective = getPlayerPerspective(
-          g,
-          platformUsernames,
-          user?.username ?? undefined,
+          g
         );
         if (selectedSide === "white" && perspective.playerColor !== "white")
           return false;
@@ -97,9 +95,7 @@ export default function CollectionsPage() {
 
     games.forEach((g) => {
       const p = getPlayerPerspective(
-        g,
-        platformUsernames,
-        user?.username ?? undefined,
+        g
       );
       if (p.result === "win") wins++;
       else if (p.result === "draw") draws++;
@@ -434,9 +430,7 @@ export default function CollectionsPage() {
         <section className="space-y-6">
           {filteredGames.map((game) => {
             const perspective = getPlayerPerspective(
-              game,
-              platformUsernames,
-              user?.username ?? undefined,
+              game
             );
             const { opening, variation, eco } = parseOpeningDetails(game);
             const resultBadgeClasses =
