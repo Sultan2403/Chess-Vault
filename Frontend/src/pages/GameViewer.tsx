@@ -35,6 +35,7 @@ import { getGameDate, getPlayerPerspective, parseOpeningDetails } from "../utils
 import { useUser } from "@clerk/react";
 
 // TODO: REFACTOR THIS COMPONENT FOR GOD'S SAKE!!!
+// Also render captured pieces and clock state and all. 
 export default function GameViewer() {
   const { id } = useParams<{ id: string }>();
   const { user } = useUser();
