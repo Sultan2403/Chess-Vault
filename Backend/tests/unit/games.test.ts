@@ -53,7 +53,7 @@ describe("Games Service Unit Tests (Update & Delete)", () => {
       expect(result?.id).toBe(mockGameId);
       expect(result?.title).toBe("Magnus vs Hikaru Blitz Final");
       expect(result?.notes).toBe("Great game");
-      expect(result?.tags).toBe(["blitz"]);
+      expect(result?.tags).toEqual(["blitz"]);
       expect(result?.folderIds).toEqual([mockFolderId]);
     });
 

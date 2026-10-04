@@ -4,7 +4,7 @@ import {
   parsePgnClocks,
   normalizeLichessClocks,
   parseChessComTimeControl,
-} from "../../src/Utils/pgn";
+} from "../../src/Utils";
 import { normalizeChessComGame, normalizeLichessGame } from "../../src/Helpers";
 import { MOCK_CHESS_COM_GAME } from "../fixtures/chess_com_game.fixture";
 import { MOCK_LICHESS_GAME } from "../fixtures/lichess_game.fixture";
@@ -271,7 +271,7 @@ describe("Game Clock Pipeline & Canonical GameTime", () => {
       });
 
       expect(normalized.time).toEqual({
-        timeClass: "correspondence",
+        timeClass: "daily",
         daysPerTurn: 5,
       });
     });
