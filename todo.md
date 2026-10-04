@@ -39,6 +39,8 @@ For lichess games, the flag is `variant: "standard"` and for chess.com its `rule
 
 ## Frontend
 
+- Proper error Ui with proper error message mapping and all. Actually I think it exists... Wells it's not being used properly so get to workkkkk.
+
 - Rendering for in game clock has been implemented server side. Finish the implementation in `GameViewer.tsx` on the client side.
 - Polish frontend and fix any bugs
 - Onboarding validation enforced but UI is shitty soo fix that.
