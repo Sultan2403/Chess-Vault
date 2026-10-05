@@ -39,13 +39,12 @@ For lichess games, the flag is `variant: "standard"` and for chess.com its `rule
 
 - Proper error Ui with proper error message mapping and all. Actually I think it exists... Wells it's not being used properly so get to workkkkk.
 
-- ~~Rendering for in game clock has been implemented server side. Finish the implementation in `GameViewer.tsx` on the client side.~~ **Done — per-ply clock rendering implemented via `game.time.clocks` in `PlayerBar`.**
 - Polish frontend and fix any bugs
 - Onboarding validation enforced but UI is shitty soo fix that.
 - Make the UI feel more alive with subtle interactive animations and motion polish across auth, dashboard, and key flows
 - Add a branded logo or visual identity treatment to auth pages and major app surfaces
 
-- Maybe change the notation ledger in the frontend when on mobile for better ux. 
+- Maybe change the notation ledger in the frontend when on mobile for better ux. Like the notation ledger should become horizontal so users can see moves without having to scroll and all. 
 
 - Theres a minor bug in the frontemd that makes pages feel slow. I think the issue is in how the components are rendered. Probably the react query hooks fetch in the bg before the ui actually updates or sumthing idk but it makes the app feel slow and is bad for ux.
 
