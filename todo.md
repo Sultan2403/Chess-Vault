@@ -39,11 +39,13 @@ For lichess games, the flag is `variant: "standard"` and for chess.com its `rule
 
 - Proper error Ui with proper error message mapping and all. Actually I think it exists... Wells it's not being used properly so get to workkkkk.
 
-- Rendering for in game clock has been implemented server side. Finish the implementation in `GameViewer.tsx` on the client side.
+- ~~Rendering for in game clock has been implemented server side. Finish the implementation in `GameViewer.tsx` on the client side.~~ **Done — per-ply clock rendering implemented via `game.time.clocks` in `PlayerBar`.**
 - Polish frontend and fix any bugs
 - Onboarding validation enforced but UI is shitty soo fix that.
 - Make the UI feel more alive with subtle interactive animations and motion polish across auth, dashboard, and key flows
 - Add a branded logo or visual identity treatment to auth pages and major app surfaces
+
+- Maybe change the notation ledger in the frontend when on mobile for better ux. 
 
 - Theres a minor bug in the frontemd that makes pages feel slow. I think the issue is in how the components are rendered. Probably the react query hooks fetch in the bg before the ui actually updates or sumthing idk but it makes the app feel slow and is bad for ux.
 
@@ -51,6 +53,19 @@ For lichess games, the flag is `variant: "standard"` and for chess.com its `rule
 
 - Remove inappropriate `.optional()` usages where the field should not accept `undefined`; use the established default/null behavior instead
 - Audit related types and schemas for unintended `undefined` values and keep optionality intentional
+
+### Game Viewer (post-refactor tasks)
+
+- **Captured pieces:** Compute from PGN move history and render in `PlayerBar` (deferred from GameViewer refactor)
+- **Real folder names in `MatchFilePanel`:** Currently shows "In N collection(s)" count. To show real names, backend needs a multi-ID folder lookup endpoint (e.g. `GET /folders?ids[]=...`). Once supported, replace count with real folder name chips.
+- **Move to Collection modal:** Replace the stub button in `GameActionsPanel` with a real folder-assignment modal
+- **Share / Replay Split View modals:** Replace stub buttons with proper modals (alerts were removed in refactor)
+- **Stockfish WASM eval bar:** Wire `EvalBar` to real engine evaluation (currently shows placeholder values)
+
+### Dashboard (minor cleanup)
+
+- Rename `realGamesCount` → `gamesCount` and `realFoldersCount` → `foldersCount` in `DashboardPage.tsx` (cosmetic variable name cleanup)
+- Fix `RecentGames.tsx` fake tag logic: remove `game.id === "game-1"` hardcodes; render tags from `game.tags` array or show nothing when empty
 
 ### Later taks (Project maintenance)
 
