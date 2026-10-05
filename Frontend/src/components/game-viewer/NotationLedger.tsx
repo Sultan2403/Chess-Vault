@@ -1,26 +1,44 @@
-import { type RefObject } from "react";
+import { useEffect, useRef } from "react";
 import type { MovePair } from "../../hooks/useParsedGame";
 
 type NotationLedgerProps = {
   parsedMoves: MovePair[];
   currentMoveIdx: number;
-  activeMoveButtonRef: RefObject<HTMLButtonElement | null>;
   onGoTo: (idx: number) => void;
 };
 
 export function NotationLedger({
   parsedMoves,
   currentMoveIdx,
-  activeMoveButtonRef,
   onGoTo,
 }: NotationLedgerProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const activeButtonRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const button = activeButtonRef.current;
+    if (!container || !button) return;
+
+    // Calculate position relative to container ONLY (does NOT scroll the window or viewport)
+    const containerTop = container.scrollTop;
+    const containerBottom = containerTop + container.clientHeight;
+    const buttonTop = button.offsetTop - container.offsetTop;
+    const buttonBottom = buttonTop + button.offsetHeight;
+
+    if (buttonTop < containerTop) {
+      container.scrollTo({ top: buttonTop, behavior: "smooth" });
+    } else if (buttonBottom > containerBottom) {
+      container.scrollTo({ top: buttonBottom - container.clientHeight, behavior: "smooth" });
+    }
+  }, [currentMoveIdx]);
   return (
     <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-6 font-mono text-xs">
       <div className="flex items-center justify-between border-b border-vault-border-base pb-3">
         <span className="font-semibold text-vault-text-primary">Transcribed Notation</span>
       </div>
 
-      <div className="mt-4 max-h-60 overflow-y-auto space-y-1 pr-1">
+      <div ref={containerRef} className="mt-4 max-h-60 overflow-y-auto space-y-1 pr-1">
         {parsedMoves.length === 0 ? (
           <p className="py-4 text-center text-vault-text-muted italic">No notation recorded.</p>
         ) : (
@@ -38,7 +56,7 @@ export function NotationLedger({
                 {/* White Move */}
                 <button
                   type="button"
-                  ref={isWhiteActive ? activeMoveButtonRef : null}
+                  ref={isWhiteActive ? activeButtonRef : null}
                   onClick={() => onGoTo(row.whiteIdx)}
                   className={`flex items-center justify-between rounded-xs px-2 py-1 text-left font-medium transition-colors cursor-pointer ${
                     isWhiteActive
@@ -53,7 +71,7 @@ export function NotationLedger({
                 {row.black ? (
                   <button
                     type="button"
-                    ref={isBlackActive ? activeMoveButtonRef : null}
+                    ref={isBlackActive ? activeButtonRef : null}
                     onClick={() => onGoTo(row.blackIdx!)}
                     className={`flex items-center justify-between rounded-xs px-2 py-1 text-left font-medium transition-colors cursor-pointer ${
                       isBlackActive

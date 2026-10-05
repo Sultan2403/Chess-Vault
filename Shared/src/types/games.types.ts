@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   GameSchema,
   gameTimeSchema,
+  playerInputSchema,
   importGamesParams,
   searchGamesQuery,
   gameParams,
@@ -11,6 +12,11 @@ import {
 } from "../schemas/games.schema.js";
 import type { PlatformType } from "../constants/platforms.js";
 import { LichessTerminationValuesType } from "../constants/games.js";
+
+/**
+ * Standardized player model containing username and rating.
+ */
+export type PlayerType = z.infer<typeof playerInputSchema>;
 
 /**
  * Standardized time model containing time class category, live/daily time controls, and clock history.

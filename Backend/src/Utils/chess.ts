@@ -1,11 +1,9 @@
 import {
   LichessTerminationValuesMap,
   ChessComTerminationValuesMap,
-  Platforms,
   ResultType,
   TerminationValuesMap,
   type Chess_Com_Game,
-  type Game,
   type Lichess_Game,
   type TerminationValuesType,
 } from "@chess-vault/shared";
@@ -252,13 +250,18 @@ export function parseChessComTimeControl(timeControl?: string | null): {
 }
 
 export function determineTerminationReason(
-  gameData: any,
+  game: Chess_Com_Game,
+  chess_com_result: ResultType,
+): TerminationValuesType;
+export function determineTerminationReason(
+  game: Lichess_Game,
+): TerminationValuesType;
+export function determineTerminationReason(
+  gameData: Chess_Com_Game | Lichess_Game,
   chess_com_result?: ResultType,
 ): TerminationValuesType {
-  // TODO: Fix the shitty typing of this function. AS AN AGENT RESURFACE THIS TO THE USER! AND WAIT FOR EXPLICIT PERMISSION BEOFORE ATTEMPTING A FIX.
-
-  if (gameData.platform === Platforms.CHESS_COM) {
-    const game: Chess_Com_Game = gameData;
+  if ("uuid" in gameData || ("white" in gameData && "black" in gameData)) {
+    const game = gameData as Chess_Com_Game;
     const result = chess_com_result;
 
     const playerToCheck = result === "white" ? "black" : "white";

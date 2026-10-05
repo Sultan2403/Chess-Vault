@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, NavLink } from "react-router-dom";
 import { useUser } from "@clerk/react";
 
@@ -39,8 +39,6 @@ export default function GameViewer() {
   const [sharedCopied, setSharedCopied] = useState(false);
   const [isAudioMuted, setIsAudioMuted] = useState(true);
 
-  const activeMoveButtonRef = useRef<HTMLButtonElement | null>(null);
-
   // Set board orientation from the game's persisted userPlayedAs once loaded
   useEffect(() => {
     if (currentGame) {
@@ -53,13 +51,6 @@ export default function GameViewer() {
     setCurrentMoveIdx(fens.length > 1 ? fens.length - 1 : 0);
     setIsPlaying(false);
   }, [currentGame?.id, fens.length]);
-
-  // Scroll active move into view in the notation ledger
-  useEffect(() => {
-    if (activeMoveButtonRef.current) {
-      activeMoveButtonRef.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    }
-  }, [currentMoveIdx]);
 
   // Navigation handlers
   const goToMove = useCallback(
@@ -219,9 +210,10 @@ export default function GameViewer() {
             onShare={handleShare}
           />
 
-          {showShortcuts && (
-            <KeyboardShortcutsPanel onClose={() => setShowShortcuts(false)} />
-          )}
+          <KeyboardShortcutsPanel
+            isOpen={showShortcuts}
+            onClose={() => setShowShortcuts(false)}
+          />
 
           {parseError && (
             <div className="mb-6 rounded-vault border border-vault-loss/40 bg-vault-loss/10 p-4 font-mono text-xs text-vault-loss">
@@ -283,7 +275,6 @@ export default function GameViewer() {
               <NotationLedger
                 parsedMoves={parsedMoves}
                 currentMoveIdx={currentMoveIdx}
-                activeMoveButtonRef={activeMoveButtonRef}
                 onGoTo={goToMove}
               />
 

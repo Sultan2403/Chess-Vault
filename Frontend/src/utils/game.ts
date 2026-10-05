@@ -1,16 +1,17 @@
 import { format } from "date-fns";
-import type { Game } from "@chess-vault/shared";
+import type { Game, PlayerType, PlayerColorType } from "@chess-vault/shared";
 
 export type PlayerPerspective = {
-  player: Game["whitePlayer"];
-  opponent: Game["blackPlayer"];
-  playerColor: "white" | "black";
+  player: PlayerType;
+  opponent: PlayerType;
+  playerColor: PlayerColorType;
+  opponentColor: PlayerColorType;
   result: "win" | "loss" | "draw";
 };
 
 /**
  * Gets the player's perspective in the game.
- * Uses the persisted `userPlayedAs` property on the game record,
+ * Uses the persisted `userPlayedAs` property on the game record.
  * 
  * @param game - The game played 
  */
@@ -18,6 +19,7 @@ export function getPlayerPerspective(
   game: Game
 ): PlayerPerspective {
   const playerColor = game.userPlayedAs;
+  const opponentColor: PlayerColorType = playerColor === "white" ? "black" : "white";
 
   const player = playerColor === "white" ? game.whitePlayer : game.blackPlayer;
   const opponent = playerColor === "white" ? game.blackPlayer : game.whitePlayer;
@@ -29,7 +31,7 @@ export function getPlayerPerspective(
         ? "win"
         : "loss";
 
-  return { player, opponent, playerColor, result };
+  return { player, opponent, playerColor, opponentColor, result };
 }
 
 export function getGameDate(game: Game, pattern = "MMM dd, yyyy") {
