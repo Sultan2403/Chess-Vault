@@ -6,10 +6,10 @@ type MatchFilePanelProps = {
 };
 
 function capitalizeTermination(termination: Game["termination"]): string {
-  return termination
+  return termination ? termination
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+    .join(" ") : "N/A";
 }
 
 export function MatchFilePanel({ game }: MatchFilePanelProps) {
