@@ -52,7 +52,6 @@ useStockfish.ts:25 [Stockfish] Worker constructed Worker {onmessage: null, oner
 useStockfish.ts:62 [Stockfish] Worker handlers attached
 useStockfish.ts:32 [Stockfish] Sending UCI command uci
 useStockfish.ts:64 [Stockfish] Initial UCI command sent
-script.debug.js:1 [Vercel Speed Insights] [vitals] {speed: '4g', metrics: Array(6), scriptVersion: '0.1.3', sdkName: '@vercel/speed-insights/react', sdkVersion: '2.0.0'} /_vercel/speed-insights/vitals
 
 maybe use a fetch to confirm stockfish is working and then send the uci command. I think the issue is that the worker isn't ready when we send the uci command.
 
