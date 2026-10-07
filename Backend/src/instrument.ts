@@ -16,4 +16,6 @@ if (isProd) {
     ],
   });
   logger.info({ environment: env.NODE_ENV }, "Sentry instrumentation initialized");
+} else {
+  logger.info({ environment: env.NODE_ENV }, "Sentry instrumentation skipped");
 }
