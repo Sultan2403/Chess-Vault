@@ -60,10 +60,8 @@ maybe use a fetch to confirm stockfish is working and then send the uci command.
 
 - Rename search ui to be filtering by win loss or draw instead of numbers like 1-0, 0-1, and 0-0
 
-- ~~Proper error UI with proper error message mapping and all.~~ ✅ `ErrorBanner` now uses Vault design tokens, auto-maps errors via `getApiErrorMessage`, and is wired with retry handlers on Dashboard, Game Bank, Collections, AppGate, and GameViewer.
+- Add fallback routes for 404s and other errors. Currently the app just shows a blank page when a route is not found or when an error occurs.
 
-- ~~Polish frontend and fix any bugs~~ (ongoing — motion polish added to Dashboard stat cards, StepperControls, GameViewerSubheader, BoardPanel badge)
-- ~~Onboarding validation enforced but UI is shitty soo fix that.~~ ✅ `OnboardingModal` and `BuildingVaultModal` refactored onto the base `Modal` component; error states use Vault tokens.
 - Make the UI feel more alive with subtle interactive animations and motion polish across auth, dashboard, and key flows (Dashboard + GameViewer done; auth pages and other surfaces still pending)
 - Add a branded logo or visual identity treatment to auth pages and major app surfaces
 
@@ -78,16 +76,10 @@ maybe use a fetch to confirm stockfish is working and then send the uci command.
 
 ### Game Viewer (post-refactor tasks)
 
-- ~~**Captured pieces:** Compute from PGN move history and render in `PlayerBar`~~ ✅ Done. Material balance (pieces + +N advantage badge) computed from `moveHistory` via `getCapturedPieces()` in `game.ts`, updates live per ply.
 - **Real folder names in `MatchFilePanel`:** Currently shows "In N collection(s)" count. To show real names, backend needs a multi-ID folder lookup endpoint (e.g. `GET /folders?ids[]=...`). Once supported, replace count with real folder name chips.
 - **Move to Collection modal:** Replace the stub button in `GameActionsPanel` with a real folder-assignment modal
 - **Share / Replay Split View modals:** Replace stub buttons with proper modals (alerts were removed in refactor)
 - **Stockfish WASM eval bar:** Wire `EvalBar` to real engine evaluation (currently shows placeholder values)
-
-### Dashboard (minor cleanup)
-
-- ~~Rename `realGamesCount` → `gamesCount` and `realFoldersCount` → `foldersCount` in `DashboardPage.tsx`~~ ✅ Done.
-- ~~Fix `RecentGames.tsx` fake tag logic: remove `game.id === "game-1"` hardcodes; render tags from `game.tags` array or show nothing when empty~~ ✅ Done.
 
 ### Later tasks (Project maintenance)
 
