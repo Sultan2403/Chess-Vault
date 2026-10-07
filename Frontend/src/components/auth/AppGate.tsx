@@ -23,7 +23,7 @@ export function ProtectedAppGate() {
   if (accountQuery.isError) {
     return (
       <div className="mx-auto max-w-content px-6 py-12">
-        <ErrorBanner message="Unable to load your Chess Vault account." onRetry={() => accountQuery.refetch()} />
+        <ErrorBanner error={accountQuery.error} message="Unable to load your Chess Vault account." onRetry={() => accountQuery.refetch()} />
       </div>
     );
   }
@@ -47,7 +47,7 @@ export function OnboardingGate() {
   if (accountQuery.isError) {
     return (
       <div className="mx-auto max-w-content px-6 py-12">
-        <ErrorBanner message="Unable to load your Chess Vault account." onRetry={() => accountQuery.refetch()} />
+        <ErrorBanner error={accountQuery.error} message="Unable to load your Chess Vault account." onRetry={() => accountQuery.refetch()} />
       </div>
     );
   }

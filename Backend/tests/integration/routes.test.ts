@@ -1,9 +1,28 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import mongoose from "mongoose";
 import request from "supertest";
+
+// Mock the redis module before app is imported so the health controller
+// receives a mock client. By default ping rejects (simulates no connection).
+const mockPing = vi.fn().mockRejectedValue(new Error("Redis not available"));
+vi.mock("../../src/DB/Connections/redis", () => ({
+  default: {
+    ping: mockPing,
+    on: vi.fn(),
+  },
+}));
+
 import app from "../../src/app";
 
 describe("Express App Routes (Integration with Supertest)", () => {
+  beforeAll(() => {
+    vi.clearAllMocks();
+  });
+
+  afterAll(() => {
+    vi.restoreAllMocks();
+  });
+
   describe("Public Routes", () => {
     it("GET / should return 200 and the welcome message", async () => {
       const response = await request(app).get("/");
@@ -15,6 +34,9 @@ describe("Express App Routes (Integration with Supertest)", () => {
     });
 
     it("GET /health should return 503 when database is disconnected", async () => {
+      // Redis is mocked to reject by default — service is degraded
+      mockPing.mockRejectedValueOnce(new Error("Redis not available"));
+
       const response = await request(app).get("/health");
 
       expect(response.status).toBe(503);
@@ -24,11 +46,14 @@ describe("Express App Routes (Integration with Supertest)", () => {
       expect(response.body.services.database).toBe("disconnected");
     });
 
-    it("GET /health should return 200 when database is connected", async () => {
+    it("GET /health should return 200 when database and redis are connected", async () => {
       // Mock mongoose.connection.readyState = 1 (connected)
       const readyStateGetter = vi
         .spyOn(mongoose.connection, "readyState", "get")
         .mockReturnValue(1 as any);
+
+      // Mock redis ping to return PONG
+      mockPing.mockResolvedValueOnce("PONG");
 
       const response = await request(app).get("/health");
 
@@ -37,6 +62,7 @@ describe("Express App Routes (Integration with Supertest)", () => {
       expect(response.body.message).toBe("Server is healthy");
       expect(response.body.status).toBe("healthy");
       expect(response.body.services.database).toBe("connected");
+      expect(response.body.services.redis).toBe("connected");
 
       readyStateGetter.mockRestore();
     });

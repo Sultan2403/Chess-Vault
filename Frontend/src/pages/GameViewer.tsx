@@ -1,9 +1,10 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, NavLink } from "react-router-dom";
 import { useUser } from "@clerk/react";
 
 import { useGame } from "../hooks/useGames";
 import { useParsedGame } from "../hooks/useParsedGame";
+import { getCapturedPieces } from "../utils/game";
 import { Spinner } from "../components/ui/Spinner";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -23,7 +24,7 @@ export default function GameViewer() {
   const { user } = useUser();
   const userName = user?.firstName ?? user?.username ?? "Vault Keeper";
 
-  const { data, isLoading, isError, error } = useGame(id ?? "");
+  const { data, isLoading, isError, error, refetch } = useGame(id ?? "");
   const currentGame = data?.game;
 
   const { fens, parsedMoves, parseError, moveHistory } = useParsedGame(
@@ -178,6 +179,11 @@ export default function GameViewer() {
     ? `${Math.floor(plyIdx / 2) + 1}${plyIdx % 2 === 0 ? "." : "..."} ${currentPlyMove.san}`
     : null;
 
+  // Captured pieces and material balance
+  const captured = useMemo(() => {
+    return getCapturedPieces(moveHistory, plyIdx);
+  }, [moveHistory, plyIdx]);
+
   return (
     <div className="mx-auto max-w-content px-6 py-6 font-body">
       {isLoading ? (
@@ -185,7 +191,7 @@ export default function GameViewer() {
           <Spinner />
         </div>
       ) : isError ? (
-        <ErrorBanner message={(error as Error)?.message ?? "Unable to load game."} />
+        <ErrorBanner error={error} onRetry={() => refetch()} />
       ) : !currentGame ? (
         <EmptyState
           title="Game Not Found"
@@ -234,6 +240,8 @@ export default function GameViewer() {
                 clockMs={blackClockMs}
                 initialClockMs={initialClockMs}
                 isAtStart={currentMoveIdx === 0}
+                capturedPieces={captured.black.pieces}
+                materialAdvantage={captured.black.advantage}
               />
 
               <BoardPanel
@@ -250,6 +258,8 @@ export default function GameViewer() {
                 clockMs={whiteClockMs}
                 initialClockMs={initialClockMs}
                 isAtStart={currentMoveIdx === 0}
+                capturedPieces={captured.white.pieces}
+                materialAdvantage={captured.white.advantage}
               />
 
               <EvalBar />

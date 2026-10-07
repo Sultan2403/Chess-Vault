@@ -13,6 +13,8 @@ export type ModalProps = {
   blurScreen?: boolean;
   maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl";
   showCloseButton?: boolean;
+  closeOnBackdropClick?: boolean;
+  closeOnEscape?: boolean;
   className?: string;
 };
 
@@ -33,11 +35,13 @@ export function Modal({
   blurScreen = true,
   maxWidth = "md",
   showCloseButton = true,
+  closeOnBackdropClick = true,
+  closeOnEscape = true,
   className,
 }: ModalProps) {
   // Close on Escape key
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !closeOnEscape) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -47,7 +51,7 @@ export function Modal({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, closeOnEscape, onClose]);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -69,9 +73,10 @@ export function Modal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            onClick={onClose}
+            onClick={closeOnBackdropClick ? onClose : undefined}
             className={cn(
-              "fixed inset-0 bg-black/75 cursor-pointer",
+              "fixed inset-0 bg-black/75",
+              closeOnBackdropClick ? "cursor-pointer" : "cursor-default",
               blurScreen && "backdrop-blur-sm",
             )}
             aria-hidden="true"

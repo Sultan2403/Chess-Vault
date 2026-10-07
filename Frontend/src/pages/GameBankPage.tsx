@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { NavLink } from "react-router-dom";
+import { motion } from "motion/react";
 import {
   Search,
   Bookmark,
@@ -15,6 +16,7 @@ import {
   Database,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
+import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
 import { useGames } from "../hooks/useGames";
 import { useFolders } from "../hooks/useFolders";
@@ -61,7 +63,13 @@ export default function GameBankPage() {
   const folderIdsParam =
     selectedFolderId === "all" ? undefined : [selectedFolderId];
 
-  const { data: gamesData, isLoading: isGamesLoading } = useGames({
+  const {
+    data: gamesData,
+    isLoading: isGamesLoading,
+    isError: isGamesError,
+    error: gamesError,
+    refetch: refetchGames,
+  } = useGames({
     page: currentPage,
     limit: 12,
     search: searchQuery.trim() || undefined,
@@ -71,7 +79,12 @@ export default function GameBankPage() {
     folderIds: folderIdsParam,
   });
 
-  const { data: foldersData } = useFolders();
+  const {
+    data: foldersData,
+    isError: isFoldersError,
+    error: foldersError,
+    refetch: refetchFolders,
+  } = useFolders();
 
   const games = gamesData?.games ?? [];
   const pagination = gamesData?.pagination;
@@ -327,6 +340,17 @@ export default function GameBankPage() {
           </div>
         </section>
 
+        {/* ERROR NOTIFICATION */}
+        {(isGamesError || isFoldersError) && (
+          <ErrorBanner
+            error={gamesError || foldersError}
+            onRetry={() => {
+              if (isGamesError) refetchGames();
+              if (isFoldersError) refetchFolders();
+            }}
+          />
+        )}
+
         {/* MULTI-SELECT STAGING BAR */}
         <section className="flex flex-wrap items-center justify-between gap-4 rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-4 py-2.5 font-mono text-xs">
           <div className="flex items-center gap-3">
@@ -452,7 +476,19 @@ export default function GameBankPage() {
             </div>
           </div>
         ) : (
-          <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.section
+            key={`${platformTab}-${outcomeFilter}-${cadenceFilter}-${selectedFolderId}-${currentPage}`}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: { staggerChildren: 0.05 },
+              },
+            }}
+            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {games.map((game) => {
               const isSelected = selectedGameIds.has(game.id);
               const { opening, variation, eco } = parseOpeningDetails(game);
@@ -479,8 +515,12 @@ export default function GameBankPage() {
                     : "bg-vault-draw/15 text-vault-draw border-vault-draw/30";
 
               return (
-                <article
+                <motion.article
                   key={game.id}
+                  variants={{
+                    hidden: { opacity: 0, y: 8 },
+                    visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+                  }}
                   className={`rounded-vault border bg-vault-surface-layer-1 p-5 flex flex-col justify-between transition-all font-mono text-xs ${
                     isSelected
                       ? "border-vault-bronze bg-vault-surface-layer-2 shadow-md"
@@ -616,10 +656,10 @@ export default function GameBankPage() {
                       </NavLink>
                     </div>
                   </div>
-                </article>
+                </motion.article>
               );
             })}
-          </section>
+          </motion.section>
         )}
 
         {/* FOOTER / PAGINATION */}

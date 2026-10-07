@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { motion } from "motion/react";
 
 import {
   Search,
@@ -11,6 +12,7 @@ import {
   FolderPlus,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
+import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
 import { useFolders, useCreateFolder } from "../hooks/useFolders";
 import { useGames } from "../hooks/useGames";
@@ -41,7 +43,13 @@ export default function CollectionsPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Queries
-  const { data: foldersData, isLoading: isFoldersLoading } = useFolders();
+  const {
+    data: foldersData,
+    isLoading: isFoldersLoading,
+    isError: isFoldersError,
+    error: foldersError,
+    refetch: refetchFolders,
+  } = useFolders();
   const createFolderMutation = useCreateFolder();
   const platformUsernames = usePlatformUsernames();
 
@@ -50,7 +58,13 @@ export default function CollectionsPage() {
     folders.find((f) => f.id === selectedFolderId) ?? folders[0] ?? null;
 
   // Query games belonging to active folder
-  const { data: gamesData, isLoading: isGamesLoading } = useGames({
+  const {
+    data: gamesData,
+    isLoading: isGamesLoading,
+    isError: isGamesError,
+    error: gamesError,
+    refetch: refetchGames,
+  } = useGames({
     folderIds: activeFolder ? [activeFolder.id] : undefined,
     page: currentPage,
     limit: 10,
@@ -380,6 +394,17 @@ export default function CollectionsPage() {
         </div>
       </section>
 
+      {/* ERROR NOTIFICATION */}
+      {(isFoldersError || isGamesError) && (
+        <ErrorBanner
+          error={foldersError || gamesError}
+          onRetry={() => {
+            if (isFoldersError) refetchFolders();
+            if (isGamesError) refetchGames();
+          }}
+        />
+      )}
+
       {/* MATCH LEDGER ROWS */}
       {isFoldersLoading || isGamesLoading ? (
         <div className="space-y-4">
@@ -427,7 +452,19 @@ export default function CollectionsPage() {
           </Button>
         </div>
       ) : (
-        <section className="space-y-6">
+        <motion.section
+          key={activeFolder?.id ?? "all"}
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.05 },
+            },
+          }}
+          className="space-y-6"
+        >
           {filteredGames.map((game) => {
             const perspective = getPlayerPerspective(
               game
@@ -448,8 +485,12 @@ export default function CollectionsPage() {
                   : "0 - 1";
 
             return (
-              <article
+              <motion.article
                 key={game.id}
+                variants={{
+                  hidden: { opacity: 0, y: 8 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+                }}
                 className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-6 grid gap-6 md:grid-cols-[130px_1fr_200px] items-start hover:border-vault-border-interactive transition-all font-mono text-xs"
               >
                 {/* LEFT: Mini Chessboard */}
@@ -561,10 +602,10 @@ export default function CollectionsPage() {
                     </button>
                   </div>
                 </div>
-              </article>
+              </motion.article>
             );
           })}
-        </section>
+        </motion.section>
       )}
 
       {/* FOLDER PAGINATION */}

@@ -10,13 +10,7 @@ const scoreLabel = { win: "1-0", loss: "0-1", draw: "½-½" };
 function RecentGameRow({ game }: { game: Game }) {
   const perspective = getPlayerPerspective(game);
 
-  // TODO: Fix the bs tag logic and just be honest if no tags are present.
-  const tag =
-    game.id === "game-1"
-      ? "Analysis Saved"
-      : game.id === "game-3"
-      ? "Blunder Noted"
-      : null;
+  const tag = game.tags && game.tags.length > 0 ? game.tags[0] : null;
 
   return (
     <NavLink to={`/game/${game.id}`}>

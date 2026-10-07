@@ -1,5 +1,5 @@
 import type { Game } from "@chess-vault/shared";
-import { formatClockMs } from "../../utils/game";
+import { formatClockMs, type CapturedPieceSymbol } from "../../utils/game";
 
 type PlayerBarProps = {
   player: Game["whitePlayer"] | Game["blackPlayer"];
@@ -11,6 +11,29 @@ type PlayerBarProps = {
   initialClockMs: number | undefined;
   /** Whether we are at the start position (move index 0). */
   isAtStart: boolean;
+  /** Pieces captured by this player */
+  capturedPieces?: CapturedPieceSymbol[];
+  /** Material advantage point diff (>0 if this player is ahead) */
+  materialAdvantage?: number;
+};
+
+const CAPTURED_PIECE_SYMBOLS: Record<"white" | "black", Record<CapturedPieceSymbol, string>> = {
+  // White captures Black's pieces
+  white: {
+    q: "♛",
+    r: "♜",
+    b: "♝",
+    n: "♞",
+    p: "♟",
+  },
+  // Black captures White's pieces
+  black: {
+    q: "♕",
+    r: "♖",
+    b: "♗",
+    n: "♘",
+    p: "♙",
+  },
 };
 
 export function PlayerBar({
@@ -20,6 +43,8 @@ export function PlayerBar({
   clockMs,
   initialClockMs,
   isAtStart,
+  capturedPieces = [],
+  materialAdvantage = 0,
 }: PlayerBarProps) {
   const isWinner = gameResult === color;
   const isLoser = gameResult !== "draw" && gameResult !== color;
@@ -27,6 +52,8 @@ export function PlayerBar({
   const displayClock = isAtStart
     ? formatClockMs(initialClockMs)
     : formatClockMs(clockMs);
+
+  const symbols = CAPTURED_PIECE_SYMBOLS[color];
 
   return (
     <div className="flex items-center justify-between rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-4 py-3 font-mono text-xs">
@@ -62,6 +89,20 @@ export function PlayerBar({
               </span>
             )}
           </div>
+
+          {/* Captured pieces and material advantage */}
+          {(capturedPieces.length > 0 || materialAdvantage > 0) && (
+            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-vault-text-muted select-none">
+              <span className="tracking-tighter opacity-80 font-mono">
+                {capturedPieces.map((p) => symbols[p]).join("")}
+              </span>
+              {materialAdvantage > 0 && (
+                <span className="font-mono text-[10px] font-bold text-vault-win">
+                  +{materialAdvantage}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <div className="text-right">

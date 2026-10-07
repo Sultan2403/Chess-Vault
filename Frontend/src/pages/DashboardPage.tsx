@@ -1,8 +1,10 @@
 import { useState, useMemo } from "react";
 import { NavLink } from "react-router-dom";
 import { useUser } from "@clerk/react";
+import { motion } from "motion/react";
 import { ArrowRight, RefreshCw, FileCode, FolderPlus, Plus, Database } from "lucide-react";
 import { Button } from "../components/ui/Button";
+import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
 import { useGames } from "../hooks/useGames";
 import { useFolders } from "../hooks/useFolders";
@@ -28,8 +30,20 @@ export default function DashboardPage() {
   const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
   // Queries
-  const { data: gamesData, isLoading: isGamesLoading } = useGames({ limit: 6 });
-  const { data: foldersData, isLoading: isFoldersLoading } = useFolders({ limit: 8 });
+  const {
+    data: gamesData,
+    isLoading: isGamesLoading,
+    isError: isGamesError,
+    error: gamesError,
+    refetch: refetchGames,
+  } = useGames({ limit: 6 });
+  const {
+    data: foldersData,
+    isLoading: isFoldersLoading,
+    isError: isFoldersError,
+    error: foldersError,
+    refetch: refetchFolders,
+  } = useFolders({ limit: 8 });
   const { data: accountData } = useAccountBootstrap();
   const platformUsernames = usePlatformUsernames();
 
@@ -38,8 +52,8 @@ export default function DashboardPage() {
   const syncMutation = useSyncLinkedAccount();
 
   // Metrics
-  const realGamesCount = gamesData?.pagination?.total ?? 0;
-  const realFoldersCount = foldersData?.total ?? foldersData?.folders?.length ?? 0;
+  const gamesCount = gamesData?.pagination?.total ?? 0;
+  const foldersCount = foldersData?.total ?? foldersData?.folders?.length ?? 0;
   const recentGames = gamesData?.games?.slice(0, 3) ?? [];
   const userFolders = foldersData?.folders ?? [];
 
@@ -170,16 +184,48 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        {/* ERROR NOTIFICATION */}
+        {(isGamesError || isFoldersError) && (
+          <ErrorBanner
+            error={gamesError || foldersError}
+            onRetry={() => {
+              if (isGamesError) refetchGames();
+              if (isFoldersError) refetchFolders();
+            }}
+          />
+        )}
+
         {/* 4-TIER STATS ROW */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <motion.section
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.08,
+              },
+            },
+          }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+        >
           {/* Stat 1 */}
-          <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5">
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+            }}
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.15 }}
+            className="rounded-vault border border-vault-border-base hover:border-vault-border-interactive bg-vault-surface-layer-1 p-5 transition-colors"
+          >
             <span className="font-mono text-[10px] uppercase tracking-widest text-vault-text-muted">
               Total Indexed
             </span>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="font-display text-3xl font-bold text-vault-text-primary">
-                {isGamesLoading ? "..." : realGamesCount.toLocaleString()}
+                {isGamesLoading ? "..." : gamesCount.toLocaleString()}
               </span>
               <span className="font-mono text-xs text-vault-win font-semibold">
                 live
@@ -188,16 +234,24 @@ export default function DashboardPage() {
             <p className="mt-1 font-mono text-[11px] text-vault-text-muted">
               Across all federated engines
             </p>
-          </div>
+          </motion.div>
 
           {/* Stat 2 */}
-          <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5">
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+            }}
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.15 }}
+            className="rounded-vault border border-vault-border-base hover:border-vault-border-interactive bg-vault-surface-layer-1 p-5 transition-colors"
+          >
             <span className="font-mono text-[10px] uppercase tracking-widest text-vault-text-muted">
               Curated Folders
             </span>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="font-display text-3xl font-bold text-vault-text-primary">
-                {isFoldersLoading ? "..." : realFoldersCount}
+                {isFoldersLoading ? "..." : foldersCount}
               </span>
               <span className="font-mono text-xs text-vault-text-secondary">
                 active
@@ -206,10 +260,18 @@ export default function DashboardPage() {
             <p className="mt-1 font-mono text-[11px] text-vault-text-muted">
               Repertoire & monograph labs
             </p>
-          </div>
+          </motion.div>
 
           {/* Stat 3 */}
-          <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5">
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+            }}
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.15 }}
+            className="rounded-vault border border-vault-border-base hover:border-vault-border-interactive bg-vault-surface-layer-1 p-5 transition-colors"
+          >
             <span className="font-mono text-[10px] uppercase tracking-widest text-vault-text-muted">
               Annotated Studies
             </span>
@@ -224,10 +286,18 @@ export default function DashboardPage() {
             <p className="mt-1 font-mono text-[11px] text-vault-text-muted">
               With user marginalia & notes
             </p>
-          </div>
+          </motion.div>
 
           {/* Stat 4 */}
-          <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5">
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+            }}
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.15 }}
+            className="rounded-vault border border-vault-border-base hover:border-vault-border-interactive bg-vault-surface-layer-1 p-5 transition-colors"
+          >
             <span className="font-mono text-[10px] uppercase tracking-widest text-vault-text-muted">
               Archive Sources
             </span>
@@ -248,8 +318,8 @@ export default function DashboardPage() {
             <p className="mt-2 font-mono text-[11px] text-vault-text-muted">
               {connectedAccounts.length} connected source{connectedAccounts.length === 1 ? "" : "s"}
             </p>
-          </div>
-        </section>
+          </motion.div>
+        </motion.section>
 
         {/* RECENT ENGAGEMENTS */}
         <section>
@@ -313,7 +383,18 @@ export default function DashboardPage() {
               </div>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-3">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: { staggerChildren: 0.08 },
+                },
+              }}
+              className="grid gap-6 md:grid-cols-3"
+            >
               {recentGames.map((game) => {
                 const perspective = getPlayerPerspective(
                   game
@@ -351,11 +432,19 @@ export default function DashboardPage() {
                       user.username.toLowerCase());
 
                 return (
-                  <NavLink
+                  <motion.div
                     key={game.id}
-                    to={`/game/${game.id}`}
-                    className="block rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5 flex flex-col justify-between hover:border-vault-bronze hover:bg-vault-surface-layer-2/70 transition-all group cursor-pointer"
+                    variants={{
+                      hidden: { opacity: 0, y: 10 },
+                      visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+                    }}
+                    whileHover={{ y: -3 }}
+                    transition={{ duration: 0.15 }}
                   >
+                    <NavLink
+                      to={`/game/${game.id}`}
+                      className="block h-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5 flex flex-col justify-between hover:border-vault-bronze hover:bg-vault-surface-layer-2/70 transition-all group cursor-pointer"
+                    >
                     <div>
                       {/* Top Row: Result and Format */}
                       <div className="flex items-center justify-between text-xs font-mono mb-4">
@@ -426,9 +515,10 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   </NavLink>
+                </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
           )}
         </section>
 
@@ -449,7 +539,7 @@ export default function DashboardPage() {
                 to="/collections"
                 className="font-mono text-xs text-vault-text-secondary hover:text-vault-bronze transition-colors"
               >
-                INSPECT ALL {realFoldersCount} &gt;
+                INSPECT ALL {foldersCount} &gt;
               </NavLink>
             </div>
 
