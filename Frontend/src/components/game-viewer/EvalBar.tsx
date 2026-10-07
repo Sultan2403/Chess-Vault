@@ -1,22 +1,23 @@
-/**
- * Evaluation bar stub. Displayed values are hardcoded placeholders.
- * This will be replaced once Stockfish WASM analysis is implemented.
- */
-export function EvalBar() {
-  // TODO: Replace with real Stockfish WASM evaluation once implemented.
-  const evalValue = "+4.82";
-  const evalDepth = "Depth 36";
+import { getWhiteWinPercentage } from "../../utils/stockfish";
+
+type EvalBarProps = { evalCp: number | null; mate: number | null; depth: number; isAnalyzing: boolean };
+
+export function EvalBar({ evalCp, mate, depth, isAnalyzing }: EvalBarProps) {
+  const evalValue = mate !== null ? (mate === 0 ? "#0" : `#${mate}`) : evalCp === null ? "—" : `${evalCp > 0 ? "+" : ""}${(evalCp / 100).toFixed(2)}`;
+  const score = mate ?? evalCp ?? 0;
+  const scoreColor = score > 0 ? "text-vault-win" : score < 0 ? "text-vault-loss" : "text-vault-text-muted";
+  const whitePercent = getWhiteWinPercentage(evalCp, mate);
 
   return (
-    <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-3">
-      <div className="flex items-center justify-between font-mono text-xs mb-1.5">
-        <span className="text-vault-win font-bold">{evalValue}</span>
-        <div className="h-1.5 flex-1 mx-4 overflow-hidden rounded-full bg-vault-surface-container flex">
-          <div className="h-full bg-vault-primary" style={{ width: "72%" }} />
-          <div className="h-full bg-vault-surface-layer-2" style={{ width: "28%" }} />
-        </div>
-        <span className="text-vault-text-muted text-[11px]">{evalDepth}</span>
+    <div className="flex h-full min-h-0 w-7 flex-col items-center justify-between rounded-vault border border-vault-border-base bg-vault-surface-layer-1 py-2 font-mono">
+      <span className={`${scoreColor} text-[10px] font-bold [writing-mode:vertical-rl] rotate-180`}>{evalValue}</span>
+      <div className="my-2 flex min-h-0 w-2 flex-1 flex-col overflow-hidden rounded-full bg-vault-surface-layer-2">
+        <div className="h-full bg-vault-surface-layer-2 transition-[height] duration-300 ease-in-out" style={{ height: `${100 - whitePercent}%` }} />
+        <div className="h-full bg-vault-primary transition-[height] duration-300 ease-in-out" style={{ height: `${whitePercent}%` }} />
       </div>
+      <span className="text-[8px] text-vault-text-muted [writing-mode:vertical-rl] rotate-180">
+        {isAnalyzing && depth === 0 ? "Analyzing…" : `D${depth}`}
+      </span>
     </div>
   );
 }

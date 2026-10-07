@@ -37,6 +37,25 @@ For lichess games, the flag is `variant: "standard"` and for chess.com its `rule
 
 ## Frontend
 
+- Debug why stockfish isn't working. 
+current hepful loogs: [Stockfish] effect setup started
+useStockfish.ts:21 [Stockfish] Creating worker /stockfish/stockfish-19-lite-single.js#/stockfish/stockfish-19-lite-single.wasm,worker
+useStockfish.ts:25 [Stockfish] Worker constructed Worker {onmessage: null, onerror: null}onmessageerror: (event) => {…}onerror: (event) => {…}onmessage: (event) => {…}[[Prototype]]: Worker
+useStockfish.ts:62 [Stockfish] Worker handlers attached
+useStockfish.ts:32 [Stockfish] Sending UCI command uci
+useStockfish.ts:64 [Stockfish] Initial UCI command sent
+useStockfish.ts:65 [Stockfish] Cleaning up worker
+useStockfish.ts:32 [Stockfish] Sending UCI command quit
+useStockfish.ts:20 [Stockfish] effect setup started
+useStockfish.ts:21 [Stockfish] Creating worker /stockfish/stockfish-19-lite-single.js#/stockfish/stockfish-19-lite-single.wasm,worker
+useStockfish.ts:25 [Stockfish] Worker constructed Worker {onmessage: null, onerror: null}onmessageerror: (event) => {…}length: 1name: ""arguments: (...)caller: (...)[[FunctionLocation]]: useStockfish.ts:61[[Prototype]]: ƒ ()[[Scopes]]: Scopes[4]onerror: (event) => {…}onmessage: (event) => {…}length: 1name: ""arguments: (...)caller: (...)[[FunctionLocation]]: useStockfish.ts:41[[Prototype]]: ƒ ()[[Scopes]]: Scopes[4][[Prototype]]: Worker
+useStockfish.ts:62 [Stockfish] Worker handlers attached
+useStockfish.ts:32 [Stockfish] Sending UCI command uci
+useStockfish.ts:64 [Stockfish] Initial UCI command sent
+script.debug.js:1 [Vercel Speed Insights] [vitals] {speed: '4g', metrics: Array(6), scriptVersion: '0.1.3', sdkName: '@vercel/speed-insights/react', sdkVersion: '2.0.0'} /_vercel/speed-insights/vitals
+
+maybe use a fetch to confirm stockfish is working and then send the uci command. I think the issue is that the worker isn't ready when we send the uci command.
+
 - Player perspective seems broken. Investigate and fix. In game viewer seems like the wrong player is rendered. and then the perpective should always default to the user's perspective. Basically stuff's broken.
 
 - Rename search ui to be filtering by win loss or draw instead of numbers like 1-0, 0-1, and 0-0

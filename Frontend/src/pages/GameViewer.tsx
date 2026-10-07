@@ -4,7 +4,8 @@ import { useUser } from "@clerk/react";
 
 import { useGame } from "../hooks/useGames";
 import { useParsedGame } from "../hooks/useParsedGame";
-import { getCapturedPieces } from "../utils/game";
+import { getCapturedPieces, getPlayerPerspective } from "../utils/game";
+import { useStockfish } from "../hooks/useStockfish";
 import { Spinner } from "../components/ui/Spinner";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -30,7 +31,6 @@ export default function GameViewer() {
   const { fens, parsedMoves, parseError, moveHistory } = useParsedGame(
     currentGame?.pgn ?? "",
   );
-
   // Navigation state
   const [currentMoveIdx, setCurrentMoveIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -39,6 +39,8 @@ export default function GameViewer() {
   const [copiedFen, setCopiedFen] = useState(false);
   const [sharedCopied, setSharedCopied] = useState(false);
   const [isAudioMuted, setIsAudioMuted] = useState(true);
+  const currentFen = fens[currentMoveIdx] ?? "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  const { evalCp, mate, depth, isAnalyzing } = useStockfish(currentFen);
 
   // Set board orientation from the game's persisted userPlayedAs once loaded
   useEffect(() => {
@@ -172,6 +174,13 @@ export default function GameViewer() {
   const whiteClockMs = clocks && lastWhitePlyIdx >= 0 ? clocks[lastWhitePlyIdx] : undefined;
   const blackClockMs = clocks && lastBlackPlyIdx >= 0 ? clocks[lastBlackPlyIdx] : undefined;
   const initialClockMs = currentGame?.time.initial;
+  const perspective = currentGame ? getPlayerPerspective(currentGame) : null;
+  const bottomPlayer = perspective?.player ?? currentGame?.whitePlayer;
+  const topPlayer = perspective?.opponent ?? currentGame?.blackPlayer;
+  const bottomColor = perspective?.playerColor ?? "white";
+  const topColor = perspective?.opponentColor ?? "black";
+  const bottomClockMs = bottomColor === "white" ? whiteClockMs : blackClockMs;
+  const topClockMs = topColor === "white" ? whiteClockMs : blackClockMs;
 
   // Active move label for the board overlay
   const currentPlyMove = moveHistory[plyIdx];
@@ -234,35 +243,36 @@ export default function GameViewer() {
             <div className="space-y-4">
               {/* Opponent (black) at top */}
               <PlayerBar
-                player={currentGame.blackPlayer}
-                color="black"
+                player={topPlayer ?? currentGame.blackPlayer}
+                color={topColor}
                 gameResult={currentGame.result}
-                clockMs={blackClockMs}
+                clockMs={topClockMs}
                 initialClockMs={initialClockMs}
                 isAtStart={currentMoveIdx === 0}
-                capturedPieces={captured.black.pieces}
-                materialAdvantage={captured.black.advantage}
+                capturedPieces={topColor === "white" ? captured.white.pieces : captured.black.pieces}
+                materialAdvantage={topColor === "white" ? captured.white.advantage : captured.black.advantage}
               />
 
-              <BoardPanel
-                fen={fens[currentMoveIdx] ?? "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"}
-                boardOrientation={boardOrientation}
-                activeMoveLabel={activeMoveLabel}
-              />
+              <div className="grid grid-cols-[minmax(0,1fr)_2rem] items-stretch gap-2">
+                <BoardPanel
+                  fen={currentFen}
+                  boardOrientation={boardOrientation}
+                  activeMoveLabel={activeMoveLabel}
+                />
+                <EvalBar evalCp={evalCp} mate={mate} depth={depth} isAnalyzing={isAnalyzing} />
+              </div>
 
               {/* Player (white) at bottom — swapped if user played black */}
               <PlayerBar
-                player={currentGame.whitePlayer}
-                color="white"
+                player={bottomPlayer ?? currentGame.whitePlayer}
+                color={bottomColor}
                 gameResult={currentGame.result}
-                clockMs={whiteClockMs}
+                clockMs={bottomClockMs}
                 initialClockMs={initialClockMs}
                 isAtStart={currentMoveIdx === 0}
-                capturedPieces={captured.white.pieces}
-                materialAdvantage={captured.white.advantage}
+                capturedPieces={bottomColor === "white" ? captured.white.pieces : captured.black.pieces}
+                materialAdvantage={bottomColor === "white" ? captured.white.advantage : captured.black.advantage}
               />
-
-              <EvalBar />
 
               <StepperControls
                 currentMoveIdx={currentMoveIdx}
