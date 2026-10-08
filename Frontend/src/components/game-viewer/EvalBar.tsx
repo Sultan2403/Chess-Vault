@@ -11,9 +11,11 @@ export function EvalBar({ evalCp, mate, depth, isAnalyzing }: EvalBarProps) {
   return (
     <div className="flex h-full min-h-0 w-7 flex-col items-center justify-between rounded-vault border border-vault-border-base bg-vault-surface-layer-1 py-2 font-mono">
       <span className={`${scoreColor} text-[10px] font-bold [writing-mode:vertical-rl] rotate-180`}>{evalValue}</span>
-      <div className="my-2 flex min-h-0 w-2 flex-1 flex-col overflow-hidden rounded-full bg-vault-surface-layer-2">
-        <div className="h-full bg-vault-surface-layer-2 transition-[height] duration-300 ease-in-out" style={{ height: `${100 - whitePercent}%` }} />
-        <div className="h-full bg-vault-primary transition-[height] duration-300 ease-in-out" style={{ height: `${whitePercent}%` }} />
+      <div className="relative my-2 min-h-0 w-2 flex-1 overflow-hidden rounded-full bg-vault-surface-layer-2">
+        <div
+          className="absolute inset-x-0 bottom-0 bg-vault-primary transition-[height] duration-500 ease-out"
+          style={{ height: `${whitePercent}%` }}
+        />
       </div>
       <span className="text-[8px] text-vault-text-muted [writing-mode:vertical-rl] rotate-180">
         {isAnalyzing && depth === 0 ? "Analyzing…" : `D${depth}`}

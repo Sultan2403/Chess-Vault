@@ -12,6 +12,7 @@ export type StockfishEval = {
 type EngineState = "starting" | "ready" | "searching" | "stopping" | "dead";
 
 const WORKER_URL = "/stockfish/stockfish-19-lite-single.js";
+const MIN_DISPLAY_DEPTH = 8;
 const EMPTY_EVAL: StockfishEval = {
   evalCp: null,
   mate: null,
@@ -69,7 +70,12 @@ export function useStockfish(fen: string): StockfishEval {
       console.info("[Stockfish] Starting analysis", nextFen);
       send(`position fen ${nextFen}`);
       send("go depth 20");
-      setEvaluation({ ...EMPTY_EVAL, isAnalyzing: true });
+      setEvaluation((previous) => ({
+        ...previous,
+        depth: 0,
+        bestMove: null,
+        isAnalyzing: true,
+      }));
     };
 
     startLatestAnalysisRef.current = startLatestAnalysis;
@@ -117,8 +123,9 @@ export function useStockfish(fen: string): StockfishEval {
         setEvaluation((previous) => ({
           ...previous,
           depth: Math.max(previous.depth, parsed.depth),
-          evalCp: parsed.cp,
-          mate: parsed.mate,
+          ...(parsed.depth >= MIN_DISPLAY_DEPTH
+            ? { evalCp: parsed.cp, mate: parsed.mate }
+            : {}),
         }));
       }
     };
