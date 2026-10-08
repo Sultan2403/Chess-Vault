@@ -59,6 +59,8 @@ maybe use a fetch to confirm stockfish is working and then send the uci command.
 
 - Rename search ui to be filtering by win loss or draw instead of numbers like 1-0, 0-1, and 0-0
 
+- Folder creation and stuff should use modals. 
+
 - Error modal just feels a bit too bland. Fix that
 
 - Add fallback routes for 404s and other errors. Currently the app just shows a blank page when a route is not found or when an error occurs.
