@@ -49,8 +49,6 @@ For lichess games, the flag is `variant: "standard"` and for chess.com its `rule
 
 - Error modal just feels a bit too bland. Fix that
 
-- Add fallback routes for 404s and other errors. Currently the app just shows a blank page when a route is not found or when an error occurs.
-
 - Make the UI feel more alive with subtle interactive animations and motion polish across auth, dashboard, and key flows (Dashboard + GameViewer done; auth pages and other surfaces still pending)
 - Add a branded logo or visual identity treatment to auth pages and major app surfaces
 
