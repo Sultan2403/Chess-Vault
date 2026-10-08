@@ -37,7 +37,7 @@ For lichess games, the flag is `variant: "standard"` and for chess.com its `rule
 
 ## Frontend
 
-- Player perspective seems broken. Investigate and fix. In game viewer seems like the wrong player is rendered. and then the perpective should always default to the user's perspective. Basically stuff's broken. NOTE: I'M NOT SURE IF THIS IS STILL BROKEN. 
+- Btw bro if you're gonna test this app then test it all over the place. the error screens, the fallbacks, the minor things, the tiny ux quirks everywhere. Don't just half-ass it and say "meh, good enough". Lol i know it's frontend but push through bro :)
 
 - Rename search ui to be filtering by win loss or draw instead of numbers like 1-0, 0-1, and 0-0
 
