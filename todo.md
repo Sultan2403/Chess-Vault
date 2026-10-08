@@ -11,10 +11,11 @@
 - Investigate game storage as some games get past the game cap.
 - Sync up socket.io implementation with the frontend and add explicit flows for importing games
 - ANALYTICSSSSSSS!!!! IT'S IMPORTANT BRO!!!
-- Add stockfish wasm for analysis on the client side
 - Remove `.optional()` in Game.opening as it and it's kids are all required. This is just a knock off of the type safety task below but just more precise lol.
 
 ## Backend
+
+DB migration for termination fielddddd. It's gonna be messy tho oh well. Especially for lichess games. Current implementation plan can go like: for chess.com map out the termination header to our termination values map. lichess doesn't quite have the same thing and it's gonna be messy so we might just delete all lichess games provided they all belong to me. Orrr we could do an annoying manual import for games one by one and then delete the old ones. I think the latter is better but it's gonna be annoying.
 
 - Add proper tests for tags to make sure they are normalized the right way and deduplicated
 
@@ -22,7 +23,6 @@
 
 For lichess games, the flag is `variant: "standard"` and for chess.com its `rules: "chess"` 
 
-- Implement socket.io for real time feed for imports. But plan the architechture properly cus I have no idea on how to go about this fr. Well import service will need to semd stautus reports... But in the end imports will go through bullmq from now on so the api just dispatches a 202 accepted...
 - Add final tests where necessary
 - Add a `GET /analytics` endpoint that returns personal chess statistics such as:
   - Platform distribution
@@ -37,25 +37,7 @@ For lichess games, the flag is `variant: "standard"` and for chess.com its `rule
 
 ## Frontend
 
-- Debug why stockfish isn't working. 
-current hepful loogs: [Stockfish] effect setup started
-useStockfish.ts:21 [Stockfish] Creating worker /stockfish/stockfish-19-lite-single.js#/stockfish/stockfish-19-lite-single.wasm,worker
-useStockfish.ts:25 [Stockfish] Worker constructed Worker {onmessage: null, onerror: null}onmessageerror: (event) => {…}onerror: (event) => {…}onmessage: (event) => {…}[[Prototype]]: Worker
-useStockfish.ts:62 [Stockfish] Worker handlers attached
-useStockfish.ts:32 [Stockfish] Sending UCI command uci
-useStockfish.ts:64 [Stockfish] Initial UCI command sent
-useStockfish.ts:65 [Stockfish] Cleaning up worker
-useStockfish.ts:32 [Stockfish] Sending UCI command quit
-useStockfish.ts:20 [Stockfish] effect setup started
-useStockfish.ts:21 [Stockfish] Creating worker /stockfish/stockfish-19-lite-single.js#/stockfish/stockfish-19-lite-single.wasm,worker
-useStockfish.ts:25 [Stockfish] Worker constructed Worker {onmessage: null, onerror: null}onmessageerror: (event) => {…}length: 1name: ""arguments: (...)caller: (...)[[FunctionLocation]]: useStockfish.ts:61[[Prototype]]: ƒ ()[[Scopes]]: Scopes[4]onerror: (event) => {…}onmessage: (event) => {…}length: 1name: ""arguments: (...)caller: (...)[[FunctionLocation]]: useStockfish.ts:41[[Prototype]]: ƒ ()[[Scopes]]: Scopes[4][[Prototype]]: Worker
-useStockfish.ts:62 [Stockfish] Worker handlers attached
-useStockfish.ts:32 [Stockfish] Sending UCI command uci
-useStockfish.ts:64 [Stockfish] Initial UCI command sent
-
-maybe use a fetch to confirm stockfish is working and then send the uci command. I think the issue is that the worker isn't ready when we send the uci command.
-
-- Player perspective seems broken. Investigate and fix. In game viewer seems like the wrong player is rendered. and then the perpective should always default to the user's perspective. Basically stuff's broken.
+- Player perspective seems broken. Investigate and fix. In game viewer seems like the wrong player is rendered. and then the perpective should always default to the user's perspective. Basically stuff's broken. NOTE: I'M NOT SURE IF THIS IS STILL BROKEN. 
 
 - Rename search ui to be filtering by win loss or draw instead of numbers like 1-0, 0-1, and 0-0
 
@@ -82,7 +64,7 @@ maybe use a fetch to confirm stockfish is working and then send the uci command.
 - **Real folder names in `MatchFilePanel`:** Currently shows "In N collection(s)" count. To show real names, backend needs a multi-ID folder lookup endpoint (e.g. `GET /folders?ids[]=...`). Once supported, replace count with real folder name chips.
 - **Move to Collection modal:** Replace the stub button in `GameActionsPanel` with a real folder-assignment modal
 - **Share / Replay Split View modals:** Replace stub buttons with proper modals (alerts were removed in refactor)
-- **Stockfish WASM eval bar:** Wire `EvalBar` to real engine evaluation (currently shows placeholder values)
+- **Stockfish WASM eval bar:** The UI for the bar needs a rework honestly. 
 
 ### Later tasks (Project maintenance)
 
