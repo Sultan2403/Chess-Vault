@@ -33,12 +33,9 @@ export function useStockfish(fen: string): StockfishEval {
 
   useEffect(() => {
     requestedFenRef.current = fen;
-    console.debug("[Stockfish] FEN requested", fen);
   }, [fen]);
 
   useEffect(() => {
-    console.log("[Stockfish] effect setup started");
-    console.log("[Stockfish] Creating worker", WORKER_URL);
     stateRef.current = "starting";
     stopRequestedRef.current = false;
     activeFenRef.current = null;
@@ -48,16 +45,13 @@ export function useStockfish(fen: string): StockfishEval {
     try {
       worker = new Worker(WORKER_URL, { type: "classic" });
       workerRef.current = worker;
-      console.log("[Stockfish] Worker constructed", worker);
-    } catch (error) {
+    } catch {
       stateRef.current = "dead";
-      console.error("[Stockfish] Worker construction failed", error);
       return;
     }
 
     const send = (command: string) => {
       if (stateRef.current === "dead") return;
-      console.log("[Stockfish] Sending UCI command", command);
       worker.postMessage(command);
     };
 
@@ -67,7 +61,6 @@ export function useStockfish(fen: string): StockfishEval {
       activeFenRef.current = nextFen;
       stopRequestedRef.current = false;
       stateRef.current = "searching";
-      console.info("[Stockfish] Starting analysis", nextFen);
       send(`position fen ${nextFen}`);
       send("go depth 20");
       setEvaluation((previous) => ({
@@ -82,16 +75,12 @@ export function useStockfish(fen: string): StockfishEval {
 
     worker.onmessage = (event: MessageEvent<unknown>) => {
       if (typeof event.data !== "string") {
-        console.warn("[Stockfish] Ignoring non-string worker message", event.data);
         return;
       }
 
       const lines = event.data.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
       for (const line of lines) {
-        console.debug("[Stockfish] Worker message", line);
-
         if (line === "uciok") {
-          console.info("[Stockfish] UCI initialized");
           send("setoption name Hash value 16");
           send("isready");
           continue;
@@ -99,7 +88,6 @@ export function useStockfish(fen: string): StockfishEval {
 
         if (line === "readyok") {
           stateRef.current = "ready";
-          console.info("[Stockfish] Worker ready");
           startLatestAnalysis();
           continue;
         }
@@ -107,7 +95,6 @@ export function useStockfish(fen: string): StockfishEval {
         if (line.startsWith("bestmove ")) {
           const bestMove = line.split(/\s+/)[1] ?? null;
           const hasNewerFen = requestedFenRef.current !== activeFenRef.current;
-          console.info("[Stockfish] Search complete", { bestMove, hasNewerFen });
           stateRef.current = "ready";
           stopRequestedRef.current = false;
           setEvaluation((previous) => ({ ...previous, bestMove, isAnalyzing: false }));
@@ -119,7 +106,6 @@ export function useStockfish(fen: string): StockfishEval {
         const sideToMove = activeFenRef.current?.split(/\s+/)[1] === "b" ? "b" : "w";
         const parsed = parseUciInfoLine(line, sideToMove);
         if (!parsed) continue;
-        console.info("[Stockfish] Parsed evaluation", { sideToMove, parsed });
         setEvaluation((previous) => ({
           ...previous,
           depth: Math.max(previous.depth, parsed.depth),
@@ -130,18 +116,17 @@ export function useStockfish(fen: string): StockfishEval {
       }
     };
 
-    worker.onerror = (event) => {
+    worker.onerror = () => {
       stateRef.current = "dead";
-      console.error("[Stockfish] Worker error", event.message, event.filename, event.lineno, event.colno);
       setEvaluation((previous) => ({ ...previous, isAnalyzing: false }));
     };
-    worker.onmessageerror = (event) => console.error("[Stockfish] Worker message error", event);
-    console.log("[Stockfish] Worker handlers attached");
+    worker.onmessageerror = () => {
+      stateRef.current = "dead";
+      setEvaluation((previous) => ({ ...previous, isAnalyzing: false }));
+    };
     send("uci");
-    console.log("[Stockfish] Initial UCI command sent");
 
     return () => {
-      console.info("[Stockfish] Cleaning up worker");
       stateRef.current = "dead";
       if (debounceRef.current) clearTimeout(debounceRef.current);
       worker.postMessage("quit");
@@ -156,7 +141,6 @@ export function useStockfish(fen: string): StockfishEval {
     debounceRef.current = setTimeout(() => {
       const worker = workerRef.current;
       if (!worker || stateRef.current === "dead" || stateRef.current === "starting") return;
-      console.info("[Stockfish] Debounced FEN request", requestedFenRef.current);
       if (stateRef.current === "ready") {
         startLatestAnalysisRef.current?.();
       } else if (stateRef.current === "searching" && !stopRequestedRef.current) {
