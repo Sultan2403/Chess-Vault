@@ -43,6 +43,8 @@ For lichess games, the flag is `variant: "standard"` and for chess.com its `rule
 
 - Maybe add best moves and better moves and such to game viewer?
 
+- Btw we might need a way to find brilliant moves and all that stuff. Hm game review? 
+
 - Folder creation and stuff should use modals. 
 
 - Error modal just feels a bit too bland. Fix that
