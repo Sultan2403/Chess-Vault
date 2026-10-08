@@ -10,11 +10,14 @@ import SettingsPage from "./pages/SettingsPage";
 import GameViewer from "./pages/GameViewer";
 import OnboardingPage from "./pages/OnboardingPage";
 import { OnboardingGate, ProtectedAppGate } from "./components/auth/AppGate";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/sign-in/*" element={<AuthPage mode="sign-in" />} />
         <Route path="/sign-up/*" element={<AuthPage mode="sign-up" />} />
@@ -30,10 +33,12 @@ function App() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/game/:id" element={<GameViewer />} />
         </Route>
-      </Routes>
-      <Analytics />
-      <SpeedInsights />
-    </BrowserRouter>
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+        <Analytics />
+        <SpeedInsights />
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 

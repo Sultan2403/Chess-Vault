@@ -41,6 +41,8 @@ For lichess games, the flag is `variant: "standard"` and for chess.com its `rule
 
 - Rename search ui to be filtering by win loss or draw instead of numbers like 1-0, 0-1, and 0-0
 
+- Maybe add best moves and better moves and such to game viewer?
+
 - Folder creation and stuff should use modals. 
 
 - Error modal just feels a bit too bland. Fix that
