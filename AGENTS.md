@@ -417,3 +417,23 @@ Chess Vault is a TypeScript codebase. Preserve and enforce strict typing through
 - Before finishing a task, inspect changed code for unnecessary `any`, unsafe casts, duplicate types, and avoidable type assertions.
 
 If strict typing conflicts with a requested implementation, stop and notify the user rather than silently weakening the types.
+
+---
+
+## 26. Plan Before Implementation
+
+Every implementation task starts with inspection and a proposed implementation plan. The plan may be brief for a small change, but it must be proportionate to the task.
+
+Before making code changes:
+
+- inspect the relevant files and established patterns
+- summarize the intended approach and the files or layers likely to be affected
+- call out important data-flow, domain-contract, or architectural implications
+- state how the change will be verified, including relevant tests or build checks
+- identify material assumptions, tradeoffs, or decisions that need the user's input
+
+**Do not begin implementation or modify repository files until the user explicitly approves the plan.** A request to solve a problem is not, by itself, approval of a proposed implementation plan.
+
+If inspection shows that the plan needs to change materially, or implementation uncovers a decision outside the approved scope, stop and present the revised plan or decision for approval before proceeding.
+
+The user may explicitly waive this requirement for a particular task. Otherwise, follow the plan-and-approval workflow regardless of task size.
