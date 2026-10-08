@@ -4,7 +4,7 @@ import { useUser } from "@clerk/react";
 
 import { useGame } from "../hooks/useGames";
 import { useParsedGame } from "../hooks/useParsedGame";
-import { getCapturedPieces, getPlayerPerspective } from "../utils/game";
+import { getCapturedPieces } from "../utils/game";
 import { useStockfish } from "../hooks/useStockfish";
 import { Spinner } from "../components/ui/Spinner";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
@@ -174,11 +174,10 @@ export default function GameViewer() {
   const whiteClockMs = clocks && lastWhitePlyIdx >= 0 ? clocks[lastWhitePlyIdx] : undefined;
   const blackClockMs = clocks && lastBlackPlyIdx >= 0 ? clocks[lastBlackPlyIdx] : undefined;
   const initialClockMs = currentGame?.time.initial;
-  const perspective = currentGame ? getPlayerPerspective(currentGame) : null;
-  const bottomPlayer = perspective?.player ?? currentGame?.whitePlayer;
-  const topPlayer = perspective?.opponent ?? currentGame?.blackPlayer;
-  const bottomColor = perspective?.playerColor ?? "white";
-  const topColor = perspective?.opponentColor ?? "black";
+  const bottomColor = boardOrientation;
+  const topColor = boardOrientation === "white" ? "black" : "white";
+  const bottomPlayer = bottomColor === "white" ? currentGame?.whitePlayer : currentGame?.blackPlayer;
+  const topPlayer = topColor === "white" ? currentGame?.whitePlayer : currentGame?.blackPlayer;
   const bottomClockMs = bottomColor === "white" ? whiteClockMs : blackClockMs;
   const topClockMs = topColor === "white" ? whiteClockMs : blackClockMs;
 
