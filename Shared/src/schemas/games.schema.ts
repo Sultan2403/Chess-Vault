@@ -47,8 +47,8 @@ export const tagsSchema = z
       .max(50)
       .transform((tag) => tag.toLowerCase()),
   )
-  .max(20)
   .transform((tags) => [...new Set(tags)])
+  .pipe(z.array(z.string()).max(20))
   .optional();
 
 /** Move statistics: count (full moves) and plies (half-moves) */

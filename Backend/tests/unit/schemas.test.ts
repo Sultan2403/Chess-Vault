@@ -4,6 +4,8 @@ import {
   importGamesParams,
   gameParams,
   updateGameBody,
+  gameTimeSchema,
+  tagsSchema,
 } from "@chess-vault/shared";
 import {
   createFolderBody,
@@ -147,6 +149,85 @@ describe("Zod Validation Schemas", () => {
         notes: "a".repeat(1001),
       });
       expect(invalidNotes.success).toBe(false);
+    });
+
+    it("should lowercase, trim, and deduplicate tags via tagsSchema", () => {
+      const parsed = updateGameBody.safeParse({
+        tags: ["  Blitz  ", "blitz", "BLITZ", "Tactics", "tactics  ", "Endgame"],
+      });
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.tags).toEqual(["blitz", "tactics", "endgame"]);
+      }
+    });
+
+    it("should reject tags exceeding 20 items after deduplication", () => {
+      const tags21 = Array.from({ length: 21 }, (_, i) => `tag-${i}`);
+      const parsed = updateGameBody.safeParse({
+        tags: tags21,
+      });
+      expect(parsed.success).toBe(false);
+    });
+
+    it("should accept valid tags that reduce to 20 or fewer after deduplication", () => {
+      // 25 input tags, but only 2 unique
+      const repeatedTags = Array.from({ length: 25 }, (_, i) => (i % 2 === 0 ? "tag-a" : "TAG-A"));
+      const parsed = updateGameBody.safeParse({
+        tags: repeatedTags,
+      });
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.tags).toEqual(["tag-a"]);
+      }
+    });
+  });
+
+  describe("Game Time Schema Validation", () => {
+    it("should validate live game time controls with initial and increment", () => {
+      const valid = gameTimeSchema.safeParse({
+        timeClass: "blitz",
+        initial: 180000,
+        increment: 2000,
+        clocks: [180000, 178500, 175000],
+      });
+      expect(valid.success).toBe(true);
+      if (valid.success) {
+        expect(valid.data.timeClass).toBe("blitz");
+        expect(valid.data.initial).toBe(180000);
+        expect(valid.data.increment).toBe(2000);
+        expect(valid.data.clocks?.length).toBe(3);
+      }
+    });
+
+    it("should validate daily correspondence time controls with daysPerTurn", () => {
+      const valid = gameTimeSchema.safeParse({
+        timeClass: "daily",
+        daysPerTurn: 3,
+      });
+      expect(valid.success).toBe(true);
+      if (valid.success) {
+        expect(valid.data.timeClass).toBe("daily");
+        expect(valid.data.daysPerTurn).toBe(3);
+      }
+    });
+
+    it("should reject negative clock values and invalid timeClass", () => {
+      const negativeInitial = gameTimeSchema.safeParse({
+        timeClass: "rapid",
+        initial: -1000,
+      });
+      expect(negativeInitial.success).toBe(false);
+
+      const negativeDays = gameTimeSchema.safeParse({
+        timeClass: "daily",
+        daysPerTurn: 0,
+      });
+      expect(negativeDays.success).toBe(false);
+
+      const invalidTimeClass = gameTimeSchema.safeParse({
+        timeClass: "super-fast",
+      });
+      expect(invalidTimeClass.success).toBe(false);
     });
   });
 
