@@ -189,8 +189,8 @@ export default function GameViewer() {
 
   // Captured pieces and material balance
   const captured = useMemo(() => {
-    return getCapturedPieces(moveHistory, plyIdx);
-  }, [moveHistory, plyIdx]);
+    return getCapturedPieces(currentFen);
+  }, [currentFen]);
 
   return (
     <div className="mx-auto max-w-content px-6 py-6 font-body">

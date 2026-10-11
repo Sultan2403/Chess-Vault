@@ -3,7 +3,12 @@ import ndjson from "ndjson";
 import mongoose from "mongoose";
 import Games from "../DB/Models/games.model";
 import { normalizeChessComGame, normalizeLichessGame } from "../Helpers";
-import { Platforms, MAX_GAMES_PER_USER } from "../Config/constants";
+import {
+  Platforms,
+  MAX_GAMES_PER_USER,
+  LichessSupportedVariants,
+  ChessComSupportedRules,
+} from "../Config/constants";
 import { logger } from "../Config/logger";
 import {
   ImportGamesParams,
@@ -69,6 +74,12 @@ export const importGames = async (
             "Hard limit of games hit mid-archive",
           );
           break;
+        }
+
+        // Only allow supported chess rules (standard chess and three-check)
+        const rule = game.rules?.toLowerCase();
+        if (!rule || !(ChessComSupportedRules as readonly string[]).includes(rule)) {
+          continue;
         }
 
         const normalizedGame = normalizeChessComGame({
@@ -180,6 +191,13 @@ export const importGames = async (
       };
 
       stream.on("data", async (rawGame: Lichess_Game) => {
+        // Only allow supported chess variants (standard and three-check)
+        const variant = rawGame.variant?.toLowerCase();
+        const supportedLower = LichessSupportedVariants.map((v) => v.toLowerCase());
+        if (!variant || !supportedLower.includes(variant)) {
+          return;
+        }
+
         const normalized = normalizeLichessGame({
           game: rawGame,
           userId,

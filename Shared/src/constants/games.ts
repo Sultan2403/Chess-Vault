@@ -75,3 +75,21 @@ export const ChessComTerminationValues = Object.values(
 
 export type ChessComTerminationValuesType =
   (typeof ChessComTerminationValues)[number];
+
+export const SupportedChessVariants = ["standard", "threeCheck"] as const;
+export type SupportedChessVariantType = (typeof SupportedChessVariants)[number];
+
+export const LichessSupportedPerfTypes = [
+  "ultraBullet",
+  "bullet",
+  "blitz",
+  "rapid",
+  "classical",
+  "correspondence",
+  "threeCheck",
+] as const;
+
+export const LichessSupportedVariants = ["standard", "threeCheck"] as const;
+
+export const ChessComSupportedRules = ["chess", "threecheck"] as const;
+export type ChessComSupportedRuleType = (typeof ChessComSupportedRules)[number];

@@ -1,4 +1,4 @@
-import { MAX_GAMES_PER_USER } from "../Config/constants";
+import { MAX_GAMES_PER_USER, LichessSupportedPerfTypes } from "../Config/constants";
 import { lichess_api } from "./api.client";
 import { Readable } from "stream";
 
@@ -16,7 +16,8 @@ const lichessApi = {
         opening: true,
         max: MAX_GAMES_PER_USER,
         lastFen: true,
-        clocks: true
+        clocks: true,
+        perfType: LichessSupportedPerfTypes.join(","),
       },
     }),
 };
