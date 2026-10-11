@@ -17,12 +17,6 @@
 
 - DB migration for termination fielddddd. It's gonna be messy tho oh well. Especially for lichess games. Current implementation plan can go like: for chess.com map out the termination header to our termination values map. lichess doesn't quite have the same thing and it's gonna be messy so we might just delete all lichess games provided they all belong to me. Orrr we could do an annoying manual import for games one by one and then delete the old ones. I think the latter is better but it's gonna be annoying.
 
-- Add proper tests for tags to make sure they are normalized the right way and deduplicated
-
-- Add flags for the chess importers so we don't attempt to process non-standard chess games i.e chess variations like bughouse, 4 player chess and so on. I mean we can allow them but add flags to indicate that they are non-standard. If we do allow them, maybe something like chess960 that won't break the entire model. 
-
-For lichess games, the flag is `variant: "standard"` and for chess.com its `rules: "chess"` 
-
 - Add final tests where necessary
 - Add a `GET /analytics` endpoint that returns personal chess statistics such as:
   - Platform distribution
