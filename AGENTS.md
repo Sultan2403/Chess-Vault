@@ -83,6 +83,7 @@ The authoritative Game model is defined as:
             rating: number;
         };
         result: "white" | "black" | "draw";
+        userResult: "win" | "loss" | "draw";
         termination: "unknown" | "resignation" | "abandonment" | "insufficient-material" | "50-move-rule" | "timeout" | "agreement" | "aborted" | "repetition" | "stalemate" | "checkmate" | "timeout-vs-insufficient-material"
         isRated: boolean;
         time: GameTime;
@@ -117,6 +118,7 @@ The authoritative Game model is defined as:
 - `whitePlayer`: Object containing White player `username` and non-negative `rating`.
 - `blackPlayer`: Object containing Black player `username` and non-negative `rating`.
 - `result`: Outcome (`"white"`, `"black"`, or `"draw"`).
+- `userResult`: Outcome from the perspective of the authenticated vault user (`"win"`, `"loss"`, or `"draw"`).
 - `isRated`: Boolean indicating whether the match was rated.
 - `time`: Unified time object containing:
   - `timeClass`: Standardized time control category (`"ultraBullet"`, `"bullet"`, `"blitz"`, `"rapid"`, `"classical"`, `"daily"`, `"correspondence"`).

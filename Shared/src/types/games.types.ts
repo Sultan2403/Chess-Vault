@@ -37,6 +37,7 @@ export type GameTime = z.infer<typeof gameTimeSchema>;
  * @property whitePlayer - Details of the White player (`username` and rating).
  * @property blackPlayer - Details of the Black player (`username` and rating).
  * @property result - Outcome of the game (`"white"` | `"black"` | `"draw"`).
+ * @property userResult - Outcome from the perspective of the authenticated vault user (`"win"` | `"loss"` | `"draw"`).
  * @property termination - Reason the game ended.
  * @property isRated - Whether the game was played as a rated match (`true`) or unrated (`false`).
  * @property time - Canonical time model containing `timeClass`, live `initial`/`increment`, correspondence `daysPerTurn`, and mainline `clocks`.
