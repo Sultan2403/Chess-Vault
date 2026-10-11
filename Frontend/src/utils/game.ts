@@ -24,14 +24,7 @@ export function getPlayerPerspective(
   const player = playerColor === "white" ? game.whitePlayer : game.blackPlayer;
   const opponent = playerColor === "white" ? game.blackPlayer : game.whitePlayer;
 
-  const result =
-    game.result === "draw"
-      ? "draw"
-      : game.result === playerColor
-        ? "win"
-        : "loss";
-
-  return { player, opponent, playerColor, opponentColor, result };
+  return { player, opponent, playerColor, opponentColor, result: game.userResult };
 }
 
 export function getGameDate(game: Game, pattern = "MMM dd, yyyy") {

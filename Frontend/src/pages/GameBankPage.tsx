@@ -109,7 +109,7 @@ export default function GameBankPage() {
     if (games.length === 0) {
       return { winPct: "0.0%", uniqueEcos: 0 };
     }
-    const wins = games.filter((g) => g.result === "white").length;
+    const wins = games.filter((g) => g.userResult === "win").length;
     const winPct = ((wins / games.length) * 100).toFixed(1) + "%";
     const ecos = new Set(
       games.map((g) => parseOpeningDetails(g).eco).filter(Boolean),
@@ -502,9 +502,9 @@ export default function GameBankPage() {
               const displayMoves = getMoveCount(game);
 
               const resultColorClass =
-                displayResult === "1 - 0"
+                game.userResult === "win"
                   ? "bg-vault-win/15 text-vault-win border-vault-win/30"
-                  : displayResult === "0 - 1"
+                  : game.userResult === "loss"
                     ? "bg-vault-loss/15 text-vault-loss border-vault-loss/30"
                     : "bg-vault-draw/15 text-vault-draw border-vault-draw/30";
 
