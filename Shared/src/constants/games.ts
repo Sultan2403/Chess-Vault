@@ -4,6 +4,9 @@ export type PlayerColorType = (typeof PlayerColors)[number];
 export const Results = ["white", "black", "draw"] as const;
 export type ResultType = (typeof Results)[number];
 
+export const UserResults = ["win", "loss", "draw"] as const;
+export type UserResultType = (typeof UserResults)[number];
+
 export const TerminationValuesMap = {
   resignation: "resignation",
   abandonment: "abandonment",

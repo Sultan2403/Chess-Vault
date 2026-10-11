@@ -40,6 +40,7 @@ describe("Game Normalizers", () => {
 
       // Verify result, stats, and timestamp transformation (seconds -> ms -> Date)
       expect(normalized.result).toBe("white");
+      expect(normalized.userResult).toBe("win");
       expect(normalized.isRated).toBe(MOCK_CHESS_COM_GAME.rated);
       expect(normalized.time.timeClass).toBe(MOCK_CHESS_COM_GAME.time_class);
       expect(normalized.time.daysPerTurn).toBe(3);
@@ -67,6 +68,7 @@ describe("Game Normalizers", () => {
 
       expect(normalized.result).toBe("black");
       expect(normalized.userPlayedAs).toBe("black");
+      expect(normalized.userResult).toBe("win");
     });
 
     it("should recognize a real drawn game by agreement ('agreed')", () => {
@@ -77,6 +79,7 @@ describe("Game Normalizers", () => {
       });
 
       expect(normalized.result).toBe("draw");
+      expect(normalized.userResult).toBe("draw");
       expect(normalized.userPlayedAs).toBe("white");
       expect(normalized.whitePlayer.username).toBe(
         MOCK_CHESS_COM_DRAWN_GAME.white.username,

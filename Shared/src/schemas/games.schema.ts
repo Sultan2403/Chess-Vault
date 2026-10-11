@@ -3,6 +3,7 @@ import {
   PlatformValues,
   PlayerColors,
   Results,
+  UserResults,
   TerminationValues,
   TimeClasses,
 } from "../constants/index.js";
@@ -114,6 +115,9 @@ export const GameSchema = z.object({
   /** Outcome of the match ("white" | "black" | "draw") */
   result: z.enum(Results),
 
+  /** Outcome from the perspective of the authenticated vault user ("win" | "loss" | "draw") */
+  userResult: z.enum(UserResults),
+
   /** The reason the game ended */
   termination: z.enum(TerminationValues),
 
@@ -165,6 +169,7 @@ export const searchGamesQuery = z.object({
   platform: z.enum(PlatformValues).optional(),
   userPlayedAs: z.enum(PlayerColors).optional(),
   result: z.enum(Results).optional(),
+  userResult: z.enum(UserResults).optional(),
   timeClass: z.enum(TimeClasses).optional(),
 
   isRated: z.preprocess((val: unknown) => {

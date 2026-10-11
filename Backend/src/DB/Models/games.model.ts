@@ -3,6 +3,7 @@ import {
   PlayerColors,
   PlatformValues,
   Results,
+  UserResults,
   TimeClasses,
   TerminationValues,
   TerminationValuesMap,
@@ -124,6 +125,12 @@ const gameSchema = new mongoose.Schema(
       required: true,
     },
 
+    userResult: {
+      type: String,
+      enum: UserResults,
+      required: true,
+    },
+
     termination: {
       type: String,
       enum: TerminationValues,
@@ -231,6 +238,17 @@ gameSchema.index({
 gameSchema.index({
   userId: 1,
   result: 1,
+});
+
+gameSchema.index({
+  userId: 1,
+  userResult: 1,
+});
+
+gameSchema.index({
+  userId: 1,
+  userResult: 1,
+  playedAt: -1,
 });
 
 gameSchema.index({

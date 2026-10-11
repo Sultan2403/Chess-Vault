@@ -170,9 +170,19 @@ const PIECE_SORT_ORDER: Record<CapturedPieceSymbol, number> = {
   p: 4,
 };
 
+const STARTING_PIECES: Record<CapturedPieceSymbol, number> = {
+  p: 8,
+  n: 2,
+  b: 2,
+  r: 2,
+  q: 1,
+};
+
 /**
- * Calculates net captured pieces and material advantage for both players directly from the current FEN board position.
- * Only the side with a net surplus of a piece type displays that piece symbol, exactly matching Chess.com and Lichess.
+ * Calculates captured pieces and material advantage for both players directly from the current FEN board position.
+ * - white.pieces: All black pieces captured by White (starting - black remaining on board)
+ * - black.pieces: All white pieces captured by Black (starting - white remaining on board)
+ * - advantage: Exact point difference (+X) for whichever side has more total material points
  */
 export function getCapturedPieces(fen?: string): CapturedPiecesSummary {
   if (!fen) {
@@ -203,41 +213,41 @@ export function getCapturedPieces(fen?: string): CapturedPiecesSummary {
     blackPoints += currentBlackCounts[piece] * val;
   }
 
-  const whiteSurplusPieces: CapturedPieceSymbol[] = [];
-  const blackSurplusPieces: CapturedPieceSymbol[] = [];
+  const whiteCapturedPieces: CapturedPieceSymbol[] = [];
+  const blackCapturedPieces: CapturedPieceSymbol[] = [];
 
-  // Compare counts for each piece type: who has more on the board?
-  // If White has more, White captured Black's piece (White is up that piece).
-  // If Black has more, Black captured White's piece (Black is up that piece).
-  const pieces: CapturedPieceSymbol[] = ["q", "r", "b", "n", "p"];
-  for (const piece of pieces) {
-    const diff = currentWhiteCounts[piece] - currentBlackCounts[piece];
-    if (diff > 0) {
-      for (let i = 0; i < diff; i++) {
-        whiteSurplusPieces.push(piece);
-      }
-    } else if (diff < 0) {
-      for (let i = 0; i < Math.abs(diff); i++) {
-        blackSurplusPieces.push(piece);
-      }
+  // White captures Black's pieces: (starting - current black pieces on board)
+  // Black captures White's pieces: (starting - current white pieces on board)
+  const pieceTypes: CapturedPieceSymbol[] = ["q", "r", "b", "n", "p"];
+  for (const piece of pieceTypes) {
+    const startingCount = STARTING_PIECES[piece];
+
+    const capturedByWhite = Math.max(0, startingCount - currentBlackCounts[piece]);
+    for (let i = 0; i < capturedByWhite; i++) {
+      whiteCapturedPieces.push(piece);
+    }
+
+    const capturedByBlack = Math.max(0, startingCount - currentWhiteCounts[piece]);
+    for (let i = 0; i < capturedByBlack; i++) {
+      blackCapturedPieces.push(piece);
     }
   }
 
   const sortFn = (a: CapturedPieceSymbol, b: CapturedPieceSymbol) =>
     PIECE_SORT_ORDER[a] - PIECE_SORT_ORDER[b];
 
-  whiteSurplusPieces.sort(sortFn);
-  blackSurplusPieces.sort(sortFn);
+  whiteCapturedPieces.sort(sortFn);
+  blackCapturedPieces.sort(sortFn);
 
   const totalDiff = whitePoints - blackPoints;
 
   return {
     white: {
-      pieces: whiteSurplusPieces,
+      pieces: whiteCapturedPieces,
       advantage: totalDiff > 0 ? totalDiff : 0,
     },
     black: {
-      pieces: blackSurplusPieces,
+      pieces: blackCapturedPieces,
       advantage: totalDiff < 0 ? Math.abs(totalDiff) : 0,
     },
   };

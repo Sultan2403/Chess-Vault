@@ -257,6 +257,7 @@ export default function GameViewer() {
                   fen={currentFen}
                   boardOrientation={boardOrientation}
                   activeMoveLabel={activeMoveLabel}
+                  isPlaying={isPlaying}
                 />
                 <EvalBar evalCp={evalCp} mate={mate} depth={depth} isAnalyzing={isAnalyzing} />
               </div>

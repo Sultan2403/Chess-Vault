@@ -6,9 +6,11 @@ type BoardPanelProps = {
   boardOrientation: "white" | "black";
   /** Label for the active move overlay (e.g. "12. Nf3"). Null at start position. */
   activeMoveLabel: string | null;
+  /** Whether autoplay is currently running */
+  isPlaying?: boolean;
 };
 
-export function BoardPanel({ fen, boardOrientation, activeMoveLabel }: BoardPanelProps) {
+export function BoardPanel({ fen, boardOrientation, activeMoveLabel, isPlaying = false }: BoardPanelProps) {
   return (
     <div className="relative aspect-square w-full overflow-hidden border border-vault-border-interactive bg-vault-surface-layer-1 p-2">
       <Chessboard
@@ -16,7 +18,7 @@ export function BoardPanel({ fen, boardOrientation, activeMoveLabel }: BoardPane
           position: fen,
           boardOrientation,
           allowDragging: false,
-          animationDurationInMs: 250,
+          animationDurationInMs: isPlaying ? 200 : 0,
           boardStyle: {
             borderRadius: "0px",
           },

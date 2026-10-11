@@ -95,6 +95,7 @@ export const normalizeLichessGame = ({
       rating: game.players.black?.rating || 0,
     },
     result: game.winner || "draw",
+    userResult: !game.winner ? "draw" : game.winner === userPlayedAs ? "win" : "loss",
     termination,
     time: {
       timeClass: speed as TimeClassType,
@@ -170,6 +171,7 @@ export const normalizeChessComGame = ({
       rating: game.black.rating,
     },
     result,
+    userResult: result === "draw" ? "draw" : result === userPlayedAs ? "win" : "loss",
     termination,
     time: {
       timeClass: game.time_class as TimeClassType,

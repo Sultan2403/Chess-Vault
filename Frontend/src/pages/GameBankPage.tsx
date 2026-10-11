@@ -48,14 +48,8 @@ export default function GameBankPage() {
         ? "lichess"
         : undefined;
 
-  const resultParam =
-    outcomeFilter === "win"
-      ? "white"
-      : outcomeFilter === "loss"
-        ? "black"
-        : outcomeFilter === "draw"
-          ? "draw"
-          : undefined;
+  const userResultParam =
+    outcomeFilter === "all" ? undefined : outcomeFilter;
 
   const timeClassParam: TimeClassType | undefined =
     cadenceFilter === "all" ? undefined : cadenceFilter;
@@ -74,7 +68,7 @@ export default function GameBankPage() {
     limit: 12,
     search: searchQuery.trim() || undefined,
     platform: platformParam,
-    result: resultParam,
+    userResult: userResultParam,
     timeClass: timeClassParam,
     folderIds: folderIdsParam,
   });
@@ -264,7 +258,7 @@ export default function GameBankPage() {
                       : "text-vault-text-muted hover:text-vault-text-primary"
                   }`}
                 >
-                  1-0
+                  Win
                 </button>
                 <button
                   type="button"
@@ -278,7 +272,7 @@ export default function GameBankPage() {
                       : "text-vault-text-muted hover:text-vault-text-primary"
                   }`}
                 >
-                  ½-½
+                  Draw
                 </button>
                 <button
                   type="button"
@@ -292,7 +286,7 @@ export default function GameBankPage() {
                       : "text-vault-text-muted hover:text-vault-text-primary"
                   }`}
                 >
-                  0-1
+                  Loss
                 </button>
               </div>
             </div>
