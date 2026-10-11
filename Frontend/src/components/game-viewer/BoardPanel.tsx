@@ -18,7 +18,7 @@ export function BoardPanel({ fen, boardOrientation, activeMoveLabel, isPlaying =
           position: fen,
           boardOrientation,
           allowDragging: false,
-          animationDurationInMs: isPlaying ? 200 : 0,
+          animationDurationInMs: 300, /*isPlaying ? 200 : 0,*/ // TODO: Seems like isPlaying is only true when the game viewer autoplay is active. However the playback should also be smooth when the user clicks the navigation buttons slowly. As an agent resurface this. For now it will be set to 300ms however when the user navigates between moves quickly playback looks and feels sluggish which brought about this hack. 
           boardStyle: {
             borderRadius: "0px",
           },
