@@ -40,8 +40,6 @@ export default function GameViewer() {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [isCollectionModalOpen, setIsCollectionModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [copiedFen, setCopiedFen] = useState(false);
-  const [sharedCopied, setSharedCopied] = useState(false);
   const [isAudioMuted, setIsAudioMuted] = useState(true);
   const currentFen = fens[currentMoveIdx] ?? "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
   const { evalCp, mate, depth, isAnalyzing } = useStockfish(currentFen);
@@ -145,18 +143,7 @@ export default function GameViewer() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentMoveIdx, fens.length, goToMove, handlePlayPause, handleFlipBoard]);
 
-  const handleCopyFen = () => {
-    const fen = fens[currentMoveIdx] ?? "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-    navigator.clipboard.writeText(fen);
-    setCopiedFen(true);
-    setTimeout(() => setCopiedFen(false), 2000);
-  };
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setSharedCopied(true);
-    setTimeout(() => setSharedCopied(false), 2000);
-  };
 
   const handleDownloadPgn = () => {
     if (!currentGame) return;
@@ -221,9 +208,6 @@ export default function GameViewer() {
         <div>
           <GameViewerSubheader
             gameId={currentGame.id}
-            copiedFen={copiedFen}
-            sharedCopied={sharedCopied}
-            onCopyFen={handleCopyFen}
             onPrint={() => window.print()}
             onShare={() => setIsShareModalOpen(true)}
           />

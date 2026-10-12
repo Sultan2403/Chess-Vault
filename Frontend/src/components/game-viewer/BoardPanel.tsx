@@ -1,3 +1,4 @@
+import { useRef, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -11,6 +12,22 @@ type BoardPanelProps = {
 };
 
 export function BoardPanel({ fen, boardOrientation, activeMoveLabel, isPlaying = false }: BoardPanelProps) {
+  const lastFenTimeRef = useRef<number>(Date.now());
+  const [animationDuration, setAnimationDuration] = useState<number>(250);
+
+  useEffect(() => {
+    const now = Date.now();
+    const elapsed = now - lastFenTimeRef.current;
+    lastFenTimeRef.current = now;
+
+    // If moves are navigated rapidly (< 280ms between plies), suppress animation so moves render instantly without lag
+    if (!isPlaying && elapsed < 280) {
+      setAnimationDuration(0);
+    } else {
+      setAnimationDuration(250);
+    }
+  }, [fen, isPlaying]);
+
   return (
     <div className="relative aspect-square w-full overflow-hidden border border-vault-border-interactive bg-vault-surface-layer-1 p-1 sm:p-2">
       <Chessboard
@@ -18,7 +35,7 @@ export function BoardPanel({ fen, boardOrientation, activeMoveLabel, isPlaying =
           position: fen,
           boardOrientation,
           allowDragging: false,
-          animationDurationInMs: isPlaying ? 250 : 250, /*isPlaying ? 250 : 0,*/ // TODO: Seems like isPlaying is only true when the game viewer autoplay is active. However the playback should also be smooth when the user clicks the navigation buttons slowly. As an agent resurface this. For now it will be set to 300ms however when the user navigates between moves quickly playback looks and feels sluggish which brought about this hack. 
+          animationDurationInMs: isPlaying ? 250 : animationDuration,
           boardStyle: {
             borderRadius: "0px",
           },

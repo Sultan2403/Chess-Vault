@@ -26,7 +26,6 @@ function App() {
         </Route>
         <Route element={<ProtectedAppGate />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/library" element={<DashboardPage />} />
           <Route path="/game-bank" element={<GameBankPage />} />
           <Route path="/collections" element={<CollectionsPage />} />
           <Route path="/collections/:id" element={<CollectionsPage />} />

@@ -14,19 +14,17 @@ import {
 import { Button } from "../components/ui/Button";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
+import { TagChips } from "../components/ui/TagChips";
 import { useFolders, useCreateFolder } from "../hooks/useFolders";
 import { useGames } from "../hooks/useGames";
-import { useUser } from "@clerk/react";
 import {
   getPlayerPerspective,
   parseOpeningDetails,
   getGameDate,
   getMoveCount,
 } from "../utils/game";
-import { usePlatformUsernames } from "../hooks/useAccount";
 
 export default function CollectionsPage() {
-  const { user } = useUser();
   const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,7 +49,6 @@ export default function CollectionsPage() {
     refetch: refetchFolders,
   } = useFolders();
   const createFolderMutation = useCreateFolder();
-  const platformUsernames = usePlatformUsernames();
 
   const folders = foldersData?.folders ?? [];
   const activeFolder =
@@ -94,7 +91,7 @@ export default function CollectionsPage() {
         }
         return new Date(b.playedAt).getTime() - new Date(a.playedAt).getTime();
       });
-  }, [games, selectedSide, sortBy, platformUsernames, user?.username]);
+  }, [games, selectedSide, sortBy]);
 
   // Folder Metrics
   const folderMetrics = useMemo(() => {
@@ -126,7 +123,7 @@ export default function CollectionsPage() {
       avgRating: Math.round(totalRating / games.length),
       annotated,
     };
-  }, [games, platformUsernames, user?.username]);
+  }, [games]);
 
   // Handle Create Folder
   const handleCreateFolderSubmit = async (e: React.FormEvent) => {
@@ -565,11 +562,7 @@ export default function CollectionsPage() {
                         {variation}
                       </span>
                     )}
-                    {game.tags && (
-                      <span className="rounded-xs border border-vault-border-base bg-vault-surface-layer-2 px-2 py-0.5 text-[10px] text-vault-text-muted uppercase">
-                        {game.tags.map((tag) => tag)}
-                      </span>
-                    )}
+                    <TagChips tags={game.tags} />
                   </div>
                 </div>
 

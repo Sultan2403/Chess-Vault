@@ -1,9 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { motion } from "motion/react";
 import {
   Search,
-  Bookmark,
   Copy,
   ExternalLink,
   ChevronLeft,
@@ -27,6 +26,14 @@ import type { TimeClassType } from "@chess-vault/shared";
 export default function GameBankPage() {
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
   const [platformTab, setPlatformTab] = useState<
     "ALL" | "CHESS.COM" | "LICHESS"
   >("ALL");
@@ -66,7 +73,7 @@ export default function GameBankPage() {
   } = useGames({
     page: currentPage,
     limit: 12,
-    search: searchQuery.trim() || undefined,
+    search: debouncedSearch || undefined,
     platform: platformParam,
     userResult: userResultParam,
     timeClass: timeClassParam,
@@ -622,14 +629,7 @@ export default function GameBankPage() {
                       {displayDate} • {displayMoves} moves
                     </span>
                     <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => alert("Bookmarked match.")}
-                        className="hover:text-vault-text-primary cursor-pointer"
-                        title="Bookmark"
-                      >
-                        <Bookmark size={12} />
-                      </button>
+
                       <button
                         type="button"
                         onClick={() => {

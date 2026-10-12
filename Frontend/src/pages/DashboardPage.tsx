@@ -415,21 +415,8 @@ export default function DashboardPage() {
                       ? "1 - 0"
                       : "0 - 1";
 
-                const isCurrentUserWhite =
-                  (platformUsernames[game.platform] &&
-                    game.whitePlayer.username.toLowerCase() ===
-                      platformUsernames[game.platform]?.toLowerCase()) ||
-                  (user?.username &&
-                    game.whitePlayer.username.toLowerCase() ===
-                      user.username.toLowerCase());
-
-                const isCurrentUserBlack =
-                  (platformUsernames[game.platform] &&
-                    game.blackPlayer.username.toLowerCase() ===
-                      platformUsernames[game.platform]?.toLowerCase()) ||
-                  (user?.username &&
-                    game.blackPlayer.username.toLowerCase() ===
-                      user.username.toLowerCase());
+                const isCurrentUserWhite = game.userPlayedAs === "white";
+                const isCurrentUserBlack = game.userPlayedAs === "black";
 
                 return (
                   <motion.div
