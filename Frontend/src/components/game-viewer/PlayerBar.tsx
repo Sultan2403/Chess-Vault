@@ -57,9 +57,9 @@ export function PlayerBar({
 
   return (
     <div className="flex items-center justify-between rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-4 py-3 font-mono text-xs">
-      <div className="flex items-center gap-3">
+      <div className="min-w-0 flex items-center gap-3">
         <div
-          className={`grid h-8 w-8 place-items-center rounded-xs border font-bold ${
+          className={`grid h-8 w-8 shrink-0 place-items-center rounded-xs border font-bold ${
             color === "white"
               ? "border-vault-border-interactive bg-vault-surface-layer-2 text-vault-bronze"
               : "border-vault-border-interactive bg-vault-surface-layer-2 text-vault-text-secondary"
@@ -67,7 +67,7 @@ export function PlayerBar({
         >
           {color === "white" ? "♔" : "♞"}
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-vault-text-primary text-sm">
               {player.username}
@@ -92,12 +92,12 @@ export function PlayerBar({
 
           {/* Captured pieces and material advantage */}
           {(capturedPieces.length > 0 || materialAdvantage > 0) && (
-            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-vault-text-muted select-none">
-              <span className="tracking-tighter opacity-80 font-mono">
+            <div className="mt-1 flex flex-wrap items-center gap-1 text-[11px] text-vault-text-muted select-none max-w-[200px] sm:max-w-none">
+              <span className="tracking-tight opacity-80 font-mono break-all text-[11px]">
                 {capturedPieces.map((p) => symbols[p]).join("")}
               </span>
               {materialAdvantage > 0 && (
-                <span className="font-mono text-[10px] font-bold text-vault-win">
+                <span className="font-mono text-[10px] font-bold text-vault-win shrink-0">
                   +{materialAdvantage}
                 </span>
               )}

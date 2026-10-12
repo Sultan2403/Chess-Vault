@@ -12,7 +12,7 @@ type BoardPanelProps = {
 
 export function BoardPanel({ fen, boardOrientation, activeMoveLabel, isPlaying = false }: BoardPanelProps) {
   return (
-    <div className="relative aspect-square w-full overflow-hidden border border-vault-border-interactive bg-vault-surface-layer-1 p-2">
+    <div className="relative aspect-square w-full overflow-hidden border border-vault-border-interactive bg-vault-surface-layer-1 p-1 sm:p-2">
       <Chessboard
         options={{
           position: fen,

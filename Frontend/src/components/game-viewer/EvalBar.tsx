@@ -9,7 +9,7 @@ export function EvalBar({ evalCp, mate, depth, isAnalyzing }: EvalBarProps) {
   const whitePercent = getWhiteWinPercentage(evalCp, mate);
 
   return (
-    <div className="flex h-full min-h-0 w-7 flex-col items-center justify-between rounded-vault border border-vault-border-base bg-vault-surface-layer-1 py-2 font-mono">
+    <div className="flex h-full min-h-0 w-5 sm:w-7 flex-col items-center justify-between rounded-vault border border-vault-border-base bg-vault-surface-layer-1 py-1.5 sm:py-2 font-mono">
       <span className={`${scoreColor} text-[10px] font-bold [writing-mode:vertical-rl] rotate-180`}>{evalValue}</span>
       <div className="relative my-2 min-h-0 w-2 flex-1 overflow-hidden rounded-full bg-vault-surface-layer-2">
         <div

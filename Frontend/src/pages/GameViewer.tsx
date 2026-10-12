@@ -19,6 +19,8 @@ import { MatchFilePanel } from "../components/game-viewer/MatchFilePanel";
 import { ReflectionPanel } from "../components/game-viewer/ReflectionPanel";
 import { GameActionsPanel } from "../components/game-viewer/GameActionsPanel";
 import { KeyboardShortcutsPanel } from "../components/game-viewer/KeyboardShortcutsPanel";
+import { MoveToCollectionModal } from "../components/game-viewer/MoveToCollectionModal";
+import { ShareModal } from "../components/game-viewer/ShareModal";
 
 export default function GameViewer() {
   const { id } = useParams<{ id: string }>();
@@ -36,6 +38,8 @@ export default function GameViewer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [isCollectionModalOpen, setIsCollectionModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copiedFen, setCopiedFen] = useState(false);
   const [sharedCopied, setSharedCopied] = useState(false);
   const [isAudioMuted, setIsAudioMuted] = useState(true);
@@ -193,7 +197,7 @@ export default function GameViewer() {
   }, [currentFen]);
 
   return (
-    <div className="mx-auto max-w-content px-6 py-6 font-body">
+    <div className="w-full mx-auto max-w-content px-3 sm:px-6 py-4 sm:py-6 font-body overflow-x-hidden">
       {isLoading ? (
         <div className="py-24">
           <Spinner />
@@ -221,7 +225,7 @@ export default function GameViewer() {
             sharedCopied={sharedCopied}
             onCopyFen={handleCopyFen}
             onPrint={() => window.print()}
-            onShare={handleShare}
+            onShare={() => setIsShareModalOpen(true)}
           />
 
           <KeyboardShortcutsPanel
@@ -237,9 +241,9 @@ export default function GameViewer() {
           )}
 
           {/* Main 2-column layout */}
-          <div className="grid items-start gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="grid items-start gap-6 lg:gap-8 lg:grid-cols-[1.1fr_0.9fr]">
             {/* Left column: players, board, eval, stepper */}
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-3 sm:space-y-4">
               {/* Opponent (black) at top */}
               <PlayerBar
                 player={topPlayer ?? currentGame.blackPlayer}
@@ -252,7 +256,7 @@ export default function GameViewer() {
                 materialAdvantage={topColor === "white" ? captured.white.advantage : captured.black.advantage}
               />
 
-              <div className="grid grid-cols-[minmax(0,1fr)_2rem] items-stretch gap-2">
+              <div className="grid grid-cols-[minmax(0,1fr)_1.5rem] sm:grid-cols-[minmax(0,1fr)_2rem] items-stretch gap-1.5 sm:gap-2">
                 <BoardPanel
                   fen={currentFen}
                   boardOrientation={boardOrientation}
@@ -289,7 +293,7 @@ export default function GameViewer() {
             </div>
 
             {/* Right column: match file, notation, reflection, actions */}
-            <div className="space-y-6">
+            <div className="min-w-0 space-y-6">
               <MatchFilePanel game={currentGame} />
 
               <NotationLedger
@@ -304,9 +308,25 @@ export default function GameViewer() {
                 onDownloadPgn={handleDownloadPgn}
                 sourceUrl={currentGame.sourceUrl}
                 platform={currentGame.platform}
+                onOpenMoveToCollection={() => setIsCollectionModalOpen(true)}
+                onOpenShare={() => setIsShareModalOpen(true)}
               />
             </div>
           </div>
+
+          <MoveToCollectionModal
+            isOpen={isCollectionModalOpen}
+            onClose={() => setIsCollectionModalOpen(false)}
+            game={currentGame}
+          />
+
+          <ShareModal
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            gameId={currentGame.id}
+            pgn={currentGame.pgn}
+            currentFen={currentFen}
+          />
         </div>
       )}
     </div>
