@@ -13,6 +13,15 @@
 - ANALYTICSSSSSSS!!!! IT'S IMPORTANT BRO!!!
 - Remove `.optional()` in Game.opening as it and it's kids are all required. This is just a knock off of the type safety task below but just more precise lol.
 
+## Payments
+
+- [ ] Move payment processing from Paystack to Bachs
+  - [ ] Implement Bachs checkout and backend payment-session creation
+  - [ ] Verify Bachs webhook signatures and handle events idempotently
+  - [ ] Keep one canonical subscription/entitlement state in Chess Vault; update access from verified payment events, not client claims
+  - [ ] Wire checkout, subscription status, and payment failure/cancellation states into the frontend
+  - [ ] Test successful payment, duplicate/out-of-order webhooks, cancellation, failed payment, and renewal before removing Paystack paths
+
 ## Backend
 
 - DB migration for termination fielddddd. It's gonna be messy tho oh well. Especially for lichess games. Current implementation plan can go like: for chess.com map out the termination header to our termination values map. lichess doesn't quite have the same thing and it's gonna be messy so we might just delete all lichess games provided they all belong to me. Orrr we could do an annoying manual import for games one by one and then delete the old ones. I think the latter is better but it's gonna be annoying.
