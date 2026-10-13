@@ -15,12 +15,7 @@
 
 ## Payments
 
-- [ ] Move payment processing from Paystack to Bachs
-  - [ ] Implement Bachs checkout and backend payment-session creation
-  - [ ] Verify Bachs webhook signatures and handle events idempotently
-  - [ ] Keep one canonical subscription/entitlement state in Chess Vault; update access from verified payment events, not client claims
-  - [ ] Wire checkout, subscription status, and payment failure/cancellation states into the frontend
-  - [ ] Test successful payment, duplicate/out-of-order webhooks, cancellation, failed payment, and renewal before removing Paystack paths
+- [ ] Move payments from Paystack to Baschs
 
 ## Backend
 
