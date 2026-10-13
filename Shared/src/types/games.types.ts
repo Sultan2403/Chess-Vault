@@ -165,3 +165,8 @@ export interface Lichess_Game {
 export type GameSearchParams = z.infer<typeof searchGamesQuery> & {
   userId: string;
 };
+
+import type { bulkAddFolderIdsSchema, bulkDeleteGamesSchema } from "../schemas/games.schema.js";
+
+export type BulkAddFolderIdsInput = z.infer<typeof bulkAddFolderIdsSchema>;
+export type BulkDeleteGamesInput = z.infer<typeof bulkDeleteGamesSchema>;

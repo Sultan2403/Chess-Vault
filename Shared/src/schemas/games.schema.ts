@@ -209,3 +209,38 @@ export const updateGameBody = z.object({
     .nullable()
     .optional(),
 });
+
+export const bulkAddFolderIdsSchema = z.object({
+  gameIds: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1)
+        .refine(isValidMongoId, { message: "Invalid game id" }),
+    )
+    .min(1, "At least one game ID is required")
+    .max(100, "Cannot bulk update more than 100 games at once"),
+  folderIds: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1)
+        .refine(isValidMongoId, { message: "Invalid folder id" }),
+    )
+    .min(1, "At least one folder ID is required"),
+});
+
+export const bulkDeleteGamesSchema = z.object({
+  gameIds: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1)
+        .refine(isValidMongoId, { message: "Invalid game id" }),
+    )
+    .min(1, "At least one game ID is required")
+    .max(100, "Cannot bulk delete more than 100 games at once"),
+});

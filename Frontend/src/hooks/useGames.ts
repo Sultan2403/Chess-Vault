@@ -6,9 +6,11 @@ import type {
   GameResponse,
   FrontendImportGamesPayload,
   UpdateGamePayload,
+  BulkAddFolderIdsResponse,
+  BulkDeleteGamesResponse,
 } from "../apis/api.games";
 import { QUERY_KEYS } from "../constants/queryKeys";
-import type { Game } from "@chess-vault/shared";
+import type { Game, BulkAddFolderIdsInput, BulkDeleteGamesInput } from "@chess-vault/shared";
 
 export const useGames = (params?: SearchGamesParams) => {
   return useQuery<SearchGamesResponse, unknown, SearchGamesResponse>({
@@ -80,3 +82,28 @@ export const useImportGames = () => {
 };
 
 
+
+export const useBulkAddFolderIds = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<BulkAddFolderIdsResponse, unknown, BulkAddFolderIdsInput>({
+    mutationFn: (data: BulkAddFolderIdsInput) => gamesApi.bulkAddFolderIds(data),
+    onSuccess: (_result, { gameIds }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.games.lists() });
+      gameIds.forEach((id) => {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.games.detail(id) });
+      });
+    },
+  });
+};
+
+export const useBulkDeleteGames = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<BulkDeleteGamesResponse, unknown, BulkDeleteGamesInput>({
+    mutationFn: (data: BulkDeleteGamesInput) => gamesApi.bulkDeleteGames(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.games.lists() });
+    },
+  });
+};

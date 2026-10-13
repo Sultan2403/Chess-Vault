@@ -17,7 +17,8 @@ import {
 import { Button } from "../components/ui/Button";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
-import { useGames } from "../hooks/useGames";
+import { useGames, useBulkDeleteGames } from "../hooks/useGames";
+import { BulkAddToFolderModal } from "../components/game-bank/BulkAddToFolderModal";
 import { useFolders } from "../hooks/useFolders";
 import { parseOpeningDetails, getGameDate, getMoveCount } from "../utils/game";
 
@@ -46,6 +47,8 @@ export default function GameBankPage() {
     new Set(),
   );
   const [currentPage, setCurrentPage] = useState(1);
+  const [isMoveToCollectionOpen, setIsMoveToCollectionOpen] = useState(false);
+  const bulkDeleteMutation = useBulkDeleteGames();
 
   // Queries
   const platformParam =
@@ -109,6 +112,39 @@ export default function GameBankPage() {
     if (next.has(id)) next.delete(id);
     else next.add(id);
     setSelectedGameIds(next);
+  };
+
+  const selectedGames = useMemo(() => {
+    return games.filter((g) => selectedGameIds.has(g.id));
+  }, [games, selectedGameIds]);
+
+
+  const handleExportPgn = () => {
+    if (selectedGames.length === 0) return;
+    const combinedPgn = selectedGames.map((g) => g.pgn.trim()).join("\n\n");
+    const blob = new Blob([combinedPgn], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `chess_vault_export_${selectedGames.length}_matches.pgn`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handlePurgeSelected = async () => {
+    if (selectedGameIds.size === 0) return;
+    const count = selectedGameIds.size;
+    if (!confirm(`Are you sure you want to permanently delete ${count} match${count === 1 ? "" : "es"} from your vault?`)) {
+      return;
+    }
+    try {
+      await bulkDeleteMutation.mutateAsync({
+        gameIds: Array.from(selectedGameIds),
+      });
+      setSelectedGameIds(new Set());
+    } catch {
+      alert("Failed to delete selected matches. Please try again.");
+    }
   };
 
   // Metrics
@@ -379,46 +415,32 @@ export default function GameBankPage() {
             <button
               type="button"
               onClick={() => {
-                if (selectedGameIds.size === 0) alert("Select games first.");
-                else alert(`${selectedGameIds.size} games added to folder.`);
+                if (selectedGameIds.size === 0) return;
+                setIsMoveToCollectionOpen(true);
               }}
-              className="flex items-center gap-1.5 text-vault-text-secondary hover:text-vault-text-primary transition-colors cursor-pointer"
+              disabled={selectedGameIds.size === 0}
+              className="flex items-center gap-1.5 text-vault-text-secondary hover:text-vault-text-primary disabled:opacity-40 transition-colors cursor-pointer"
             >
               <FolderPlus size={13} />
               <span>Add to Folder</span>
             </button>
             <button
               type="button"
-              onClick={() => {
-                if (selectedGameIds.size === 0) alert("Select games first.");
-                else
-                  alert(
-                    `Exporting ${selectedGameIds.size} games in PGN archive.`,
-                  );
-              }}
-              className="flex items-center gap-1.5 text-vault-text-secondary hover:text-vault-text-primary transition-colors cursor-pointer"
+              onClick={handleExportPgn}
+              disabled={selectedGameIds.size === 0}
+              className="flex items-center gap-1.5 text-vault-text-secondary hover:text-vault-text-primary disabled:opacity-40 transition-colors cursor-pointer"
             >
               <Download size={13} />
               <span>Export PGN</span>
             </button>
             <button
               type="button"
-              onClick={() => {
-                if (selectedGameIds.size === 0) alert("Select games first.");
-                else {
-                  if (
-                    confirm(
-                      `Remove ${selectedGameIds.size} staged games from active view?`,
-                    )
-                  ) {
-                    setSelectedGameIds(new Set());
-                  }
-                }
-              }}
-              className="flex items-center gap-1.5 text-vault-loss hover:text-vault-loss/80 transition-colors cursor-pointer"
+              onClick={handlePurgeSelected}
+              disabled={selectedGameIds.size === 0 || bulkDeleteMutation.isPending}
+              className="flex items-center gap-1.5 text-vault-loss hover:text-vault-loss/80 disabled:opacity-40 transition-colors cursor-pointer"
             >
               <Trash2 size={13} />
-              <span>Purge</span>
+              <span>{bulkDeleteMutation.isPending ? "Purging..." : "Purge"}</span>
             </button>
           </div>
         </section>
@@ -687,6 +709,13 @@ export default function GameBankPage() {
             </div>
           </div>
         </section>
+        {/* Bulk Add to Collection Modal */}
+        <BulkAddToFolderModal
+          isOpen={isMoveToCollectionOpen}
+          onClose={() => setIsMoveToCollectionOpen(false)}
+          gameIds={Array.from(selectedGameIds)}
+          onSuccess={() => setSelectedGameIds(new Set())}
+        />
       </div>
   );
 }

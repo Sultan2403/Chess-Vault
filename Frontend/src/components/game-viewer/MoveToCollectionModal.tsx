@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Folder, Check, Loader2 } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { useFolders } from "../../hooks/useFolders";
 import { useUpdateGame } from "../../hooks/useGames";
+import { getApiErrorMessage } from "../../utils/apiError";
 import type { Game } from "@chess-vault/shared";
 
 type MoveToCollectionModalProps = {
@@ -19,11 +20,21 @@ export function MoveToCollectionModal({
   const { data: foldersData, isLoading: isFoldersLoading } = useFolders();
   const updateGameMutation = useUpdateGame();
 
-  const initialFolderIds = game.folderIds ?? [];
-  const [selectedFolderIds, setSelectedFolderIds] = useState<string[]>(initialFolderIds);
+  const [selectedFolderIds, setSelectedFolderIds] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const folders = foldersData?.folders ?? [];
+
+  // Reset to the current game's existing non-null folder IDs when opening
+  useEffect(() => {
+    if (isOpen) {
+      setErrorMsg(null);
+      const initial = (game.folderIds ?? []).filter(
+        (fId): fId is string => typeof fId === "string" && fId.length > 0,
+      );
+      setSelectedFolderIds(initial);
+    }
+  }, [isOpen, game.id, game.folderIds]);
 
   const handleToggleFolder = (folderId: string) => {
     setSelectedFolderIds((prev) =>
@@ -43,8 +54,8 @@ export function MoveToCollectionModal({
         },
       });
       onClose();
-    } catch (err: any) {
-      setErrorMsg(err?.response?.data?.message ?? "Failed to update collections.");
+    } catch (err: unknown) {
+      setErrorMsg(getApiErrorMessage(err));
     }
   };
 
@@ -58,7 +69,7 @@ export function MoveToCollectionModal({
           <span>Assign to Collection</span>
         </div>
       }
-      description="Choose which folios and study collections should contain this match ledger."
+      description="Choose which collections should contain this match ledger. Uncheck to remove."
       maxWidth="md"
     >
       <div className="font-mono text-xs">
@@ -92,16 +103,16 @@ export function MoveToCollectionModal({
                       : "border-vault-border-base bg-vault-surface-layer-1 hover:border-vault-border-interactive"
                   }`}
                 >
-                  <div>
-                    <p className="font-semibold text-vault-text-primary">{folder.name}</p>
+                  <div className="min-w-0 pr-3">
+                    <p className="font-semibold text-vault-text-primary truncate">{folder.name}</p>
                     {folder.description && (
-                      <p className="text-[11px] text-vault-text-secondary line-clamp-1">
+                      <p className="text-[11px] text-vault-text-secondary line-clamp-1 mt-0.5">
                         {folder.description}
                       </p>
                     )}
                   </div>
                   <div
-                    className={`h-4 w-4 rounded-xs border flex items-center justify-center transition-colors ${
+                    className={`h-4 w-4 shrink-0 rounded-xs border flex items-center justify-center transition-colors ${
                       isChecked
                         ? "border-vault-bronze bg-vault-bronze text-vault-surface"
                         : "border-vault-border-base"

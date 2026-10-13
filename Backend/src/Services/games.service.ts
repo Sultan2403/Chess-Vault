@@ -426,3 +426,33 @@ export const deleteGame = async (
   const result = await Games.deleteOne({ _id: id, userId });
   return result.deletedCount === 1;
 };
+
+export const bulkAddFolderIds = async (
+  userId: string,
+  gameIds: string[],
+  folderIds: string[],
+): Promise<number> => {
+  const gameObjectIds = gameIds.map((id) => new mongoose.Types.ObjectId(id));
+  const folderObjectIds = folderIds.map((id) => new mongoose.Types.ObjectId(id));
+
+  const result = await Games.updateMany(
+    { _id: { $in: gameObjectIds }, userId },
+    { $addToSet: { folderIds: { $each: folderObjectIds } } },
+  );
+
+  return result.modifiedCount;
+};
+
+export const bulkDeleteGames = async (
+  userId: string,
+  gameIds: string[],
+): Promise<number> => {
+  const gameObjectIds = gameIds.map((id) => new mongoose.Types.ObjectId(id));
+
+  const result = await Games.deleteMany({
+    _id: { $in: gameObjectIds },
+    userId,
+  });
+
+  return result.deletedCount;
+};

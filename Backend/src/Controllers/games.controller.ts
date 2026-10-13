@@ -4,14 +4,17 @@ import {
   getGameById,
   updateGame,
   deleteGame,
+  bulkAddFolderIds,
+  bulkDeleteGames,
 } from "../Services/games.service";
-import { ImportGamesParams, UpdateGameInput } from "../Types/games.types";
-import { getUserId } from "../Utils";
 import {
-  successResponse,
-  errorResponse,
-  internalError,
-} from "../Utils";
+  ImportGamesParams,
+  UpdateGameInput,
+  BulkAddFolderIdsInput,
+  BulkDeleteGamesInput,
+} from "../Types/games.types";
+import { getUserId } from "../Utils";
+import { successResponse, errorResponse, internalError } from "../Utils";
 import { importQueue } from "../Jobs/import.queue";
 import { JOB_NAMES } from "../Config/constants";
 
@@ -105,3 +108,40 @@ export const deleteGameController = async (req: Request, res: Response) => {
   }
 };
 
+export const bulkAddFolderIdsController = async (
+  req: Request,
+  res: Response,
+) => {
+  const userId = getUserId(req)!;
+  const { gameIds, folderIds }: BulkAddFolderIdsInput = req.body;
+
+  try {
+    const modifiedCount = await bulkAddFolderIds(userId, gameIds, folderIds);
+    return successResponse({
+      res,
+      message: `Successfully added ${modifiedCount} games to collections`,
+      data: { modifiedCount },
+    });
+  } catch (error) {
+    return internalError({ res, error });
+  }
+};
+
+export const bulkDeleteGamesController = async (
+  req: Request,
+  res: Response,
+) => {
+  const userId = getUserId(req)!;
+  const { gameIds }: BulkDeleteGamesInput = req.body;
+
+  try {
+    const deletedCount = await bulkDeleteGames(userId, gameIds);
+    return successResponse({
+      res,
+      message: `Successfully deleted ${deletedCount} games`,
+      data: { deletedCount },
+    });
+  } catch (error) {
+    return internalError({ res, error });
+  }
+};

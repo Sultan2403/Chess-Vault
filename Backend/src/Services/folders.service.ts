@@ -24,7 +24,13 @@ export const getUserFolders = async (
   ]);
 
   return {
-    folders,
+    folders: folders.map((f) => {
+      const { _id, __v, ...rest } = f;
+      return {
+        id: _id.toString(),
+        ...rest,
+      };
+    }),
     total,
     page: pageNumber,
     limit: limitNumber,
@@ -33,7 +39,10 @@ export const getUserFolders = async (
 };
 
 export const getFolderById = async (id: string, userId: string) => {
-  return await Folders.findOne({ _id: id, userId }).lean();
+  const folder = await Folders.findOne({ _id: id, userId }).lean();
+  if (!folder) return null;
+  const { _id, __v, ...rest } = folder;
+  return { id: _id.toString(), ...rest };
 };
 
 export const createFolder = async (payload: CreateFolderInput) => {
@@ -51,7 +60,9 @@ export const updateFolder = async (
     { $set: payload },
     { returnDocument: "after", runValidators: true },
   ).lean();
-  return folder;
+  if (!folder) return null;
+  const { _id, __v, ...rest } = folder;
+  return { id: _id.toString(), ...rest };
 };
 
 export const deleteFolder = async (id: string, userId: string) => {

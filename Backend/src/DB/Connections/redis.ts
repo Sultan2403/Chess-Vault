@@ -15,7 +15,7 @@ redisClient.on("connect", () => {
 });
 
 redisClient.on("error", (err) => {
-  logger.error({ err }, "Redis connection error");
+  logger.error({ err }, "Redis error");
 });
 
 export default redisClient;

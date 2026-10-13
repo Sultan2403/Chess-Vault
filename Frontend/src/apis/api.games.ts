@@ -4,6 +4,8 @@ import type {
   ImportGamesParams,
   GameSearchParams,
   UpdateGameInput,
+  BulkAddFolderIdsInput,
+  BulkDeleteGamesInput,
 } from "@chess-vault/shared";
 import api from "./api.client";
 
@@ -35,6 +37,18 @@ export interface DeleteGameResponse {
   message?: string;
 }
 
+
+export interface BulkAddFolderIdsResponse {
+  success: boolean;
+  message: string;
+  data: { modifiedCount: number };
+}
+
+export interface BulkDeleteGamesResponse {
+  success: boolean;
+  message: string;
+  data: { deletedCount: number };
+}
 const gamesApi = {
   getGames: (params?: SearchGamesParams): Promise<SearchGamesResponse> =>
     api.get("/games", { params }),
@@ -49,6 +63,12 @@ const gamesApi = {
 
   importGames: (data: FrontendImportGamesPayload): Promise<ImportResult> =>
     api.post("/games/import", data),
+
+  bulkAddFolderIds: (data: BulkAddFolderIdsInput): Promise<BulkAddFolderIdsResponse> =>
+    api.post("/games/bulk/folders", data),
+
+  bulkDeleteGames: (data: BulkDeleteGamesInput): Promise<BulkDeleteGamesResponse> =>
+    api.post("/games/bulk/delete", data),
 };
 
 export default gamesApi;

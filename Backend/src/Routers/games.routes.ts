@@ -6,12 +6,16 @@ import {
   searchGamesController,
   updateGameController,
   deleteGameController,
+  bulkAddFolderIdsController,
+  bulkDeleteGamesController,
 } from "../Controllers/games.controller";
 import {
   gameParams,
   importGamesParams,
   searchGamesQuery,
   updateGameBody,
+  bulkAddFolderIdsSchema,
+  bulkDeleteGamesSchema,
 } from "../Schemas/games.schema";
 
 const router = Router();
@@ -20,6 +24,18 @@ router.get(
   "/",
   validate({ query: searchGamesQuery }) as any,
   searchGamesController,
+);
+
+router.post(
+  "/bulk/folders",
+  validate({ body: bulkAddFolderIdsSchema }),
+  bulkAddFolderIdsController,
+);
+
+router.post(
+  "/bulk/delete",
+  validate({ body: bulkDeleteGamesSchema }),
+  bulkDeleteGamesController,
 );
 
 router.get(
