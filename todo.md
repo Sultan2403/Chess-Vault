@@ -61,7 +61,6 @@
 
 ### Game Viewer (post-refactor tasks)
 
-- **Real folder names in `MatchFilePanel`:** Currently shows "In N collection(s)" count. To show real names, backend needs a multi-ID folder lookup endpoint (e.g. `GET /folders?ids[]=...`). Once supported, replace count with real folder name chips.
 - **/ Replay Split View modals:** Replace stub buttons with proper modals (alerts were removed in refactor)
 - **Stockfish WASM eval bar:** The UI for the bar needs a rework honestly. 
 
