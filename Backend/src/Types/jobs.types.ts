@@ -6,3 +6,7 @@ export type ImportJobData = {
   platform: PlatformType;
   folderIds: string[] | null;
 };
+
+export type PurgeUserJobData = {
+  userId: string;
+};

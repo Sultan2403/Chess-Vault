@@ -6,7 +6,8 @@ import http from "http";
 import { logger } from "./Config/logger";
 import connectDB from "./DB/Connections/mongo";
 import { initSocket } from "./Sockets/socket";
-import "./Jobs/import.worker"; // Side-effect: registers BullMQ worker on boot
+import { importWorker } from "./Jobs/import.worker"; // registers BullMQ workers on boot
+import { purgeWorker } from "./Jobs/purge.worker";
 
 connectDB();
 
@@ -35,8 +36,11 @@ process.on("uncaughtException", (error) => {
   });
 });
 
-const shutdown = (signal: string) => {
+const shutdown = async (signal: string) => {
   logger.info({ signal }, "Shutting down server");
+
+  await Promise.all([importWorker.close(), purgeWorker.close()]);
+  logger.info("BullMQ workers closed");
 
   server.close(() => {
     logger.info("HTTP server closed");

@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { Webhook, WebhookRequiredHeaders } from "svix";
 import env from "../Config/env";
-import Accounts from "../DB/Models/accounts.model";
-import { CLERK_WEBHOOK_EVENTS } from "../Config/constants";
+import { CLERK_WEBHOOK_EVENTS, JOB_NAMES } from "../Config/constants";
 import { logger } from "../Config/logger";
 import { successResponse, errorResponse } from "../Utils";
+import { purgeUserQueue } from "../Jobs/purge.queue";
+import Accounts from "../DB/Models/accounts.model";
 
 export const handleClerkWebhook = async (req: Request, res: Response) => {
   const secret = env.CLERK_WEBHOOK_SECRET;
@@ -27,11 +28,17 @@ export const handleClerkWebhook = async (req: Request, res: Response) => {
       );
       logger.info({ userId }, "Game Bank initialized for user");
     } else if (evt.type === CLERK_WEBHOOK_EVENTS.USER_DELETED) {
-      // deleteOne is inherently idempotent (deleting non-existent record is a no-op)
-      await Accounts.deleteOne({ userId });
-
-      // TODO: Dispatch background job to purge user data such as their games and such (e.g. BullMQ / RabbitMQ)
-      logger.info({ userId }, "Account removed for user");
+      await purgeUserQueue.add(
+        JOB_NAMES.PURGE_USER,
+        { userId },
+        {
+          jobId: `purge_user_${userId}`,
+          attempts: 5,
+          backoff: { type: "exponential", delay: 5000 },
+          removeOnComplete: { count: 100 },
+        },
+      );
+      logger.info({ userId }, "User data purge queued");
     }
 
     return successResponse({ res });
