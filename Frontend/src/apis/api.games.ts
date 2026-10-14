@@ -41,13 +41,13 @@ export interface DeleteGameResponse {
 export interface BulkAddFolderIdsResponse {
   success: boolean;
   message: string;
-  data: { modifiedCount: number };
+  modifiedCount: number;
 }
 
 export interface BulkDeleteGamesResponse {
   success: boolean;
   message: string;
-  data: { deletedCount: number };
+  deletedCount: number;
 }
 const gamesApi = {
   getGames: (params?: SearchGamesParams): Promise<SearchGamesResponse> =>

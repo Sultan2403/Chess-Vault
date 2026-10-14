@@ -6,11 +6,11 @@ import {
   getUserFolders,
   updateFolder,
 } from "../Services/folders.service";
-import { getUserId } from "../Utils";
-import { parsePositiveInt } from "../Utils";
+import { getUserId, parsePositiveInt } from "../Utils";
 import {
   successResponse,
-  errorResponse,
+  createdResponse,
+  notFoundResponse,
   internalError,
 } from "../Utils";
 
@@ -24,7 +24,7 @@ export const listFoldersController = async (req: Request, res: Response) => {
     const pagination = await getUserFolders(userId, page, limit);
     return successResponse({ res, data: { ...pagination } });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to list folders" });
   }
 };
 
@@ -34,9 +34,13 @@ export const createFolderController = async (req: Request, res: Response) => {
 
   try {
     const folder = await createFolder({ name, description, userId });
-    return successResponse({ res, statusCode: 201, data: { folder } });
+    return createdResponse({
+      res,
+      message: "Folder created successfully",
+      data: { folder },
+    });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to create folder" });
   }
 };
 
@@ -47,15 +51,11 @@ export const getFolderController = async (req: Request, res: Response) => {
   try {
     const folder = await getFolderById(id, userId);
     if (!folder) {
-      return errorResponse({
-        res,
-        statusCode: 404,
-        message: "Folder not found",
-      });
+      return notFoundResponse({ res, message: "Folder not found" });
     }
     return successResponse({ res, data: { folder } });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to retrieve folder" });
   }
 };
 
@@ -67,15 +67,15 @@ export const updateFolderController = async (req: Request, res: Response) => {
   try {
     const folder = await updateFolder(id, userId, { name, description });
     if (!folder) {
-      return errorResponse({
-        res,
-        statusCode: 404,
-        message: "Folder not found",
-      });
+      return notFoundResponse({ res, message: "Folder not found" });
     }
-    return successResponse({ res, data: { folder } });
+    return successResponse({
+      res,
+      message: "Folder updated successfully",
+      data: { folder },
+    });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to update folder" });
   }
 };
 
@@ -86,14 +86,10 @@ export const deleteFolderController = async (req: Request, res: Response) => {
   try {
     const deleted = await deleteFolder(id, userId);
     if (!deleted) {
-      return errorResponse({
-        res,
-        statusCode: 404,
-        message: "Folder not found",
-      });
+      return notFoundResponse({ res, message: "Folder not found" });
     }
-    return successResponse({ res });
+    return successResponse({ res, message: "Folder deleted successfully" });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to delete folder" });
   }
 };

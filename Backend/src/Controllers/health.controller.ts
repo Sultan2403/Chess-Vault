@@ -43,7 +43,6 @@ export const healthCheckController = async (_req: Request, res: Response) => {
 
   return successResponse({
     res,
-    statusCode: 200,
     message: "Server is healthy",
     data: healthData,
   });

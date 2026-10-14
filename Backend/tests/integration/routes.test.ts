@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import mongoose from "mongoose";
 import request from "supertest";
 
-// Mock the redis module before app is imported so the health controller
-// receives a mock client. By default ping rejects (simulates no connection).
-const mockPing = vi.fn().mockRejectedValue(new Error("Redis not available"));
+const { mockPing } = vi.hoisted(() => ({
+  mockPing: vi.fn().mockRejectedValue(new Error("Redis not available")),
+}));
+
 vi.mock("../../src/DB/Connections/redis", () => ({
   default: {
     ping: mockPing,

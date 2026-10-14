@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import { getUserId } from "../Utils";
 import {
   successResponse,
-  errorResponse,
+  badRequestResponse,
+  notFoundResponse,
   internalError,
 } from "../Utils";
 import {
@@ -22,7 +23,7 @@ export const getAccountBootstrapController = async (
     const bootstrap = await getAccountBootstrap(getUserId(req)!);
     return successResponse({ res, data: { ...bootstrap } });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to load account data" });
   }
 };
 
@@ -37,16 +38,19 @@ export const connectLinkedAccountsController = async (
     );
     const { success, message, ...data } = result;
     if (success) {
-      return successResponse({ res, message, data });
+      return successResponse({
+        res,
+        message: message || "Accounts connected successfully",
+        data,
+      });
     }
-    return errorResponse({
+    return badRequestResponse({
       res,
-      statusCode: 400,
       message: message || "Failed to connect accounts",
       data,
     });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to connect accounts" });
   }
 };
 
@@ -62,16 +66,19 @@ export const verifyLinkedAccountController = async (
     );
     const { success, message, ...data } = result;
     if (success) {
-      return successResponse({ res, message, data });
+      return successResponse({
+        res,
+        message: message || "Account verified successfully",
+        data,
+      });
     }
-    return errorResponse({
+    return badRequestResponse({
       res,
-      statusCode: 400,
       message: message || "Failed to verify account",
       data,
     });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to verify account" });
   }
 };
 
@@ -85,21 +92,19 @@ export const syncLinkedAccountController = async (
       getUserId(req)!,
     );
     if (!result) {
-      return errorResponse({
+      return notFoundResponse({
         res,
-        statusCode: 404,
         message: "Linked account not found",
       });
     }
     if (result.success) {
       return successResponse({ res, message: result.message });
     }
-    return errorResponse({
+    return badRequestResponse({
       res,
-      statusCode: 500,
       message: result.message || "Failed to sync account",
     });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to sync account" });
   }
 };

@@ -14,7 +14,11 @@ import {
   BulkDeleteGamesInput,
 } from "../Types/games.types";
 import { getUserId } from "../Utils";
-import { successResponse, errorResponse, internalError } from "../Utils";
+import {
+  successResponse,
+  notFoundResponse,
+  internalError,
+} from "../Utils";
 import { importQueue } from "../Jobs/import.queue";
 import { JOB_NAMES } from "../Config/constants";
 
@@ -22,18 +26,23 @@ export const importGamesController = async (req: Request, res: Response) => {
   const userId = getUserId(req)!;
   const { folderIds, platform, username }: ImportGamesParams = req.body;
 
-  const job = await importQueue.add(`${JOB_NAMES.IMPORT}_${platform}`, {
-    userId,
-    username,
-    platform,
-    folderIds: folderIds ?? null,
-  });
+  try {
+    const job = await importQueue.add(`${JOB_NAMES.IMPORT}_${platform}`, {
+      userId,
+      username,
+      platform,
+      folderIds: folderIds ?? null,
+    });
 
-  return res.status(202).json({
-    success: true,
-    message: "Import started",
-    jobId: job.id,
-  });
+    return successResponse({
+      res,
+      statusCode: 202,
+      message: "Import started",
+      data: { jobId: job.id },
+    });
+  } catch (error) {
+    return internalError({ res, error, message: "Failed to queue game import" });
+  }
 };
 
 export const searchGamesController = async (req: Request, res: Response) => {
@@ -44,9 +53,9 @@ export const searchGamesController = async (req: Request, res: Response) => {
       userId,
       ...(req.query as any),
     });
-    return res.status(200).json(result);
+    return successResponse({ res, data: result });
   } catch (error: any) {
-    return internalError({ res, error, message: error?.message });
+    return internalError({ res, error, message: "Failed to search games" });
   }
 };
 
@@ -57,15 +66,11 @@ export const getGameController = async (req: Request, res: Response) => {
   try {
     const game = await getGameById(id, userId);
     if (!game) {
-      return errorResponse({
-        res,
-        statusCode: 404,
-        message: "Game not found",
-      });
+      return notFoundResponse({ res, message: "Game not found" });
     }
     return successResponse({ res, data: { game } });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to retrieve game" });
   }
 };
 
@@ -77,15 +82,15 @@ export const updateGameController = async (req: Request, res: Response) => {
   try {
     const game = await updateGame(id, userId, updateData);
     if (!game) {
-      return errorResponse({
-        res,
-        statusCode: 404,
-        message: "Game not found",
-      });
+      return notFoundResponse({ res, message: "Game not found" });
     }
-    return successResponse({ res, data: { game } });
+    return successResponse({
+      res,
+      message: "Game updated successfully",
+      data: { game },
+    });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to update game" });
   }
 };
 
@@ -96,15 +101,11 @@ export const deleteGameController = async (req: Request, res: Response) => {
   try {
     const deleted = await deleteGame(id, userId);
     if (!deleted) {
-      return errorResponse({
-        res,
-        statusCode: 404,
-        message: "Game not found",
-      });
+      return notFoundResponse({ res, message: "Game not found" });
     }
     return successResponse({ res, message: "Game deleted successfully" });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to delete game" });
   }
 };
 
@@ -123,7 +124,7 @@ export const bulkAddFolderIdsController = async (
       data: { modifiedCount },
     });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to add games to collections" });
   }
 };
 
@@ -142,6 +143,6 @@ export const bulkDeleteGamesController = async (
       data: { deletedCount },
     });
   } catch (error) {
-    return internalError({ res, error });
+    return internalError({ res, error, message: "Failed to delete games" });
   }
 };
