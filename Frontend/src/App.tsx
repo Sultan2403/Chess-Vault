@@ -12,26 +12,27 @@ import OnboardingPage from "./pages/OnboardingPage";
 import { OnboardingGate, ProtectedAppGate } from "./components/auth/AppGate";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import NotFoundPage from "./pages/NotFoundPage";
+import { ErrorBanner } from "./components/ui/ErrorBanner";
 
 function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/sign-in/*" element={<AuthPage mode="sign-in" />} />
-        <Route path="/sign-up/*" element={<AuthPage mode="sign-up" />} />
-        <Route element={<OnboardingGate />}>
-          <Route path="/onboarding" element={<OnboardingPage />} />
-        </Route>
-        <Route element={<ProtectedAppGate />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/game-bank" element={<GameBankPage />} />
-          <Route path="/collections" element={<CollectionsPage />} />
-          <Route path="/collections/:id" element={<CollectionsPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/game/:id" element={<GameViewer />} />
-        </Route>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/sign-in/*" element={<AuthPage mode="sign-in" />} />
+          <Route path="/sign-up/*" element={<AuthPage mode="sign-up" />} />
+          <Route element={<OnboardingGate />}>
+            <Route path="/onboarding" element={<OnboardingPage />} />
+          </Route>
+          <Route element={<ProtectedAppGate />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/game-bank" element={<GameBankPage />} />
+            <Route path="/collections" element={<CollectionsPage />} />
+            <Route path="/collections/:id" element={<CollectionsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/game/:id" element={<GameViewer />} />
+          </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
         <Analytics />

@@ -520,11 +520,11 @@ export default function GameBankPage() {
               const displayCadence = `${game.time.timeClass}`;
               const displayPlatform = game.platform.toUpperCase();
               const displayResult =
-                game.result === "draw"
-                  ? "½ - ½"
-                  : game.result === "white"
-                    ? "1 - 0"
-                    : "0 - 1";
+                game.userResult === "win"
+                  ? "Win"
+                  : game.userResult === "loss"
+                    ? "Loss"
+                    : "Draw";
               const displayQuote =
                 game.notes || "Match sequence verified in permanent registry.";
               const displayDate = getGameDate(game, "MMM dd, yyyy");

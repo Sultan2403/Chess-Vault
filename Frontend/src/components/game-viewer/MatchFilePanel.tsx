@@ -1,8 +1,11 @@
-import type { Game } from "@chess-vault/shared";
+import type { Game, Folder } from "@chess-vault/shared";
 import { getGameDate, parseOpeningDetails, formatTimeControl } from "../../utils/game";
+
+const MAX_VISIBLE_FOLDERS = 3;
 
 type MatchFilePanelProps = {
   game: Game;
+  matchedFolders?: Folder[];
 };
 
 function capitalizeTermination(termination: Game["termination"]): string {
@@ -12,7 +15,7 @@ function capitalizeTermination(termination: Game["termination"]): string {
     .join(" ") : "N/A";
 }
 
-export function MatchFilePanel({ game }: MatchFilePanelProps) {
+export function MatchFilePanel({ game, matchedFolders }: MatchFilePanelProps) {
   const { eco, opening, variation } = parseOpeningDetails(game);
   const subtitle = [opening, variation].filter(Boolean).join(": ");
   const collectionCount = game.folderIds?.length ?? 0;
@@ -24,6 +27,9 @@ export function MatchFilePanel({ game }: MatchFilePanelProps) {
     game.result === "draw"
       ? "text-vault-text-secondary border-vault-border-interactive"
       : "text-vault-win border-vault-win/20";
+
+  const visibleFolders = matchedFolders?.slice(0, MAX_VISIBLE_FOLDERS) ?? [];
+  const overflowCount = (matchedFolders?.length ?? 0) - visibleFolders.length;
 
   return (
     <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-6 font-mono text-xs">
@@ -76,9 +82,30 @@ export function MatchFilePanel({ game }: MatchFilePanelProps) {
       </div>
 
       {/* Collections */}
-      <div className="mt-5 border-t border-vault-border-base pt-4 flex items-center gap-2">
-        <span className="text-vault-text-muted text-[10px] uppercase">Collections:</span>
-        {collectionCount > 0 ? (
+      <div className="mt-5 border-t border-vault-border-base pt-4">
+        <span className="text-vault-text-muted text-[10px] uppercase block mb-2">Collections</span>
+        {matchedFolders && matchedFolders.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {visibleFolders.map((folder) => (
+              <span
+                key={folder.id}
+                className="rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 px-2 py-0.5 text-vault-text-secondary text-[11px] truncate max-w-[160px]"
+                title={folder.name}
+              >
+                {folder.name}
+              </span>
+            ))}
+            {overflowCount > 0 && (
+              <span className="rounded-xs border border-vault-border-base bg-vault-surface-layer-1 px-2 py-0.5 text-vault-text-muted text-[11px]">
+                +{overflowCount} more
+              </span>
+            )}
+          </div>
+        ) : matchedFolders ? (
+          // matchedFolders loaded but empty — game is not in any collection
+          <span className="text-vault-text-muted text-[11px] italic">Not in any collection</span>
+        ) : collectionCount > 0 ? (
+          // folders still loading — fall back to count so there's no empty flash
           <span className="rounded-xs border border-vault-border-interactive bg-vault-surface-layer-2 px-2 py-0.5 text-vault-text-secondary text-[11px]">
             In {collectionCount} collection{collectionCount !== 1 ? "s" : ""}
           </span>

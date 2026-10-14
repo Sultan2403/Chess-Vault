@@ -3,6 +3,7 @@ import { useParams, NavLink } from "react-router-dom";
 import { useUser } from "@clerk/react";
 
 import { useGame } from "../hooks/useGames";
+import { useFolders } from "../hooks/useFolders";
 import { useParsedGame } from "../hooks/useParsedGame";
 import { getCapturedPieces } from "../utils/game";
 import { useStockfish } from "../hooks/useStockfish";
@@ -29,6 +30,14 @@ export default function GameViewer() {
 
   const { data, isLoading, isError, error, refetch } = useGame(id ?? "");
   const currentGame = data?.game;
+
+  const { data: foldersData } = useFolders();
+  const matchedFolders = useMemo(() => {
+    const folderIds = currentGame?.folderIds;
+    if (!folderIds || folderIds.length === 0 || !foldersData?.folders) return [];
+    const idSet = new Set(folderIds);
+    return foldersData.folders.filter((f) => idSet.has(f.id));
+  }, [currentGame?.folderIds, foldersData?.folders]);
 
   const { fens, parsedMoves, parseError, moveHistory } = useParsedGame(
     currentGame?.pgn ?? "",
@@ -278,7 +287,7 @@ export default function GameViewer() {
 
             {/* Right column: match file, notation, reflection, actions */}
             <div className="min-w-0 space-y-6">
-              <MatchFilePanel game={currentGame} />
+              <MatchFilePanel game={currentGame} matchedFolders={matchedFolders} />
 
               <NotationLedger
                 parsedMoves={parsedMoves}
