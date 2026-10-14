@@ -5,7 +5,7 @@
 
 ## Overall
 
-- I actually wanted to do CI but I'm hungry rn. Hopefully we'll do that later. Anyways I think we've modified the game model enough to support a huge ton of features and render some useful things on the UI so.... BACK TO FRONTEND BRO!!!!!! I'M SERIOUS! lol. 
+- I actually wanted to do CI but I'm hungry rn. Hopefully we'll do that later. Anyways I think we've modified the game model enough to support a huge ton of features and render some useful things on the UI so.... BACK TO FRONTEND BRO!!!!!! I'M SERIOUS! lol.
 - Once it's time, make evrything in the app account oriented. For examples max-games should be per account from `Account.plan.gameBankLimit`. Similarly for analysis minutes and such.
 
 - Investigate game storage as some games get past the game cap.
@@ -39,16 +39,16 @@
 
 - Maybe add best moves and better moves and such to game viewer?
 
-- Btw we might need a way to find brilliant moves and all that stuff. Hm game review? 
+- Btw we might need a way to find brilliant moves and all that stuff. Hm game review?
 
-- Folder creation and stuff should use modals. 
+- Folder creation and stuff should use modals.
 
 - Error banner just feels a bit too bland. Fix that
 
 - Make the UI feel more alive with subtle interactive animations and motion polish across auth, dashboard, and key flows (Dashboard + GameViewer done; auth pages and other surfaces still pending)
 - Add a branded logo or visual identity treatment to auth pages and major app surfaces
 
-- Make notation ledger view and all way better and user friendly on mobile. 
+- Make notation ledger view and all way better and user friendly on mobile.
 
 - Theres a minor bug in the frontemd that makes pages feel slow. I think the issue is in how the components are rendered. Probably the react query hooks fetch in the bg before the ui actually updates or sumthing idk but it makes the app feel slow and is bad for ux.
 
@@ -60,7 +60,7 @@
 ### Game Viewer (post-refactor tasks)
 
 - **/ Replay Split View modals:** Replace stub buttons with proper modals (alerts were removed in refactor)
-- **Stockfish WASM eval bar:** The UI for the bar needs a rework honestly. 
+- **Stockfish WASM eval bar:** The UI for the bar needs a rework honestly.
 
 ### Later tasks (Project maintenance)
 
