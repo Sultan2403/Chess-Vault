@@ -4,6 +4,11 @@
 - Backend is done ig... I can't find any more excuses not to work on the client side lol so...
 - Finalize if user data should be purged asap or after a grace period and so on. Right now, user data is purged asap and it should probably remain like that. 
 
+## Up next
+
+- Finish the import flow end to end
+- Rework the UI to something that represents the app.
+
 ## Overall
 
 - I actually wanted to do CI but I'm hungry rn. Hopefully we'll do that later. Anyways I think we've modified the game model enough to support a huge ton of features and render some useful things on the UI so.... BACK TO FRONTEND BRO!!!!!! I'M SERIOUS! lol.
