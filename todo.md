@@ -46,7 +46,7 @@
 - Make the UI feel more alive with subtle interactive animations and motion polish across auth, dashboard, and key flows (Dashboard + GameViewer done; auth pages and other surfaces still pending)
 - Add a branded logo or visual identity treatment to auth pages and major app surfaces
 
-- Maybe change the notation ledger in the frontend when on mobile for better ux. Like the notation ledger should become horizontal so users can see moves without having to scroll and all. 
+- Make notation ledger view and all way better and user friendly on mobile. 
 
 - Theres a minor bug in the frontemd that makes pages feel slow. I think the issue is in how the components are rendered. Probably the react query hooks fetch in the bg before the ui actually updates or sumthing idk but it makes the app feel slow and is bad for ux.
 
@@ -58,8 +58,7 @@
 ### Game Viewer (post-refactor tasks)
 
 - **Real folder names in `MatchFilePanel`:** Currently shows "In N collection(s)" count. To show real names, backend needs a multi-ID folder lookup endpoint (e.g. `GET /folders?ids[]=...`). Once supported, replace count with real folder name chips.
-- **Move to Collection modal:** Replace the stub button in `GameActionsPanel` with a real folder-assignment modal
-- **Share / Replay Split View modals:** Replace stub buttons with proper modals (alerts were removed in refactor)
+- **/ Replay Split View modals:** Replace stub buttons with proper modals (alerts were removed in refactor)
 - **Stockfish WASM eval bar:** The UI for the bar needs a rework honestly. 
 
 ### Later tasks (Project maintenance)

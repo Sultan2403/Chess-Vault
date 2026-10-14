@@ -437,7 +437,16 @@ export const bulkAddFolderIds = async (
 
   const result = await Games.updateMany(
     { _id: { $in: gameObjectIds }, userId },
-    { $addToSet: { folderIds: { $each: folderObjectIds } } },
+    [
+      {
+        $set: {
+          folderIds: {
+            $setUnion: [{ $ifNull: ["$folderIds", []] }, folderObjectIds],
+          },
+        },
+      },
+    ],
+    { updatePipeline: true },
   );
 
   return result.modifiedCount;
