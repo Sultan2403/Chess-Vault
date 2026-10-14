@@ -1,8 +1,8 @@
 import { getWhiteWinPercentage } from "../../utils/stockfish";
 
-type EvalBarProps = { evalCp: number | null; mate: number | null; depth: number; isAnalyzing: boolean };
+type EvalBarProps = { evalCp: number | null; mate: number | null; depth: number; };
 
-export function EvalBar({ evalCp, mate, depth, isAnalyzing }: EvalBarProps) {
+export function EvalBar({ evalCp, mate, depth }: EvalBarProps) {
   const evalValue = mate !== null ? (mate === 0 ? "#0" : `#${mate}`) : evalCp === null ? "—" : `${evalCp > 0 ? "+" : ""}${(evalCp / 100).toFixed(2)}`;
   const score = mate ?? evalCp ?? 0;
   const scoreColor = score > 0 ? "text-vault-win" : score < 0 ? "text-vault-loss" : "text-vault-text-muted";
@@ -18,7 +18,7 @@ export function EvalBar({ evalCp, mate, depth, isAnalyzing }: EvalBarProps) {
         />
       </div>
       <span className="text-[8px] text-vault-text-muted [writing-mode:vertical-rl] rotate-180">
-        {isAnalyzing && depth === 0 ? "Analyzing…" : `D${depth}`}
+        {`D${depth}`}
       </span>
     </div>
   );

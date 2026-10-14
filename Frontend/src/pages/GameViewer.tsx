@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, NavLink } from "react-router-dom";
 import { useUser } from "@clerk/react";
-
 import { useGame } from "../hooks/useGames";
 import { useFolders } from "../hooks/useFolders";
 import { useParsedGame } from "../hooks/useParsedGame";
@@ -256,7 +255,7 @@ export default function GameViewer() {
                   activeMoveLabel={activeMoveLabel}
                   isPlaying={isPlaying}
                 />
-                <EvalBar evalCp={evalCp} mate={mate} depth={depth} isAnalyzing={isAnalyzing} />
+                <EvalBar evalCp={evalCp} mate={mate} depth={depth} />
               </div>
 
               {/* Player (white) at bottom — swapped if user played black */}

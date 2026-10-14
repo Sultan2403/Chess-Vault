@@ -37,8 +37,6 @@
 
 - Btw bro if you're gonna test this app then test it all over the place. the error screens, the fallbacks, the minor things, the tiny ux quirks everywhere. Don't just half-ass it and say "meh, good enough". Lol i know it's frontend but push through bro :)
 
-- Rename search ui to be filtering by win loss or draw instead of numbers like 1-0, 0-1, and 0-0
-
 - Maybe add best moves and better moves and such to game viewer?
 
 - Btw we might need a way to find brilliant moves and all that stuff. Hm game review? 
