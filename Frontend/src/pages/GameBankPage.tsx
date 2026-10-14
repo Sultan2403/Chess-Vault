@@ -17,8 +17,9 @@ import {
 import { Button } from "../components/ui/Button";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
-import { useGames, useBulkDeleteGames } from "../hooks/useGames";
+import { useGames } from "../hooks/useGames";
 import { BulkAddToFolderModal } from "../components/game-bank/BulkAddToFolderModal";
+import { PurgeGamesModal } from "../components/game-bank/PurgeGamesModal";
 import { useFolders } from "../hooks/useFolders";
 import { parseOpeningDetails, getGameDate, getMoveCount } from "../utils/game";
 
@@ -48,7 +49,7 @@ export default function GameBankPage() {
   );
   const [currentPage, setCurrentPage] = useState(1);
   const [isMoveToCollectionOpen, setIsMoveToCollectionOpen] = useState(false);
-  const bulkDeleteMutation = useBulkDeleteGames();
+  const [isPurgeModalOpen, setIsPurgeModalOpen] = useState(false);
 
   // Queries
   const platformParam =
@@ -131,20 +132,9 @@ export default function GameBankPage() {
     URL.revokeObjectURL(url);
   };
 
-  const handlePurgeSelected = async () => {
+  const handlePurgeSelected = () => {
     if (selectedGameIds.size === 0) return;
-    const count = selectedGameIds.size;
-    if (!confirm(`Are you sure you want to permanently delete ${count} match${count === 1 ? "" : "es"} from your vault?`)) {
-      return;
-    }
-    try {
-      await bulkDeleteMutation.mutateAsync({
-        gameIds: Array.from(selectedGameIds),
-      });
-      setSelectedGameIds(new Set());
-    } catch {
-      alert("Failed to delete selected matches. Please try again.");
-    }
+    setIsPurgeModalOpen(true);
   };
 
   // Metrics
@@ -436,11 +426,11 @@ export default function GameBankPage() {
             <button
               type="button"
               onClick={handlePurgeSelected}
-              disabled={selectedGameIds.size === 0 || bulkDeleteMutation.isPending}
+              disabled={selectedGameIds.size === 0}
               className="flex items-center gap-1.5 text-vault-loss hover:text-vault-loss/80 disabled:opacity-40 transition-colors cursor-pointer"
             >
               <Trash2 size={13} />
-              <span>{bulkDeleteMutation.isPending ? "Purging..." : "Purge"}</span>
+              <span>Purge</span>
             </button>
           </div>
         </section>
@@ -713,6 +703,14 @@ export default function GameBankPage() {
         <BulkAddToFolderModal
           isOpen={isMoveToCollectionOpen}
           onClose={() => setIsMoveToCollectionOpen(false)}
+          gameIds={Array.from(selectedGameIds)}
+          onSuccess={() => setSelectedGameIds(new Set())}
+        />
+
+        {/* Purge Games Confirmation Modal */}
+        <PurgeGamesModal
+          isOpen={isPurgeModalOpen}
+          onClose={() => setIsPurgeModalOpen(false)}
           gameIds={Array.from(selectedGameIds)}
           onSuccess={() => setSelectedGameIds(new Set())}
         />
