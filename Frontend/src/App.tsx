@@ -12,7 +12,6 @@ import OnboardingPage from "./pages/OnboardingPage";
 import { OnboardingGate, ProtectedAppGate } from "./components/auth/AppGate";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import NotFoundPage from "./pages/NotFoundPage";
-import { ErrorBanner } from "./components/ui/ErrorBanner";
 
 function App() {
   return (

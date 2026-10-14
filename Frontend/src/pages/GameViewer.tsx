@@ -50,7 +50,7 @@ export default function GameViewer() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isAudioMuted, setIsAudioMuted] = useState(true);
   const currentFen = fens[currentMoveIdx] ?? "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  const { evalCp, mate, depth, isAnalyzing } = useStockfish(currentFen);
+  const { evalCp, mate, depth } = useStockfish(currentFen);
 
   // Set board orientation from the game's persisted userPlayedAs once loaded
   useEffect(() => {
