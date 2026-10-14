@@ -14,7 +14,7 @@ import chessComApi from "../Api/chess_com.api";
 import lichessApi from "../Api/lichess.api";
 import Accounts from "../DB/Models/accounts.model";
 import LinkedAccounts from "../DB/Models/linked_accounts.model";
-import { importGames } from "./games.service";
+
 
 const toAccount = (account: any): Account => {
   const { _id, __v, ...rest } = account;
@@ -188,23 +188,3 @@ export const connectLinkedAccounts = async (
   };
 };
 
-export const syncLinkedAccount = async (id: string, userId: string) => {
-  const linkedAccount = await LinkedAccounts.findOne({ _id: id, userId }).lean();
-  if (!linkedAccount) return null;
-
-  const result = await importGames({
-    userId,
-    platform: linkedAccount.platform as PlatformType,
-    username: linkedAccount.username,
-    folderIds: null,
-  });
-
-  if (result.success) {
-    await LinkedAccounts.updateOne(
-      { _id: linkedAccount._id, userId },
-      { $set: { lastSyncedAt: new Date() } },
-    );
-  }
-
-  return result;
-};

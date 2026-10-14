@@ -2,7 +2,14 @@ import { useState, useMemo } from "react";
 import { NavLink } from "react-router-dom";
 import { useUser } from "@clerk/react";
 import { motion } from "motion/react";
-import { ArrowRight, RefreshCw, FileCode, FolderPlus, Plus, Database } from "lucide-react";
+import {
+  ArrowRight,
+  RefreshCw,
+  FileCode,
+  FolderPlus,
+  Plus,
+  Database,
+} from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
@@ -13,9 +20,12 @@ import {
   usePlatformUsernames,
   useConnectLinkedAccounts,
   useVerifyLinkedAccount,
-  useSyncLinkedAccount,
 } from "../hooks/useAccount";
-import { getPlayerPerspective, parseOpeningDetails, getGameDate } from "../utils/game";
+import {
+  getPlayerPerspective,
+  parseOpeningDetails,
+  getGameDate,
+} from "../utils/game";
 import { OnboardingModal } from "../components/onboarding/OnboardingModal";
 import { BuildingVaultModal } from "../components/onboarding/BuildingVaultModal";
 import { Platforms } from "@chess-vault/shared";
@@ -26,8 +36,6 @@ export default function DashboardPage() {
 
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [isBuildingVaultOpen, setIsBuildingVaultOpen] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
   // Queries
   const {
@@ -49,7 +57,6 @@ export default function DashboardPage() {
 
   const connectMutation = useConnectLinkedAccounts();
   const verificationMutation = useVerifyLinkedAccount();
-  const syncMutation = useSyncLinkedAccount();
 
   // Metrics
   const gamesCount = gamesData?.pagination?.total ?? 0;
@@ -60,7 +67,8 @@ export default function DashboardPage() {
   // Live Connected Accounts
   const connectedAccounts = accountData?.linkedAccounts ?? [];
   const annotatedCount = useMemo(() => {
-    return (gamesData?.games ?? []).filter((g) => Boolean(g.notes || g.tags)).length;
+    return (gamesData?.games ?? []).filter((g) => Boolean(g.notes || g.tags))
+      .length;
   }, [gamesData?.games]);
 
   // Observations derived from real games
@@ -72,7 +80,10 @@ export default function DashboardPage() {
     let draws = 0;
     let losses = 0;
 
-    const openingMap: Record<string, { count: number; wins: number; name: string }> = {};
+    const openingMap: Record<
+      string,
+      { count: number; wins: number; name: string }
+    > = {};
 
     games.forEach((g) => {
       if (g.userResult === "win") wins++;
@@ -89,7 +100,9 @@ export default function DashboardPage() {
     });
 
     const total = games.length;
-    const sortedOpenings = Object.values(openingMap).sort((a, b) => b.count - a.count);
+    const sortedOpenings = Object.values(openingMap).sort(
+      (a, b) => b.count - a.count,
+    );
     const topOpening = sortedOpenings[0];
 
     return {
@@ -109,30 +122,6 @@ export default function DashboardPage() {
         : null,
     };
   }, [gamesData?.games, platformUsernames, user?.username]);
-
-  // Manual Force Sync trigger
-  const handleForceSync = async () => {
-    if (connectedAccounts.length === 0) {
-      setIsOnboardingOpen(true);
-      return;
-    }
-
-    setIsBuildingVaultOpen(true);
-    setIsSyncing(true);
-    setSyncFeedback(null);
-    try {
-      for (const account of connectedAccounts) {
-        await syncMutation.mutateAsync(account.id);
-      }
-      setSyncFeedback("Sync complete. Repositories up to date.");
-      setTimeout(() => setSyncFeedback(null), 4000);
-    } catch {
-      setSyncFeedback("Sync completed with cached index.");
-      setTimeout(() => setSyncFeedback(null), 4000);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   return (
     <>
@@ -161,7 +150,7 @@ export default function DashboardPage() {
               <RefreshCw
                 size={12}
                 className={
-                  isSyncing
+                  true
                     ? "animate-spin text-vault-bronze"
                     : "text-vault-text-muted"
                 }
@@ -278,9 +267,7 @@ export default function DashboardPage() {
               <span className="font-display text-3xl font-bold text-vault-text-primary">
                 {annotatedCount}
               </span>
-              <span className="font-mono text-xs text-vault-bronze">
-                noted
-              </span>
+              <span className="font-mono text-xs text-vault-bronze">noted</span>
             </div>
             <p className="mt-1 font-mono text-[11px] text-vault-text-muted">
               With user marginalia & notes
@@ -311,11 +298,14 @@ export default function DashboardPage() {
                   </span>
                 ))
               ) : (
-                <span className="text-vault-text-muted text-[11px]">PGN Ingestion</span>
+                <span className="text-vault-text-muted text-[11px]">
+                  PGN Ingestion
+                </span>
               )}
             </div>
             <p className="mt-2 font-mono text-[11px] text-vault-text-muted">
-              {connectedAccounts.length} connected source{connectedAccounts.length === 1 ? "" : "s"}
+              {connectedAccounts.length} connected source
+              {connectedAccounts.length === 1 ? "" : "s"}
             </p>
           </motion.div>
         </motion.section>
@@ -364,7 +354,8 @@ export default function DashboardPage() {
                 No Games Indexed Yet
               </h3>
               <p className="text-xs text-vault-text-secondary max-w-md mx-auto">
-                Connect your Chess.com or Lichess handle, or upload PGN files to populate your permanent match ledger.
+                Connect your Chess.com or Lichess handle, or upload PGN files to
+                populate your permanent match ledger.
               </p>
               <div className="pt-2 flex justify-center gap-3">
                 <Button
@@ -375,7 +366,10 @@ export default function DashboardPage() {
                   Connect Platforms
                 </Button>
                 <NavLink to="/game-bank">
-                  <Button variant="secondary" className="text-xs font-mono uppercase px-4 py-2">
+                  <Button
+                    variant="secondary"
+                    className="text-xs font-mono uppercase px-4 py-2"
+                  >
                     Upload PGN
                   </Button>
                 </NavLink>
@@ -395,9 +389,7 @@ export default function DashboardPage() {
               className="grid gap-6 md:grid-cols-3"
             >
               {recentGames.map((game) => {
-                const perspective = getPlayerPerspective(
-                  game
-                );
+                const perspective = getPlayerPerspective(game);
                 const { opening, variation, eco } = parseOpeningDetails(game);
 
                 const resultBadgeClasses =
@@ -422,7 +414,11 @@ export default function DashboardPage() {
                     key={game.id}
                     variants={{
                       hidden: { opacity: 0, y: 10 },
-                      visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+                      visible: {
+                        opacity: 1,
+                        y: 0,
+                        transition: { duration: 0.25 },
+                      },
                     }}
                     whileHover={{ y: -3 }}
                     transition={{ duration: 0.15 }}
@@ -431,77 +427,79 @@ export default function DashboardPage() {
                       to={`/game/${game.id}`}
                       className="block h-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-5 flex flex-col justify-between hover:border-vault-bronze hover:bg-vault-surface-layer-2/70 transition-all group cursor-pointer"
                     >
-                    <div>
-                      {/* Top Row: Result and Format */}
-                      <div className="flex items-center justify-between text-xs font-mono mb-4">
-                        <span
-                          className={`rounded-xs border px-2 py-0.5 font-bold ${resultBadgeClasses}`}
-                        >
-                          {resultBadgeText}
-                        </span>
-                        <span className="text-vault-text-muted">
-                          <span className="capitalize">{game.time.timeClass}</span> •{" "}
-                          {getGameDate(game, "MMM dd, yyyy")}
-                        </span>
-                      </div>
-
-                      {/* Mini Board Diagram */}
-                      <div className="my-3">
-                        <MiniChessboard
-                          fen={game.finalFen}
-                          orientation={perspective.playerColor}
-                          badgeLabel={resultBadgeText}
-                        />
-                      </div>
-
-                      {/* Players */}
-                      <div className="space-y-1 mt-4 text-xs font-mono">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span
-                              className={`h-2 w-2 rounded-full shrink-0 ${isCurrentUserWhite ? "bg-vault-bronze" : "bg-vault-text-muted"}`}
-                            />
-                            <span className="font-semibold text-vault-text-primary truncate">
-                              {game.whitePlayer.username}{" "}
-                              {isCurrentUserWhite ? "(You)" : ""}
-                            </span>
-                          </div>
-                          <span className="text-vault-text-secondary shrink-0 ml-2">
-                            {game.whitePlayer.rating}
+                      <div>
+                        {/* Top Row: Result and Format */}
+                        <div className="flex items-center justify-between text-xs font-mono mb-4">
+                          <span
+                            className={`rounded-xs border px-2 py-0.5 font-bold ${resultBadgeClasses}`}
+                          >
+                            {resultBadgeText}
+                          </span>
+                          <span className="text-vault-text-muted">
+                            <span className="capitalize">
+                              {game.time.timeClass}
+                            </span>{" "}
+                            • {getGameDate(game, "MMM dd, yyyy")}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span
-                              className={`h-2 w-2 rounded-full shrink-0 ${isCurrentUserBlack ? "bg-vault-bronze" : "bg-vault-border-interactive"}`}
-                            />
-                            <span className="font-semibold text-vault-text-primary truncate">
-                              {game.blackPlayer.username}{" "}
-                              {isCurrentUserBlack ? "(You)" : ""}
+
+                        {/* Mini Board Diagram */}
+                        <div className="my-3">
+                          <MiniChessboard
+                            fen={game.finalFen}
+                            orientation={perspective.playerColor}
+                            badgeLabel={resultBadgeText}
+                          />
+                        </div>
+
+                        {/* Players */}
+                        <div className="space-y-1 mt-4 text-xs font-mono">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span
+                                className={`h-2 w-2 rounded-full shrink-0 ${isCurrentUserWhite ? "bg-vault-bronze" : "bg-vault-text-muted"}`}
+                              />
+                              <span className="font-semibold text-vault-text-primary truncate">
+                                {game.whitePlayer.username}{" "}
+                                {isCurrentUserWhite ? "(You)" : ""}
+                              </span>
+                            </div>
+                            <span className="text-vault-text-secondary shrink-0 ml-2">
+                              {game.whitePlayer.rating}
                             </span>
                           </div>
-                          <span className="text-vault-text-secondary shrink-0 ml-2">
-                            {game.blackPlayer.rating}
-                          </span>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span
+                                className={`h-2 w-2 rounded-full shrink-0 ${isCurrentUserBlack ? "bg-vault-bronze" : "bg-vault-border-interactive"}`}
+                              />
+                              <span className="font-semibold text-vault-text-primary truncate">
+                                {game.blackPlayer.username}{" "}
+                                {isCurrentUserBlack ? "(You)" : ""}
+                              </span>
+                            </div>
+                            <span className="text-vault-text-secondary shrink-0 ml-2">
+                              {game.blackPlayer.rating}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Opening Title & Subline */}
-                    <div className="mt-4 pt-3 border-t border-vault-border-base flex items-center justify-between">
-                      <div className="truncate pr-2">
-                        <p className="font-mono text-[11px] text-vault-text-muted truncate">
-                          {eco ? `${eco} • ` : ""}
-                          {opening || game.title || "Archived Match"}{" "}
-                          {variation ? `(${variation})` : ""}
-                        </p>
+                      {/* Opening Title & Subline */}
+                      <div className="mt-4 pt-3 border-t border-vault-border-base flex items-center justify-between">
+                        <div className="truncate pr-2">
+                          <p className="font-mono text-[11px] text-vault-text-muted truncate">
+                            {eco ? `${eco} • ` : ""}
+                            {opening || game.title || "Archived Match"}{" "}
+                            {variation ? `(${variation})` : ""}
+                          </p>
+                        </div>
+                        <span className="text-vault-text-muted group-hover:text-vault-bronze transition-colors shrink-0 text-xs font-mono">
+                          Inspect →
+                        </span>
                       </div>
-                      <span className="text-vault-text-muted group-hover:text-vault-bronze transition-colors shrink-0 text-xs font-mono">
-                        Inspect →
-                      </span>
-                    </div>
-                  </NavLink>
-                </motion.div>
+                    </NavLink>
+                  </motion.div>
                 );
               })}
             </motion.div>
@@ -545,10 +543,14 @@ export default function DashboardPage() {
                   No Folders Created
                 </h4>
                 <p className="text-xs text-vault-text-secondary">
-                  Organize your opening repertoires and tournament monographs into curated folders.
+                  Organize your opening repertoires and tournament monographs
+                  into curated folders.
                 </p>
                 <NavLink to="/collections">
-                  <Button variant="secondary" className="text-xs font-mono uppercase px-3 py-1.5 mt-2">
+                  <Button
+                    variant="secondary"
+                    className="text-xs font-mono uppercase px-3 py-1.5 mt-2"
+                  >
                     <Plus size={12} className="mr-1" /> Create Folder
                   </Button>
                 </NavLink>
@@ -569,7 +571,8 @@ export default function DashboardPage() {
                             </h3>
                           </div>
                           <p className="mt-1 text-xs text-vault-text-secondary line-clamp-2 leading-relaxed">
-                            {folder.description || "Curated match monograph archive."}
+                            {folder.description ||
+                              "Curated match monograph archive."}
                           </p>
                           <span className="mt-3 block font-mono text-[9px] uppercase tracking-widest text-vault-text-muted">
                             Active Folder
@@ -607,7 +610,9 @@ export default function DashboardPage() {
                   </div>
                   <div className="mt-1 flex items-baseline justify-between">
                     <h3 className="font-display text-lg font-bold text-vault-text-primary">
-                      {observations.topOpening ? observations.topOpening.name : "Archived Tendency"}
+                      {observations.topOpening
+                        ? observations.topOpening.name
+                        : "Archived Tendency"}
                     </h3>
                     <span className="font-mono text-xs font-semibold text-vault-win">
                       {observations.winPct}% Score
@@ -641,7 +646,9 @@ export default function DashboardPage() {
                       />
                     </div>
                     <div className="mt-1.5 flex justify-between font-mono text-[10px] text-vault-text-muted">
-                      <span>{observations.wins} Wins ({observations.winPct}%)</span>
+                      <span>
+                        {observations.wins} Wins ({observations.winPct}%)
+                      </span>
                       <span>{observations.draws} Draws</span>
                       <span>{observations.losses} Losses</span>
                     </div>
@@ -649,7 +656,8 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="text-center py-6 text-vault-text-muted text-xs font-mono">
-                  Observations and opening tendencies will appear here once games are imported.
+                  Observations and opening tendencies will appear here once
+                  games are imported.
                 </div>
               )}
 
@@ -667,7 +675,8 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <p className="mt-1 text-xs text-vault-text-secondary font-sans leading-relaxed">
-                  Automatic background synchronization active for linked accounts.
+                  Automatic background synchronization active for linked
+                  accounts.
                 </p>
               </div>
             </div>
@@ -692,9 +701,9 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {syncFeedback && (
+            {true && (
               <span className="font-mono text-xs text-vault-win">
-                {syncFeedback}
+                {true}
               </span>
             )}
             <Button
@@ -706,11 +715,15 @@ export default function DashboardPage() {
             </Button>
             <Button
               variant="solid-bronze"
-              onClick={handleForceSync}
-              disabled={isSyncing}
+              onClick={() =>
+                alert(
+                  "his does nothing yet. Implementation coming soon (the feature probably shouldn't exist tho)",
+                )
+              }
+              disabled={true}
               className="font-mono text-xs uppercase"
             >
-              {isSyncing ? "Syncing..." : "Force Sync Now"}
+              {true ? "Syncing..." : "Force Sync Now"}
             </Button>
           </div>
         </section>

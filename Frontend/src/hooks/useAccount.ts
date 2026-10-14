@@ -42,14 +42,3 @@ export const useConnectLinkedAccounts = () => {
 export const useVerifyLinkedAccount = () =>
   useMutation({ mutationFn: accountApi.verifyLinkedAccount });
 
-export const useSyncLinkedAccount = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: accountApi.syncLinkedAccount,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.account.all });
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.games.lists() });
-    },
-  });
-};

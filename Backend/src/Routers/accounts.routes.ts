@@ -3,12 +3,10 @@ import validate from "express-zod-safe";
 import {
   connectLinkedAccountsController,
   getAccountBootstrapController,
-  syncLinkedAccountController,
   verifyLinkedAccountController,
 } from "../Controllers/accounts.controller";
 import {
   connectLinkedAccountsBody,
-  linkedAccountParams,
   linkedAccountInput,
 } from "../Schemas/accounts.schema";
 
@@ -24,11 +22,6 @@ router.post(
   "/linked-accounts/connect",
   validate({ body: connectLinkedAccountsBody }),
   connectLinkedAccountsController,
-);
-router.post(
-  "/linked-accounts/:id/sync",
-  validate({ params: linkedAccountParams }),
-  syncLinkedAccountController,
 );
 
 export default router;

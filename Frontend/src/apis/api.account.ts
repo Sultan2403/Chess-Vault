@@ -2,7 +2,6 @@ import type {
   AccountBootstrap,
   ConnectLinkedAccountsInput,
   ConnectLinkedAccountsResult,
-  ImportResult,
   PlatformType,
   VerifyLinkedAccountResult,
 } from "@chess-vault/shared";
@@ -24,9 +23,6 @@ const accountApi = {
     username: string;
   }): Promise<VerifyLinkedAccountResult> =>
     api.post("/account/linked-accounts/verify", data),
-
-  syncLinkedAccount: (id: string): Promise<ImportResult> =>
-    api.post(`/account/linked-accounts/${id}/sync`),
 };
 
 export default accountApi;

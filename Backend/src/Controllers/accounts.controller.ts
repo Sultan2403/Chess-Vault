@@ -3,13 +3,11 @@ import { getUserId } from "../Utils";
 import {
   successResponse,
   badRequestResponse,
-  notFoundResponse,
   internalError,
 } from "../Utils";
 import {
   connectLinkedAccounts,
   getAccountBootstrap,
-  syncLinkedAccount,
   verifyLinkedAccount,
 } from "../Services/accounts.service";
 import type { ConnectLinkedAccountsInput } from "@chess-vault/shared";
@@ -82,29 +80,3 @@ export const verifyLinkedAccountController = async (
   }
 };
 
-export const syncLinkedAccountController = async (
-  req: Request,
-  res: Response,
-) => {
-  try {
-    const result = await syncLinkedAccount(
-      String(req.params.id),
-      getUserId(req)!,
-    );
-    if (!result) {
-      return notFoundResponse({
-        res,
-        message: "Linked account not found",
-      });
-    }
-    if (result.success) {
-      return successResponse({ res, message: result.message });
-    }
-    return badRequestResponse({
-      res,
-      message: result.message || "Failed to sync account",
-    });
-  } catch (error) {
-    return internalError({ res, error, message: "Failed to sync account" });
-  }
-};
