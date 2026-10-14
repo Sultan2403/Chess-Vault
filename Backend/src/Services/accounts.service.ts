@@ -104,7 +104,7 @@ export const connectLinkedAccounts = async (
     getLinkedAccounts(userId),
   ]);
 
-  const limit = account.linkedAccountLimit;
+  const limit = account.plan.linkedAccountLimit;
   let availableSlots = Math.max(0, limit - existingLinkedAccounts.length);
 
   const existingKeys = new Set(
