@@ -99,6 +99,20 @@ export const connectLinkedAccounts = async (
   userId: string,
   { accounts }: ConnectLinkedAccountsInput,
 ): Promise<ConnectLinkedAccountsResult> => {
+  const [account, existingLinkedAccounts] = await Promise.all([
+    getAccount(userId),
+    getLinkedAccounts(userId),
+  ]);
+
+  const limit = account.linkedAccountLimit;
+  let availableSlots = Math.max(0, limit - existingLinkedAccounts.length);
+
+  const existingKeys = new Set(
+    existingLinkedAccounts.map(
+      (a) => `${a.platform}:${a.username.toLowerCase()}`,
+    ),
+  );
+
   const results: LinkedAccountConnectionResult[] = [];
 
   for (const requestedAccount of accounts) {
@@ -118,22 +132,37 @@ export const connectLinkedAccounts = async (
     }
 
     const normalizedUsername = verification.username.toLowerCase();
-    await LinkedAccounts.findOneAndUpdate(
-      {
-        userId,
+    const accountKey = `${requestedAccount.platform}:${normalizedUsername}`;
+
+    if (existingKeys.has(accountKey)) {
+      results.push({
         platform: requestedAccount.platform,
-        normalizedUsername,
-      },
-      {
-        $set: { username: verification.username },
-        $setOnInsert: {
-          userId,
-          platform: requestedAccount.platform,
-          normalizedUsername,
-        },
-      },
-      { returnDocument: "after", upsert: true, setDefaultsOnInsert: true },
-    ).lean();
+        username: verification.username,
+        success: false,
+        message: `This ${requestedAccount.platform} account is already linked.`,
+      });
+      continue;
+    }
+
+    if (availableSlots <= 0) {
+      results.push({
+        platform: requestedAccount.platform,
+        username: verification.username,
+        success: false,
+        message: `You have reached your limit of ${limit} linked account${limit !== 1 ? "s" : ""}.`,
+      });
+      continue;
+    }
+
+    await LinkedAccounts.create({
+      userId,
+      platform: requestedAccount.platform,
+      username: verification.username,
+      normalizedUsername,
+    });
+
+    availableSlots--;
+    existingKeys.add(accountKey);
 
     results.push({
       platform: requestedAccount.platform,
@@ -144,16 +173,18 @@ export const connectLinkedAccounts = async (
   }
 
   const successfulConnections = results.filter((result) => result.success);
-  const linkedAccounts = await getLinkedAccounts(userId);
+  const updatedLinkedAccounts = await getLinkedAccounts(userId);
 
   return {
     success: successfulConnections.length > 0,
     message:
       successfulConnections.length > 0
         ? "Your chess accounts have been connected."
-        : "We couldn't connect any of those accounts.",
+        : results.length === 1 && results[0]?.message
+          ? results[0].message
+          : "We couldn't connect any of those accounts.",
     results,
-    linkedAccounts,
+    linkedAccounts: updatedLinkedAccounts,
   };
 };
 

@@ -11,11 +11,17 @@ export const linkedAccountInput = z.object({
 
 export const connectLinkedAccountsBody = z
   .object({
-    accounts: z.array(linkedAccountInput).min(1).max(platformValues.length),
+    accounts: z.array(linkedAccountInput).min(1).max(10),
   })
   .refine(
-    ({ accounts }) => new Set(accounts.map((account) => account.platform)).size === accounts.length,
-    { message: "Only one username per platform can be connected at a time" },
+    ({ accounts }) =>
+      new Set(
+        accounts.map(
+          (account) =>
+            `${account.platform}:${account.username.trim().toLowerCase()}`,
+        ),
+      ).size === accounts.length,
+    { message: "Duplicate account in submission" },
   );
 
 export const linkedAccountParams = z.object({

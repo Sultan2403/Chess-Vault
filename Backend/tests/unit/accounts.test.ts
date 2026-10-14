@@ -99,7 +99,6 @@ describe("Accounts Service Unit Tests", () => {
 
   describe("connectLinkedAccounts", () => {
     it("should connect valid accounts and reject invalid ones in the same batch", async () => {
-      // Mock Chess.com success, Lichess 404
       vi.spyOn(chessComApi, "getPlayerProfile").mockResolvedValue({
         username: "Sultan2403",
       } as any);
@@ -107,24 +106,21 @@ describe("Accounts Service Unit Tests", () => {
         createAxiosError(404, "Not Found"),
       );
 
-      // Mock DB methods
-      vi.spyOn(LinkedAccounts, "findOneAndUpdate").mockReturnValue({
-        lean: vi.fn().mockResolvedValue({}),
+      vi.spyOn(Accounts, "findOneAndUpdate").mockReturnValue({
+        lean: vi.fn().mockResolvedValue({
+          _id: "65f1a2b3c4d5e6f7a8b9c0aa",
+          userId: "user_123",
+          linkedAccountLimit: 2,
+        }),
       } as any);
 
       vi.spyOn(LinkedAccounts, "find").mockReturnValue({
         sort: vi.fn().mockReturnValue({
-          lean: vi.fn().mockResolvedValue([
-            {
-              _id: "65f1a2b3c4d5e6f7a8b9c0d1",
-              userId: "user_123",
-              platform: "chess.com",
-              username: "Sultan2403",
-              normalizedUsername: "sultan2403",
-            },
-          ]),
+          lean: vi.fn().mockResolvedValue([]),
         }),
       } as any);
+
+      vi.spyOn(LinkedAccounts, "create").mockResolvedValue({} as any);
 
       const response = await connectLinkedAccounts("user_123", {
         accounts: [
@@ -147,7 +143,120 @@ describe("Accounts Service Unit Tests", () => {
         success: false,
         message: "No lichess account was found with that username.",
       });
-      expect(response.linkedAccounts).toHaveLength(1);
+    });
+
+    it("should reject adding an account if it is already linked", async () => {
+      vi.spyOn(chessComApi, "getPlayerProfile").mockResolvedValue({
+        username: "Sultan2403",
+      } as any);
+
+      vi.spyOn(Accounts, "findOneAndUpdate").mockReturnValue({
+        lean: vi.fn().mockResolvedValue({
+          _id: "65f1a2b3c4d5e6f7a8b9c0aa",
+          userId: "user_123",
+          linkedAccountLimit: 2,
+        }),
+      } as any);
+
+      vi.spyOn(LinkedAccounts, "find").mockReturnValue({
+        sort: vi.fn().mockReturnValue({
+          lean: vi.fn().mockResolvedValue([
+            {
+              _id: "65f1a2b3c4d5e6f7a8b9c0d1",
+              userId: "user_123",
+              platform: "chess.com",
+              username: "Sultan2403",
+              normalizedUsername: "sultan2403",
+            },
+          ]),
+        }),
+      } as any);
+
+      const response = await connectLinkedAccounts("user_123", {
+        accounts: [{ platform: "chess.com", username: "Sultan2403" }],
+      });
+
+      expect(response.success).toBe(false);
+      expect(response.results[0]).toEqual({
+        platform: "chess.com",
+        username: "Sultan2403",
+        success: false,
+        message: "This chess.com account is already linked.",
+      });
+    });
+
+    it("should reject connection when user reaches linkedAccountLimit", async () => {
+      vi.spyOn(chessComApi, "getPlayerProfile").mockResolvedValue({
+        username: "SecondAccount",
+      } as any);
+
+      vi.spyOn(Accounts, "findOneAndUpdate").mockReturnValue({
+        lean: vi.fn().mockResolvedValue({
+          _id: "65f1a2b3c4d5e6f7a8b9c0aa",
+          userId: "user_123",
+          linkedAccountLimit: 1, // Limit is 1, and user already has 1 account
+        }),
+      } as any);
+
+      vi.spyOn(LinkedAccounts, "find").mockReturnValue({
+        sort: vi.fn().mockReturnValue({
+          lean: vi.fn().mockResolvedValue([
+            {
+              _id: "65f1a2b3c4d5e6f7a8b9c0d1",
+              userId: "user_123",
+              platform: "chess.com",
+              username: "FirstAccount",
+              normalizedUsername: "firstaccount",
+            },
+          ]),
+        }),
+      } as any);
+
+      const response = await connectLinkedAccounts("user_123", {
+        accounts: [{ platform: "chess.com", username: "SecondAccount" }],
+      });
+
+      expect(response.success).toBe(false);
+      expect(response.results[0]).toEqual({
+        platform: "chess.com",
+        username: "SecondAccount",
+        success: false,
+        message: "You have reached your limit of 1 linked account.",
+      });
+    });
+
+    it("should allow connecting multiple accounts on the same platform within limit", async () => {
+      vi.spyOn(chessComApi, "getPlayerProfile")
+        .mockResolvedValueOnce({ username: "speedrun_1" } as any)
+        .mockResolvedValueOnce({ username: "speedrun_2" } as any);
+
+      vi.spyOn(Accounts, "findOneAndUpdate").mockReturnValue({
+        lean: vi.fn().mockResolvedValue({
+          _id: "65f1a2b3c4d5e6f7a8b9c0aa",
+          userId: "user_123",
+          linkedAccountLimit: 2,
+        }),
+      } as any);
+
+      vi.spyOn(LinkedAccounts, "find").mockReturnValue({
+        sort: vi.fn().mockReturnValue({
+          lean: vi.fn().mockResolvedValue([]),
+        }),
+      } as any);
+
+      const createSpy = vi.spyOn(LinkedAccounts, "create").mockResolvedValue({} as any);
+
+      const response = await connectLinkedAccounts("user_123", {
+        accounts: [
+          { platform: "chess.com", username: "speedrun_1" },
+          { platform: "chess.com", username: "speedrun_2" },
+        ],
+      });
+
+      expect(response.success).toBe(true);
+      expect(createSpy).toHaveBeenCalledTimes(2);
+      expect(response.results[0].success).toBe(true);
+      expect(response.results[1].success).toBe(true);
     });
   });
 
