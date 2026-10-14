@@ -105,11 +105,8 @@ export default function CollectionsPage() {
     let annotated = 0;
 
     games.forEach((g) => {
-      const p = getPlayerPerspective(
-        g
-      );
-      if (p.result === "win") wins++;
-      else if (p.result === "draw") draws++;
+      if (g.userResult === "win") wins++;
+      else if (g.userResult === "draw") draws++;
       else losses++;
 
       totalRating += (g.whitePlayer.rating + g.blackPlayer.rating) / 2;
@@ -468,18 +465,18 @@ export default function CollectionsPage() {
             );
             const { opening, variation, eco } = parseOpeningDetails(game);
             const resultBadgeClasses =
-              perspective.result === "win"
+              game.userResult === "win"
                 ? "bg-vault-win/15 text-vault-win border-vault-win/30"
-                : perspective.result === "loss"
+                : game.userResult === "loss"
                   ? "bg-vault-loss/15 text-vault-loss border-vault-loss/30"
                   : "bg-vault-draw/15 text-vault-draw border-vault-draw/30";
 
             const resultBadgeText =
-              game.result === "draw"
-                ? "½ - ½"
-                : game.result === "white"
-                  ? "1 - 0"
-                  : "0 - 1";
+              game.userResult === "win"
+                ? "Win"
+                : game.userResult === "loss"
+                  ? "Loss"
+                  : "Draw";
 
             return (
               <motion.article

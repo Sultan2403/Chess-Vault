@@ -1,6 +1,6 @@
 import type { Game } from "@chess-vault/shared";
 import { NavLink } from "react-router-dom";
-import { getGameDate, getPlayerPerspective } from "../../utils/game";
+import { getGameDate } from "../../utils/game";
 
 const labels = { win: "Won", loss: "Lost", draw: "Draw" };
 
@@ -9,7 +9,6 @@ type GameCardProps = {
 };
 
 export function GameCard({ game }: GameCardProps) {
-  const perspective = getPlayerPerspective(game);
   const [opening, variation] = (game.title ?? "Untitled game").split(": ");
 
   return (
@@ -18,11 +17,11 @@ export function GameCard({ game }: GameCardProps) {
         <div>
           <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.16em]">
             <span className={`border px-2.5 py-1 rounded-vault ${
-              perspective.result === "win"
+              game.userResult === "win"
                 ? "border-vault-ochre/50 bg-[#eedaa2]/40 text-[#8c6b2d]"
                 : "border-vault-outline-variant/60 bg-white/70 text-vault-text-secondary"
             }`}>
-              {labels[perspective.result]}
+              {labels[game.userResult]}
             </span>
             <time className="text-vault-text-secondary">{getGameDate(game)}</time>
           </div>

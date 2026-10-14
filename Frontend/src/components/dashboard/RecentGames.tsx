@@ -19,10 +19,10 @@ function RecentGameRow({ game }: { game: Game }) {
         <div className="grid h-12 w-12 shrink-0 place-items-center rounded-vault border border-vault-outline-variant/80 bg-white/90 text-center shadow-xs">
           <div className="flex flex-col items-center justify-center leading-none">
             <span className="text-xs font-bold text-vault-primary">
-              {resultLabel[perspective.result]}
+              {resultLabel[game.userResult]}
             </span>
             <span className="text-[10px] font-mono text-vault-text-secondary mt-0.5">
-              {scoreLabel[perspective.result]}
+              {scoreLabel[game.userResult]}
             </span>
           </div>
         </div>

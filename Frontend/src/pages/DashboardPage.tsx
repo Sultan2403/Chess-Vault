@@ -75,9 +75,8 @@ export default function DashboardPage() {
     const openingMap: Record<string, { count: number; wins: number; name: string }> = {};
 
     games.forEach((g) => {
-      const p = getPlayerPerspective(g);
-      if (p.result === "win") wins++;
-      else if (p.result === "draw") draws++;
+      if (g.userResult === "win") wins++;
+      else if (g.userResult === "draw") draws++;
       else losses++;
 
       const parsed = parseOpeningDetails(g);
@@ -86,7 +85,7 @@ export default function DashboardPage() {
         openingMap[opName] = { count: 0, wins: 0, name: opName };
       }
       openingMap[opName].count++;
-      if (p.result === "win") openingMap[opName].wins++;
+      if (g.userResult === "win") openingMap[opName].wins++;
     });
 
     const total = games.length;
@@ -402,18 +401,18 @@ export default function DashboardPage() {
                 const { opening, variation, eco } = parseOpeningDetails(game);
 
                 const resultBadgeClasses =
-                  perspective.result === "win"
+                  game.userResult === "win"
                     ? "bg-vault-win/15 text-vault-win border-vault-win/30"
-                    : perspective.result === "loss"
+                    : game.userResult === "loss"
                       ? "bg-vault-loss/15 text-vault-loss border-vault-loss/30"
                       : "bg-vault-draw/15 text-vault-draw border-vault-draw/30";
 
                 const resultBadgeText =
-                  game.result === "draw"
-                    ? "½ - ½"
-                    : game.result === "white"
-                      ? "1 - 0"
-                      : "0 - 1";
+                  game.userResult === "win"
+                    ? "Win"
+                    : game.userResult === "loss"
+                      ? "Loss"
+                      : "Draw";
 
                 const isCurrentUserWhite = game.userPlayedAs === "white";
                 const isCurrentUserBlack = game.userPlayedAs === "black";
