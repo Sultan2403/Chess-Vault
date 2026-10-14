@@ -2,6 +2,7 @@
 
 - Finalize and decide on product pricing and pro features and such
 - Backend is done ig... I can't find any more excuses not to work on the client side lol so...
+- Finalize if user data should be purged asap or after a grace period and so on. Right now, user data is purged asap and it should probably remain like that. 
 
 ## Overall
 

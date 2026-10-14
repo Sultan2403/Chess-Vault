@@ -28,6 +28,7 @@ export const handleClerkWebhook = async (req: Request, res: Response) => {
       );
       logger.info({ userId }, "Game Bank initialized for user");
     } else if (evt.type === CLERK_WEBHOOK_EVENTS.USER_DELETED) {
+      // Finalize if user data should be purged asap or after a grace period and so on. Right now, user data is purged asap and it should probably remain like that.
       await purgeUserQueue.add(
         JOB_NAMES.PURGE_USER,
         { userId },
