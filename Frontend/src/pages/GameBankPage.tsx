@@ -217,8 +217,8 @@ export default function GameBankPage() {
           </div>
         </section>
 
-        {/* SEARCH AND PLATFORM FILTER CONTROLS */}
-        <section className="space-y-4 font-mono text-xs">
+        {/* SEARCH AND PLATFORM FILTER CONTROLS (Sticky under top navbar) */}
+        <section className="sticky top-16 z-20 space-y-4 rounded-vault border border-vault-border-base/80 bg-vault-background/95 p-4 shadow-sm backdrop-blur-md font-mono text-xs">
           {/* Search bar + platform selector tabs */}
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
