@@ -19,6 +19,8 @@ export const QUERY_KEYS = {
     lists: () => [...QUERY_KEYS.games.all, "list"] as const,
     list: (params?: SearchGamesParams) =>
       [...QUERY_KEYS.games.lists(), params ?? {}] as const,
+    infiniteList: (params?: SearchGamesParams) =>
+      [...QUERY_KEYS.games.lists(), "infinite", params ?? {}] as const,
     details: () => [...QUERY_KEYS.games.all, "detail"] as const,
     detail: (id: string) => [...QUERY_KEYS.games.details(), id] as const,
   },

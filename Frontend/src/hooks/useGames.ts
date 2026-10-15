@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { gamesApi } from "../apis";
 import type {
   SearchGamesParams,
@@ -16,6 +16,22 @@ export const useGames = (params?: SearchGamesParams) => {
   return useQuery<SearchGamesResponse, unknown, SearchGamesResponse>({
     queryKey: QUERY_KEYS.games.list(params),
     queryFn: () => gamesApi.getGames(params),
+  });
+};
+
+export const useInfiniteGames = (params?: SearchGamesParams) => {
+  return useInfiniteQuery<SearchGamesResponse, unknown>({
+    queryKey: QUERY_KEYS.games.infiniteList(params),
+    queryFn: ({ pageParam = 1 }) =>
+      gamesApi.getGames({
+        ...params,
+        page: pageParam as number,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { page, totalPages } = lastPage.pagination;
+      return page < totalPages ? page + 1 : undefined;
+    },
   });
 };
 

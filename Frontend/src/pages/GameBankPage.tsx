@@ -5,8 +5,6 @@ import {
   Search,
   Copy,
   ExternalLink,
-  ChevronLeft,
-  ChevronRight,
   FolderPlus,
   Download,
   Trash2,
@@ -17,7 +15,8 @@ import {
 import { Button } from "../components/ui/Button";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
-import { useGames } from "../hooks/useGames";
+import { useInfiniteGames } from "../hooks/useGames";
+import { useIntersectionObserver } from "../hooks/useIntersectionObserver";
 import { BulkAddToFolderModal } from "../components/game-bank/BulkAddToFolderModal";
 import { PurgeGamesModal } from "../components/game-bank/PurgeGamesModal";
 import { useFolders } from "../hooks/useFolders";
@@ -47,7 +46,6 @@ export default function GameBankPage() {
   const [selectedGameIds, setSelectedGameIds] = useState<Set<string>>(
     new Set(),
   );
-  const [currentPage, setCurrentPage] = useState(1);
   const [isMoveToCollectionOpen, setIsMoveToCollectionOpen] = useState(false);
   const [isPurgeModalOpen, setIsPurgeModalOpen] = useState(false);
 
@@ -74,8 +72,10 @@ export default function GameBankPage() {
     isError: isGamesError,
     error: gamesError,
     refetch: refetchGames,
-  } = useGames({
-    page: currentPage,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteGames({
     limit: 12,
     search: debouncedSearch || undefined,
     platform: platformParam,
@@ -84,6 +84,18 @@ export default function GameBankPage() {
     folderIds: folderIdsParam,
   });
 
+  const sentinelRef = useIntersectionObserver(
+    () => {
+      if (hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    },
+    {
+      enabled: Boolean(hasNextPage && !isFetchingNextPage),
+      rootMargin: "800px",
+    }
+  );
+
   const {
     data: foldersData,
     isError: isFoldersError,
@@ -91,10 +103,12 @@ export default function GameBankPage() {
     refetch: refetchFolders,
   } = useFolders();
 
-  const games = gamesData?.games ?? [];
-  const pagination = gamesData?.pagination;
-  const totalGames = pagination?.total ?? 0;
-  const totalPages = pagination?.totalPages ?? Math.max(1, Math.ceil(totalGames / 12));
+  const games = useMemo(
+    () => gamesData?.pages.flatMap((page) => page.games) ?? [],
+    [gamesData]
+  );
+  const firstPagePagination = gamesData?.pages[0]?.pagination;
+  const totalGames = firstPagePagination?.total ?? 0;
 
   // Multi-select actions
   const isAllSelected =
@@ -218,7 +232,6 @@ export default function GameBankPage() {
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
-                  setCurrentPage(1);
                 }}
                 placeholder="Filter by opponent, opening (e.g. 'Sicilian', 'B90'), event, or note..."
                 className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 py-2 pl-9 pr-3 text-xs text-vault-text-primary outline-none focus:border-vault-bronze placeholder:text-vault-text-muted"
@@ -234,7 +247,6 @@ export default function GameBankPage() {
                     type="button"
                     onClick={() => {
                       setPlatformTab(tab);
-                      setCurrentPage(1);
                     }}
                     className={`rounded-xs px-3 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer ${
                       platformTab === tab
@@ -260,7 +272,6 @@ export default function GameBankPage() {
                 value={selectedFolderId}
                 onChange={(e) => {
                   setSelectedFolderId(e.target.value);
-                  setCurrentPage(1);
                 }}
                 className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-primary outline-none focus:border-vault-bronze cursor-pointer"
               >
@@ -283,7 +294,6 @@ export default function GameBankPage() {
                   type="button"
                   onClick={() => {
                     setOutcomeFilter(outcomeFilter === "win" ? "all" : "win");
-                    setCurrentPage(1);
                   }}
                   className={`flex-1 py-1 text-center rounded-xs text-[10px] font-bold cursor-pointer ${
                     outcomeFilter === "win"
@@ -297,7 +307,6 @@ export default function GameBankPage() {
                   type="button"
                   onClick={() => {
                     setOutcomeFilter(outcomeFilter === "draw" ? "all" : "draw");
-                    setCurrentPage(1);
                   }}
                   className={`flex-1 py-1 text-center rounded-xs text-[10px] font-bold cursor-pointer ${
                     outcomeFilter === "draw"
@@ -311,7 +320,6 @@ export default function GameBankPage() {
                   type="button"
                   onClick={() => {
                     setOutcomeFilter(outcomeFilter === "loss" ? "all" : "loss");
-                    setCurrentPage(1);
                   }}
                   className={`flex-1 py-1 text-center rounded-xs text-[10px] font-bold cursor-pointer ${
                     outcomeFilter === "loss"
@@ -333,7 +341,6 @@ export default function GameBankPage() {
                 value={cadenceFilter}
                 onChange={(e) => {
                   setCadenceFilter(e.target.value as "all" | TimeClassType);
-                  setCurrentPage(1);
                 }}
                 className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-primary outline-none focus:border-vault-bronze cursor-pointer"
               >
@@ -490,7 +497,7 @@ export default function GameBankPage() {
           </div>
         ) : (
           <motion.section
-            key={`${platformTab}-${outcomeFilter}-${cadenceFilter}-${selectedFolderId}-${currentPage}`}
+            key={`${platformTab}-${outcomeFilter}-${cadenceFilter}-${selectedFolderId}`}
             initial="hidden"
             animate="visible"
             variants={{
@@ -668,36 +675,30 @@ export default function GameBankPage() {
           </motion.section>
         )}
 
-        {/* FOOTER / PAGINATION */}
-        <section className="flex flex-wrap items-center justify-between gap-4 border-t border-vault-border-base pt-6 font-mono text-xs text-vault-text-muted">
-          <span>
-            Displaying records {games.length > 0 ? (currentPage - 1) * 12 + 1 : 0} -{" "}
-            {(currentPage - 1) * 12 + games.length} of {totalGames} games cataloged
-          </span>
+        {/* INFINITE SCROLL SENTINEL & FOOTER STATUS */}
+        <section className="flex flex-col items-center justify-center gap-4 border-t border-vault-border-base pt-6 font-mono text-xs text-vault-text-muted">
+          <div className="flex flex-wrap items-center justify-between w-full gap-4">
+            <span>
+              Displaying {games.length} of {totalGames.toLocaleString()} games cataloged
+            </span>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage <= 1}
-                className="grid h-7 w-7 place-items-center rounded-xs border border-vault-border-base text-vault-text-secondary hover:text-vault-text-primary disabled:opacity-30 cursor-pointer"
-              >
-                <ChevronLeft size={13} />
-              </button>
-              <span className="px-1 text-vault-text-primary font-bold">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage >= totalPages}
-                className="grid h-7 w-7 place-items-center rounded-xs border border-vault-border-base text-vault-text-secondary hover:text-vault-text-primary disabled:opacity-30 cursor-pointer"
-              >
-                <ChevronRight size={13} />
-              </button>
+            <div className="flex items-center gap-2">
+              {isFetchingNextPage && (
+                <span className="flex items-center gap-2 text-vault-bronze">
+                  <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-vault-bronze border-t-transparent" />
+                  Loading more games...
+                </span>
+              )}
+              {!hasNextPage && games.length > 0 && (
+                <span className="text-vault-text-muted">
+                  End of archive
+                </span>
+              )}
             </div>
           </div>
+
+          {/* Invisible sentinel observed by IntersectionObserver to fetch the next batch */}
+          <div ref={sentinelRef} className="h-4 w-full" aria-hidden="true" />
         </section>
         {/* Bulk Add to Collection Modal */}
         <BulkAddToFolderModal
