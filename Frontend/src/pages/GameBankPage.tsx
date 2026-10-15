@@ -217,14 +217,14 @@ export default function GameBankPage() {
           </div>
         </section>
 
-        {/* SEARCH AND PLATFORM FILTER CONTROLS (Sticky under top navbar) */}
-        <section className="sticky top-16 z-20 space-y-4 rounded-vault border border-vault-border-base/80 bg-vault-background/95 p-4 shadow-sm backdrop-blur-md font-mono text-xs">
+        {/* SEARCH AND PLATFORM FILTER CONTROLS (Floating dock paced from header) */}
+        <section className="sticky top-20 z-20 space-y-4 rounded-2xl border border-vault-border-interactive/90 bg-vault-surface-layer-1/90 p-4 shadow-xl shadow-black/40 backdrop-blur-md font-mono text-xs transition-shadow">
           {/* Search bar + platform selector tabs */}
           <div className="flex flex-col md:flex-row gap-3">
             <div className="relative flex-1">
               <Search
                 size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-vault-text-muted"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-vault-text-muted"
               />
               <input
                 id="global-search-input"
@@ -234,12 +234,12 @@ export default function GameBankPage() {
                   setSearchQuery(e.target.value);
                 }}
                 placeholder="Filter by opponent, opening (e.g. 'Sicilian', 'B90'), event, or note..."
-                className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 py-2 pl-9 pr-3 text-xs text-vault-text-primary outline-none focus:border-vault-bronze placeholder:text-vault-text-muted"
+                className="w-full rounded-xl border border-vault-border-base bg-vault-surface-layer-2/80 py-2.5 pl-10 pr-4 text-xs text-vault-text-primary outline-none focus:border-vault-bronze placeholder:text-vault-text-muted transition-colors"
               />
             </div>
 
             {/* Platform Tabs */}
-            <div className="flex items-center rounded-xs border border-vault-border-base bg-vault-surface-layer-1 p-0.5">
+            <div className="flex items-center rounded-xl border border-vault-border-base bg-vault-surface-layer-2/80 p-1">
               {(["ALL", "CHESS.COM", "LICHESS"] as const).map(
                 (tab) => (
                   <button
@@ -248,9 +248,9 @@ export default function GameBankPage() {
                     onClick={() => {
                       setPlatformTab(tab);
                     }}
-                    className={`rounded-xs px-3 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer ${
+                    className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-colors cursor-pointer ${
                       platformTab === tab
-                        ? "bg-vault-surface-layer-2 text-vault-text-primary shadow-xs"
+                        ? "bg-vault-surface-layer-1 text-vault-text-primary shadow-xs"
                         : "text-vault-text-muted hover:text-vault-text-primary"
                     }`}
                   >
@@ -273,7 +273,7 @@ export default function GameBankPage() {
                 onChange={(e) => {
                   setSelectedFolderId(e.target.value);
                 }}
-                className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-primary outline-none focus:border-vault-bronze cursor-pointer"
+                className="w-full rounded-xl border border-vault-border-base bg-vault-surface-layer-2/80 px-3 py-2 text-vault-text-primary outline-none focus:border-vault-bronze cursor-pointer transition-colors"
               >
                 <option value="all">All Folders (Archived Total)</option>
                 {foldersData?.folders?.map((f) => (
@@ -289,13 +289,13 @@ export default function GameBankPage() {
               <span className="text-[10px] uppercase text-vault-text-muted block mb-1">
                 Outcome Result
               </span>
-              <div className="flex rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-0.5">
+              <div className="flex rounded-xl border border-vault-border-base bg-vault-surface-layer-2/80 p-0.5">
                 <button
                   type="button"
                   onClick={() => {
                     setOutcomeFilter(outcomeFilter === "win" ? "all" : "win");
                   }}
-                  className={`flex-1 py-1 text-center rounded-xs text-[10px] font-bold cursor-pointer ${
+                  className={`flex-1 py-1.5 text-center rounded-lg text-[10px] font-bold cursor-pointer transition-colors ${
                     outcomeFilter === "win"
                       ? "bg-vault-win/20 text-vault-win"
                       : "text-vault-text-muted hover:text-vault-text-primary"
@@ -308,7 +308,7 @@ export default function GameBankPage() {
                   onClick={() => {
                     setOutcomeFilter(outcomeFilter === "draw" ? "all" : "draw");
                   }}
-                  className={`flex-1 py-1 text-center rounded-xs text-[10px] font-bold cursor-pointer ${
+                  className={`flex-1 py-1.5 text-center rounded-lg text-[10px] font-bold cursor-pointer transition-colors ${
                     outcomeFilter === "draw"
                       ? "bg-vault-draw/20 text-vault-draw"
                       : "text-vault-text-muted hover:text-vault-text-primary"
@@ -321,7 +321,7 @@ export default function GameBankPage() {
                   onClick={() => {
                     setOutcomeFilter(outcomeFilter === "loss" ? "all" : "loss");
                   }}
-                  className={`flex-1 py-1 text-center rounded-xs text-[10px] font-bold cursor-pointer ${
+                  className={`flex-1 py-1.5 text-center rounded-lg text-[10px] font-bold cursor-pointer transition-colors ${
                     outcomeFilter === "loss"
                       ? "bg-vault-loss/20 text-vault-loss"
                       : "text-vault-text-muted hover:text-vault-text-primary"
@@ -342,7 +342,7 @@ export default function GameBankPage() {
                 onChange={(e) => {
                   setCadenceFilter(e.target.value as "all" | TimeClassType);
                 }}
-                className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-primary outline-none focus:border-vault-bronze cursor-pointer"
+                className="w-full rounded-xl border border-vault-border-base bg-vault-surface-layer-2/80 px-3 py-2 text-vault-text-primary outline-none focus:border-vault-bronze cursor-pointer transition-colors"
               >
                 <option value="all">Any Cadence</option>
                 <option value="bullet">Bullet</option>
@@ -358,7 +358,7 @@ export default function GameBankPage() {
               <span className="text-[10px] uppercase text-vault-text-muted block mb-1">
                 Selected Staging
               </span>
-              <div className="flex items-center justify-between rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-secondary">
+              <div className="flex items-center justify-between rounded-xl border border-vault-border-base bg-vault-surface-layer-2/80 px-3 py-2 text-vault-text-secondary">
                 <span>{selectedGameIds.size} staged</span>
                 {selectedGameIds.size > 0 && (
                   <button
