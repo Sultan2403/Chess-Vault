@@ -25,6 +25,13 @@
 
 ## Backend
 
+- [ ] **Verify game ↔ folder reference integrity across CRUD operations**
+  - Ensure create/read/update/delete flows preserve valid, user-scoped game-folder relationships
+  - Handle missing or stale folder references safely when reading games and folders
+  - When deleting a folder, remove its ID from affected games (or enforce another consistent relationship strategy); when deleting a game, ensure no relationship records are left behind
+  - Validate folder ownership on assignment and bulk-add/import paths; prevent duplicates and invalid cross-user references
+  - Add tests for CRUD flows, stale/missing references, ownership boundaries, bulk operations, and partial failures
+
 - DB migration for termination fielddddd. It's gonna be messy tho oh well. Especially for lichess games. Current implementation plan can go like: for chess.com map out the termination header to our termination values map. lichess doesn't quite have the same thing and it's gonna be messy so we might just delete all lichess games provided they all belong to me. Orrr we could do an annoying manual import for games one by one and then delete the old ones. I think the latter is better but it's gonna be annoying.
 
 - Add final tests where necessary
