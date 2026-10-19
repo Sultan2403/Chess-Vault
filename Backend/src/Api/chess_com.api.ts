@@ -1,9 +1,12 @@
-import { Chess_Com_Game } from "../Types/games.types";
+import { Chess_Com_Game, Chess_Com_Player_Stats } from "../Types/games.types";
 import { chess_com_api } from "./api.client";
 
 const chessComApi = {
   getPlayerProfile: (username: string) =>
     chess_com_api.get<any, { username: string }>(`/player/${username}`),
+
+  getPlayerStats: (username: string) =>
+    chess_com_api.get<any, Chess_Com_Player_Stats>(`/player/${username}/stats`), 
 
   getPlayerGamesForMonth: ({
     username,

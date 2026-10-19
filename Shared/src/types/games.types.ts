@@ -82,6 +82,61 @@ export type ImportGamesParams = {
   platform: PlatformType;
 } & z.infer<typeof importGamesParams>;
 
+export type Chess_Com_Rating_Last = {
+  rating: number;
+  date: number;
+  rd: number;
+};
+
+export type Chess_Com_Rating_Best = {
+  rating: number;
+  date: number;
+  game: string;
+};
+
+export type Chess_Com_Game_Record = {
+  win: number;
+  loss: number;
+  draw: number;
+  time_per_move?: number;
+  timeout_percent?: number;
+};
+
+export type Chess_Com_Game_Stats = {
+  last?: Chess_Com_Rating_Last;
+  best?: Chess_Com_Rating_Best;
+  record?: Chess_Com_Game_Record;
+};
+
+export type Chess_Com_Tactics_Stats = {
+  highest?: {
+    rating: number;
+    date: number;
+  };
+  lowest?: {
+    rating: number;
+    date: number;
+  };
+};
+
+export type Chess_Com_PuzzleRush_Stats = {
+  best?: {
+    total_attempts: number;
+    score: number;
+  };
+};
+
+export type Chess_Com_Player_Stats = {
+  chess_daily?: Chess_Com_Game_Stats;
+  chess960_daily?: Chess_Com_Game_Stats;
+  chess_rapid?: Chess_Com_Game_Stats;
+  chess_bullet?: Chess_Com_Game_Stats;
+  chess_blitz?: Chess_Com_Game_Stats;
+  fide?: number;
+  tactics?: Chess_Com_Tactics_Stats;
+  puzzle_rush?: Chess_Com_PuzzleRush_Stats;
+};
+
 export interface Chess_Com_Player {
   rating: number;
   result: string;
