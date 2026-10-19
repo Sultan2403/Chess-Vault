@@ -8,3 +8,6 @@ export { default as api } from "./api.client";
 
 export * from "./api.account";
 export { default as accountApi } from "./api.account";
+
+export * from "./api.dashboard";
+export { default as dashboardApi } from "./api.dashboard";

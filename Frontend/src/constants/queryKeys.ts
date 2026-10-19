@@ -24,4 +24,8 @@ export const QUERY_KEYS = {
     details: () => [...QUERY_KEYS.games.all, "detail"] as const,
     detail: (id: string) => [...QUERY_KEYS.games.details(), id] as const,
   },
+  dashboard: {
+    all: ["dashboard"] as const,
+    data: (platform?: string) => [...QUERY_KEYS.dashboard.all, platform ?? "all"] as const,
+  },
 } as const;
