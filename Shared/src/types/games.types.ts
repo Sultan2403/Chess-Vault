@@ -162,6 +162,95 @@ export type Chess_Com_Game = {
   eco?: string;
 };
 
+export type Lichess_Perf = {
+  games: number;
+  rating: number;
+  rd: number;
+  prog: number;
+  prov?: boolean;
+};
+
+export type Lichess_Score_Perf = {
+  runs: number;
+  score: number;
+};
+
+export type Lichess_Perfs = {
+  bullet?: Lichess_Perf;
+  blitz?: Lichess_Perf;
+  rapid?: Lichess_Perf;
+  classical?: Lichess_Perf;
+  correspondence?: Lichess_Perf;
+  ultraBullet?: Lichess_Perf;
+  chess960?: Lichess_Perf;
+  crazyhouse?: Lichess_Perf;
+  antichess?: Lichess_Perf;
+  atomic?: Lichess_Perf;
+  horde?: Lichess_Perf;
+  kingOfTheHill?: Lichess_Perf;
+  racingKings?: Lichess_Perf;
+  threeCheck?: Lichess_Perf;
+  puzzle?: Lichess_Perf;
+  storm?: Lichess_Score_Perf;
+  streak?: Lichess_Score_Perf;
+  racer?: Lichess_Score_Perf;
+};
+
+export type Lichess_PlayTime = {
+  total: number;
+  tv: number;
+};
+
+export type Lichess_Count = {
+  all: number;
+  rated: number;
+  ai?: number;
+  draw: number;
+  loss: number;
+  win: number;
+  bookmark?: number;
+  playing?: number;
+  import?: number;
+  me?: number;
+};
+
+export type Lichess_Profile = {
+  country?: string;
+  location?: string;
+  bio?: string;
+  firstName?: string;
+  lastName?: string;
+  fideRating?: number;
+  uscfRating?: number;
+  ecfRating?: number;
+  rcfRating?: number;
+  cfcRating?: number;
+  dsbRating?: number;
+  links?: string;
+};
+
+export type Lichess_User = {
+  id: string;
+  username: string;
+  perfs: Lichess_Perfs;
+  createdAt: number;
+  disabled?: boolean;
+  tosViolation?: boolean;
+  profile?: Lichess_Profile;
+  seenAt?: number;
+  patron?: boolean;
+  verified?: boolean;
+  playTime?: Lichess_PlayTime;
+  title?: string;
+  url: string;
+  playing?: string;
+  count?: Lichess_Count;
+  followable?: boolean;
+  following?: boolean;
+  blocking?: boolean;
+  followsYou?: boolean;
+};
+
 export interface Lichess_Player {
   user?: {
     id: string;

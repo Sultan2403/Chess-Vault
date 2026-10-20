@@ -1,10 +1,11 @@
 import { MAX_GAMES_PER_USER, LichessSupportedPerfTypes } from "../Config/constants";
+import { Lichess_User } from "../Types/games.types";
 import { lichess_api } from "./api.client";
 import { Readable } from "stream";
 
 const lichessApi = {
   getUserProfile: (username: string) =>
-    lichess_api.get<any, { id: string, username: string }>(`/user/${username}`, {
+    lichess_api.get<any, Lichess_User>(`/user/${username}`, {
       headers: { Accept: "application/json" },
     }),
 
