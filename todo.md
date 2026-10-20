@@ -9,7 +9,8 @@
 - Finish the import flow end to end
 - Rework the UI to something that represents the app.
 - Decide on platform flow: Should stats and views across Dashboard and Game Bank always default to unified (Chess.com + Lichess), or provide an explicit account/platform switcher?
-- BROOOO IMPORTSS!!! Like bro you just casually threw away the app's core 💀. Lock in man. 
+- BROOOO IMPORTSS!!! Like bro you just casually threw away the app's core 💀. Lock in man.
+- After imports we auto generate collections and all.
 
 ## Overall
 
