@@ -2,6 +2,8 @@ import { Sun, Moon, Laptop } from "lucide-react";
 import { useTheme, type Theme } from "../../contexts";
 import { cn } from "../../utils/cn";
 
+import { motion, AnimatePresence } from "motion/react";
+
 interface ThemeToggleProps {
   className?: string;
 }
@@ -15,12 +17,36 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       onClick={toggleTheme}
       aria-label={`Switch to ${resolvedTheme === "dark" ? "light" : "dark"} mode`}
       className={cn(
-        "grid h-8 w-8 place-items-center rounded-vault border border-vault-border-interactive bg-vault-surface-layer-1 text-vault-text-secondary transition-colors hover:border-vault-bronze hover:text-vault-text-primary cursor-pointer",
+        "relative grid h-8 w-8 place-items-center rounded-vault border border-vault-border-interactive bg-vault-surface-layer-1 text-vault-text-secondary transition-colors hover:border-vault-bronze hover:text-vault-text-primary cursor-pointer overflow-hidden",
         className,
       )}
       title={`Active theme: ${resolvedTheme}. Click to toggle.`}
     >
-      {resolvedTheme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+      <AnimatePresence mode="wait" initial={false}>
+        {resolvedTheme === "dark" ? (
+          <motion.div
+            key="sun"
+            initial={{ rotate: -90, scale: 0.6, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            exit={{ rotate: 90, scale: 0.6, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="grid place-items-center"
+          >
+            <Sun size={15} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="moon"
+            initial={{ rotate: 90, scale: 0.6, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            exit={{ rotate: -90, scale: 0.6, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="grid place-items-center"
+          >
+            <Moon size={15} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </button>
   );
 }

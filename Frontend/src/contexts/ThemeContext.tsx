@@ -77,9 +77,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return theme;
   }, [theme, systemTheme]);
 
-  // Apply to DOM attribute and class
+  // Apply to DOM attribute and class with smooth cross-fade animation
   useEffect(() => {
     const root = document.documentElement;
+
+    // Trigger smooth transition class
+    root.classList.add("theme-transitioning");
+
     root.setAttribute("data-theme", resolvedTheme);
     if (resolvedTheme === "dark") {
       root.classList.add("dark");
@@ -89,6 +93,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       root.classList.remove("dark");
     }
     root.style.colorScheme = resolvedTheme;
+
+    const timeout = setTimeout(() => {
+      root.classList.remove("theme-transitioning");
+    }, 350);
+
+    return () => clearTimeout(timeout);
   }, [resolvedTheme]);
 
   const setTheme = useCallback((newTheme: Theme) => {
