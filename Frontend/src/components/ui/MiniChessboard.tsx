@@ -1,4 +1,5 @@
 import { Chessboard } from "react-chessboard";
+import { useTheme } from "../../contexts";
 
 type MiniChessboardProps = {
   fen?: string;
@@ -15,6 +16,8 @@ export function MiniChessboard({
   badgeLabel,
   className = "",
 }: MiniChessboardProps) {
+  const { boardColors } = useTheme();
+
   return (
     <div
       className={`relative aspect-square w-full overflow-hidden border border-vault-border-interactive bg-vault-surface-layer-1 ${className}`}
@@ -29,10 +32,10 @@ export function MiniChessboard({
             borderRadius: "0px",
           },
           darkSquareStyle: {
-            backgroundColor: "#282e3b",
+            backgroundColor: boardColors.boardDark,
           },
           lightSquareStyle: {
-            backgroundColor: "#e6e4df",
+            backgroundColor: boardColors.boardLight,
           },
         }}
       />

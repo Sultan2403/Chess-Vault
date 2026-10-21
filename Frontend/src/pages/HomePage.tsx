@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
 
 const HERO_HEADLINES = [
   {
@@ -109,6 +110,7 @@ export default function HomePage() {
           </nav>
 
           <div className="flex items-center gap-4 text-xs font-mono">
+            <ThemeToggle />
             <NavLink
               to="/sign-in"
               className="text-vault-text-secondary hover:text-vault-text-primary transition-colors uppercase tracking-wider"

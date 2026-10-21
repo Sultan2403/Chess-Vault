@@ -5,17 +5,215 @@
 @tailwind utilities;
 
 @layer base {
+  :root,
+  [data-theme="light"],
+  .light {
+    color-scheme: light;
+
+    /* Base Surfaces */
+    --color-vault-surface: 249 249 254; /* #f9f9fe */
+    --color-vault-surface-dim: 217 217 223; /* #d9d9df */
+    --color-vault-surface-bright: 249 249 254; /* #f9f9fe */
+    --color-vault-surface-container-lowest: 255 255 255; /* #ffffff */
+    --color-vault-surface-container-low: 243 243 249; /* #f3f3f9 */
+    --color-vault-surface-container: 237 237 243; /* #ededf3 */
+    --color-vault-surface-container-high: 232 232 237; /* #e8e8ed */
+    --color-vault-surface-container-highest: 226 226 232; /* #e2e2e8 */
+    --color-vault-surface-variant: 226 226 232; /* #e2e2e8 */
+    --color-vault-surface-soft: 237 231 220; /* #ede7dc */
+
+    /* Canvas & Surface Layers (Light Parchment Base & Paper Vitrine) */
+    --color-vault-background: 250 248 245; /* #faf8f5 (Parchment Base Canvas) */
+    --color-vault-canvas-base: 250 248 245; /* #faf8f5 */
+    --color-vault-surface-layer-1: 255 255 255; /* #ffffff (Paper Vitrine) */
+    --color-vault-surface-layer-2: 243 243 249; /* #f3f3f9 */
+
+    /* Typography & Ink */
+    --color-vault-on-background: 24 26 30; /* #181a1e (Deep lampblack charcoal ink) */
+    --color-vault-on-surface: 24 26 30; /* #181a1e */
+    --color-vault-on-surface-variant: 78 70 56; /* #4e4638 */
+    --color-vault-text-primary: 24 26 30; /* #181a1e (Primary Ink) */
+    --color-vault-text-secondary: 90 96 109; /* #5a606d (Warm Slate Commentary) */
+    --color-vault-text-muted: 133 141 156; /* #858d9c (Muted Glyphs / Coordinates) */
+
+    /* Inverse */
+    --color-vault-inverse-surface: 46 48 53; /* #2e3035 */
+    --color-vault-inverse-on-surface: 240 240 246; /* #f0f0f6 */
+
+    /* Borders, Dividers & Fillets */
+    --color-vault-outline: 128 118 103; /* #807667 */
+    --color-vault-outline-variant: 209 197 179; /* #d1c5b3 */
+    --color-vault-border-base: 226 219 208; /* #e2dbd0 (Rules & Fillets) */
+    --color-vault-border-interactive: 213 205 192; /* #d5cdc0 (Hairline structural framing) */
+    --color-vault-line: 226 219 208; /* #e2dbd0 */
+
+    /* Brand, Primary & Archival Bronze */
+    --color-vault-surface-tint: 120 89 21; /* #785915 */
+    --color-vault-primary: 158 123 53; /* #9e7b35 (Archival Bronze) */
+    --color-vault-on-primary: 255 255 255; /* #ffffff */
+    --color-vault-primary-container: 184 147 74; /* #b8934a */
+    --color-vault-on-primary-container: 255 251 255; /* #fffbff */
+    --color-vault-inverse-primary: 234 193 115; /* #eac173 */
+
+    --color-vault-bronze: 158 123 53; /* #9e7b35 */
+    --color-vault-bronze-hover: 184 147 74; /* #b8934a */
+    --color-vault-archival-bronze: 158 123 53; /* #9e7b35 */
+    --color-vault-archival-bronze-hover: 184 147 74; /* #b8934a */
+    --color-vault-ochre: 158 123 53;
+    --color-vault-ochre-hover: 184 147 74;
+
+    /* Secondary */
+    --color-vault-secondary: 24 108 68; /* #186c44 */
+    --color-vault-on-secondary: 255 255 255; /* #ffffff */
+    --color-vault-secondary-container: 164 244 193; /* #a4f4c1 */
+    --color-vault-on-secondary-container: 32 114 74; /* #20724a */
+
+    /* Tertiary / Error / Status */
+    --color-vault-tertiary: 167 49 49; /* #a73131 */
+    --color-vault-on-tertiary: 255 255 255;
+    --color-vault-tertiary-container: 200 74 71;
+    --color-vault-on-tertiary-container: 255 251 255;
+
+    --color-vault-error: 186 26 26; /* #ba1a1a */
+    --color-vault-on-error: 255 255 255;
+    --color-vault-error-container: 255 218 214;
+    --color-vault-on-error-container: 147 0 10;
+
+    /* Semantic Outcomes */
+    --color-vault-win: 30 112 72; /* #1e7048 (Emerald Forest) */
+    --color-vault-loss: 168 50 50; /* #a83232 (Madder Crimson) */
+    --color-vault-draw: 100 109 125; /* #646d7d (Equilibrium Slate) */
+
+    /* Fixed Tonalities */
+    --color-vault-primary-fixed: 255 222 165;
+    --color-vault-primary-fixed-dim: 234 193 115;
+    --color-vault-on-primary-fixed: 39 25 0;
+    --color-vault-on-primary-fixed-variant: 93 66 0;
+
+    --color-vault-secondary-fixed: 164 244 193;
+    --color-vault-secondary-fixed-dim: 136 215 167;
+    --color-vault-on-secondary-fixed: 0 33 17;
+    --color-vault-on-secondary-fixed-variant: 0 82 48;
+
+    --color-vault-tertiary-fixed: 255 218 215;
+    --color-vault-tertiary-fixed-dim: 255 179 174;
+    --color-vault-on-tertiary-fixed: 65 0 4;
+    --color-vault-on-tertiary-fixed-variant: 137 27 31;
+
+    /* Chessboard Squares */
+    --color-vault-board-dark: 181 168 149; /* #b5a895 */
+    --color-vault-board-light: 247 244 235; /* #f7f4eb */
+  }
+
+  [data-theme="dark"],
+  .dark {
+    color-scheme: dark;
+
+    /* Base Surfaces */
+    --color-vault-surface: 17 19 23; /* #111317 */
+    --color-vault-surface-dim: 17 19 23; /* #111317 */
+    --color-vault-surface-bright: 55 57 62; /* #37393e */
+    --color-vault-surface-container-lowest: 12 14 18; /* #0c0e12 */
+    --color-vault-surface-container-low: 26 28 32; /* #1a1c20 */
+    --color-vault-surface-container: 30 32 36; /* #1e2024 */
+    --color-vault-surface-container-high: 40 42 46; /* #282a2e */
+    --color-vault-surface-container-highest: 51 53 57; /* #333539 */
+    --color-vault-surface-variant: 51 53 57; /* #333539 */
+    --color-vault-surface-soft: 26 31 41; /* #1a1f29 */
+
+    /* Canvas & Surface Layers (Deep Slate & Inspection Panes) */
+    --color-vault-background: 17 19 23; /* #111317 */
+    --color-vault-canvas-base: 15 17 21; /* #0f1115 (Base Canvas) */
+    --color-vault-surface-layer-1: 20 23 30; /* #14171e (Surface Layer 1) */
+    --color-vault-surface-layer-2: 26 31 41; /* #1a1f29 (Surface Layer 2) */
+
+    /* Typography & Ink */
+    --color-vault-on-background: 226 226 232; /* #e2e2e8 */
+    --color-vault-on-surface: 226 226 232; /* #e2e2e8 */
+    --color-vault-on-surface-variant: 209 197 180; /* #d1c5b4 */
+    --color-vault-text-primary: 250 248 245; /* #faf8f5 (Antique Parchment Off-White) */
+    --color-vault-text-secondary: 200 197 189; /* #c8c5bd (Muted Linen Tone) */
+    --color-vault-text-muted: 125 132 148; /* #7d8494 (Subdued Slate) */
+
+    /* Inverse */
+    --color-vault-inverse-surface: 226 226 232; /* #e2e2e8 */
+    --color-vault-inverse-on-surface: 47 48 53; /* #2f3035 */
+
+    /* Borders, Dividers & Fillets */
+    --color-vault-outline: 154 143 128; /* #9a8f80 */
+    --color-vault-outline-variant: 78 70 57; /* #4e4639 */
+    --color-vault-border-base: 31 36 46; /* #1f242e (Base borders & dividers) */
+    --color-vault-border-interactive: 40 46 59; /* #282e3b (Interactive borders) */
+    --color-vault-line: 31 36 46; /* #1f242e */
+
+    /* Brand, Primary & Archival Bronze */
+    --color-vault-surface-tint: 233 193 118; /* #e9c176 */
+    --color-vault-primary: 233 193 118; /* #e9c176 */
+    --color-vault-on-primary: 65 45 0; /* #412d00 */
+    --color-vault-primary-container: 197 160 89; /* #c5a059 */
+    --color-vault-on-primary-container: 78 55 0; /* #4e3700 */
+    --color-vault-inverse-primary: 119 90 25; /* #775a19 */
+
+    --color-vault-bronze: 197 160 89; /* #c5a059 */
+    --color-vault-bronze-hover: 212 175 55; /* #d4af37 */
+    --color-vault-archival-bronze: 197 160 89;
+    --color-vault-archival-bronze-hover: 212 175 55;
+    --color-vault-ochre: 197 160 89;
+    --color-vault-ochre-hover: 212 175 55;
+
+    /* Secondary */
+    --color-vault-secondary: 194 198 212; /* #c2c6d4 */
+    --color-vault-on-secondary: 43 48 59; /* #2b303b */
+    --color-vault-secondary-container: 68 73 84; /* #444954 */
+    --color-vault-on-secondary-container: 180 184 197; /* #b4b8c5 */
+
+    /* Tertiary / Error / Status */
+    --color-vault-tertiary: 136 214 175; /* #88d6af */
+    --color-vault-on-tertiary: 0 56 36; /* #003824 */
+    --color-vault-tertiary-container: 104 181 143; /* #68b58f */
+    --color-vault-on-tertiary-container: 0 69 45; /* #00452d */
+
+    --color-vault-error: 255 180 171; /* #ffb4ab */
+    --color-vault-on-error: 105 0 5; /* #690005 */
+    --color-vault-error-container: 147 0 10; /* #93000a */
+    --color-vault-on-error-container: 255 218 214; /* #ffdad6 */
+
+    /* Semantic Outcomes */
+    --color-vault-win: 46 125 91; /* #2e7d5b */
+    --color-vault-loss: 158 59 59; /* #9e3b3b */
+    --color-vault-draw: 108 116 133; /* #6c7485 */
+
+    /* Fixed Tonalities */
+    --color-vault-primary-fixed: 255 222 165;
+    --color-vault-primary-fixed-dim: 233 193 118;
+    --color-vault-on-primary-fixed: 38 25 0;
+    --color-vault-on-primary-fixed-variant: 93 66 1;
+
+    --color-vault-secondary-fixed: 222 226 240;
+    --color-vault-secondary-fixed-dim: 194 198 212;
+    --color-vault-on-secondary-fixed: 23 28 37;
+    --color-vault-on-secondary-fixed-variant: 66 71 82;
+
+    --color-vault-tertiary-fixed: 164 243 202;
+    --color-vault-tertiary-fixed-dim: 136 214 175;
+    --color-vault-on-tertiary-fixed: 0 33 19;
+    --color-vault-on-tertiary-fixed-variant: 0 82 54;
+
+    /* Chessboard Squares */
+    --color-vault-board-dark: 40 46 59; /* #282e3b */
+    --color-vault-board-light: 230 228 223; /* #e6e4df */
+  }
+
   * {
     @apply box-border;
   }
 
   html {
-    @apply bg-vault-background text-vault-on-background;
-    color-scheme: dark;
+    @apply bg-vault-background text-vault-on-background transition-colors duration-150;
   }
 
   body {
-    @apply m-0 min-h-screen bg-vault-background font-body text-vault-on-background antialiased selection:bg-vault-primary/20 selection:text-vault-primary;
+    @apply m-0 min-h-screen bg-vault-background font-body text-vault-on-background antialiased selection:bg-vault-primary/20 selection:text-vault-primary transition-colors duration-150;
   }
 
   button,
@@ -34,7 +232,7 @@
 
   .bg-paper {
     background-image: radial-gradient(
-      rgb(233 193 118 / 3%) 1px,
+      rgb(var(--color-vault-primary) / 6%) 1px,
       transparent 1px
     );
     background-size: 8px 8px;

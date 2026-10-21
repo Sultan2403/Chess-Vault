@@ -1,84 +1,105 @@
 /** @type {import('tailwindcss').Config} */
+function withOpacity(variableName) {
+  return ({ opacityValue }) => {
+    if (opacityValue !== undefined) {
+      return `rgb(var(${variableName}) / ${opacityValue})`;
+    }
+    return `rgb(var(${variableName}))`;
+  };
+}
+
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  darkMode: ["class", '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
         vault: {
-          surface: "#111317",
-          "surface-dim": "#111317",
-          "surface-bright": "#37393e",
-          "surface-container-lowest": "#0c0e12",
-          "surface-container-low": "#1a1c20",
-          "surface-container": "#1e2024",
-          "surface-container-high": "#282a2e",
-          "surface-container-highest": "#333539",
-          "on-surface": "#e2e2e8",
-          "on-surface-variant": "#d1c5b4",
-          "inverse-surface": "#e2e2e8",
-          "inverse-on-surface": "#2f3035",
-          outline: "#9a8f80",
-          "outline-variant": "#4e4639",
-          "surface-tint": "#e9c176",
-          primary: "#e9c176",
-          "on-primary": "#412d00",
-          "primary-container": "#c5a059",
-          "on-primary-container": "#4e3700",
-          "inverse-primary": "#775a19",
-          secondary: "#c2c6d4",
-          "on-secondary": "#2b303b",
-          "secondary-container": "#444954",
-          "on-secondary-container": "#b4b8c5",
-          tertiary: "#88d6af",
-          "on-tertiary": "#003824",
-          "tertiary-container": "#68b58f",
-          "on-tertiary-container": "#00452d",
-          error: "#ffb4ab",
-          "on-error": "#690005",
-          "error-container": "#93000a",
-          "on-error-container": "#ffdad6",
-          "primary-fixed": "#ffdea5",
-          "primary-fixed-dim": "#e9c176",
-          "on-primary-fixed": "#261900",
-          "on-primary-fixed-variant": "#5d4201",
-          "secondary-fixed": "#dee2f0",
-          "secondary-fixed-dim": "#c2c6d4",
-          "on-secondary-fixed": "#171c25",
-          "on-secondary-fixed-variant": "#424752",
-          "tertiary-fixed": "#a4f3ca",
-          "tertiary-fixed-dim": "#88d6af",
-          "on-tertiary-fixed": "#002113",
-          "on-tertiary-fixed-variant": "#005236",
-          background: "#111317",
-          "on-background": "#e2e2e8",
-          "surface-variant": "#333539",
+          surface: withOpacity("--color-vault-surface"),
+          "surface-dim": withOpacity("--color-vault-surface-dim"),
+          "surface-bright": withOpacity("--color-vault-surface-bright"),
+          "surface-container-lowest": withOpacity("--color-vault-surface-container-lowest"),
+          "surface-container-low": withOpacity("--color-vault-surface-container-low"),
+          "surface-container": withOpacity("--color-vault-surface-container"),
+          "surface-container-high": withOpacity("--color-vault-surface-container-high"),
+          "surface-container-highest": withOpacity("--color-vault-surface-container-highest"),
+          "surface-variant": withOpacity("--color-vault-surface-variant"),
+          "surface-soft": withOpacity("--color-vault-surface-soft"),
+
+          "on-surface": withOpacity("--color-vault-on-surface"),
+          "on-surface-variant": withOpacity("--color-vault-on-surface-variant"),
+          "inverse-surface": withOpacity("--color-vault-inverse-surface"),
+          "inverse-on-surface": withOpacity("--color-vault-inverse-on-surface"),
+          outline: withOpacity("--color-vault-outline"),
+          "outline-variant": withOpacity("--color-vault-outline-variant"),
+
+          "surface-tint": withOpacity("--color-vault-surface-tint"),
+          primary: withOpacity("--color-vault-primary"),
+          "on-primary": withOpacity("--color-vault-on-primary"),
+          "primary-container": withOpacity("--color-vault-primary-container"),
+          "on-primary-container": withOpacity("--color-vault-on-primary-container"),
+          "inverse-primary": withOpacity("--color-vault-inverse-primary"),
+
+          secondary: withOpacity("--color-vault-secondary"),
+          "on-secondary": withOpacity("--color-vault-on-secondary"),
+          "secondary-container": withOpacity("--color-vault-secondary-container"),
+          "on-secondary-container": withOpacity("--color-vault-on-secondary-container"),
+
+          tertiary: withOpacity("--color-vault-tertiary"),
+          "on-tertiary": withOpacity("--color-vault-on-tertiary"),
+          "tertiary-container": withOpacity("--color-vault-tertiary-container"),
+          "on-tertiary-container": withOpacity("--color-vault-on-tertiary-container"),
+
+          error: withOpacity("--color-vault-error"),
+          "on-error": withOpacity("--color-vault-on-error"),
+          "error-container": withOpacity("--color-vault-error-container"),
+          "on-error-container": withOpacity("--color-vault-on-error-container"),
+
+          "primary-fixed": withOpacity("--color-vault-primary-fixed"),
+          "primary-fixed-dim": withOpacity("--color-vault-primary-fixed-dim"),
+          "on-primary-fixed": withOpacity("--color-vault-on-primary-fixed"),
+          "on-primary-fixed-variant": withOpacity("--color-vault-on-primary-fixed-variant"),
+
+          "secondary-fixed": withOpacity("--color-vault-secondary-fixed"),
+          "secondary-fixed-dim": withOpacity("--color-vault-secondary-fixed-dim"),
+          "on-secondary-fixed": withOpacity("--color-vault-on-secondary-fixed"),
+          "on-secondary-fixed-variant": withOpacity("--color-vault-on-secondary-fixed-variant"),
+
+          "tertiary-fixed": withOpacity("--color-vault-tertiary-fixed"),
+          "tertiary-fixed-dim": withOpacity("--color-vault-tertiary-fixed-dim"),
+          "on-tertiary-fixed": withOpacity("--color-vault-on-tertiary-fixed"),
+          "on-tertiary-fixed-variant": withOpacity("--color-vault-on-tertiary-fixed-variant"),
+
+          background: withOpacity("--color-vault-background"),
+          "on-background": withOpacity("--color-vault-on-background"),
 
           // Archival / Semantic accents & states
-          bronze: "#c5a059",
-          "bronze-hover": "#d4af37",
-          "archival-bronze": "#c5a059",
-          "archival-bronze-hover": "#d4af37",
-          ochre: "#c5a059",
-          "ochre-hover": "#d4af37",
-          win: "#2e7d5b",
-          loss: "#9e3b3b",
-          draw: "#6c7485",
+          bronze: withOpacity("--color-vault-bronze"),
+          "bronze-hover": withOpacity("--color-vault-bronze-hover"),
+          "archival-bronze": withOpacity("--color-vault-archival-bronze"),
+          "archival-bronze-hover": withOpacity("--color-vault-archival-bronze-hover"),
+          ochre: withOpacity("--color-vault-ochre"),
+          "ochre-hover": withOpacity("--color-vault-ochre-hover"),
+          win: withOpacity("--color-vault-win"),
+          loss: withOpacity("--color-vault-loss"),
+          draw: withOpacity("--color-vault-draw"),
 
           // Surfaces & Dividers
-          "canvas-base": "#0f1115",
-          "surface-layer-1": "#14171e",
-          "surface-layer-2": "#1a1f29",
-          "border-base": "#1f242e",
-          "border-interactive": "#282e3b",
+          "canvas-base": withOpacity("--color-vault-canvas-base"),
+          "surface-layer-1": withOpacity("--color-vault-surface-layer-1"),
+          "surface-layer-2": withOpacity("--color-vault-surface-layer-2"),
+          "border-base": withOpacity("--color-vault-border-base"),
+          "border-interactive": withOpacity("--color-vault-border-interactive"),
+          line: withOpacity("--color-vault-line"),
 
           // Typography Tones
-          "text-primary": "#faf8f5",
-          "text-secondary": "#c8c5bd",
-          "text-muted": "#7d8494",
+          "text-primary": withOpacity("--color-vault-text-primary"),
+          "text-secondary": withOpacity("--color-vault-text-secondary"),
+          "text-muted": withOpacity("--color-vault-text-muted"),
 
           // Chessboard tokens
-          "board-dark": "#282e3b",
-          "board-light": "#e6e4df",
+          "board-dark": withOpacity("--color-vault-board-dark"),
+          "board-light": withOpacity("--color-vault-board-light"),
         },
       },
       fontFamily: {

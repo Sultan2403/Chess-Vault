@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { UserButton } from "@clerk/react";
 import { useAccountBootstrap } from "../../hooks/useAccount";
+import { ThemeToggle } from "../ui/ThemeToggle";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard" },
@@ -67,6 +68,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Radio size={12} className="text-vault-win animate-pulse" />
               <span>{connectedLabel}</span>
             </div>
+
+            {/* Quick Theme Toggle */}
+            <ThemeToggle />
 
             {/* User Account / Profile Menu */}
             <UserButton

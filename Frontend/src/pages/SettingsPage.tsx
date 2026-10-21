@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CheckCircle2, Gamepad2, Link2, LogOut, Save, UserRound } from "lucide-react";
 import { SignOutButton, UserProfile } from "@clerk/react";
 import { Button } from "../components/ui/Button";
+import { ThemeSegmentedPicker } from "../components/ui/ThemeToggle";
 
 type SettingsTab = "profile" | "connections" | "preferences";
 
@@ -91,10 +92,21 @@ export default function SettingsPage() {
             <div className="border-b border-vault-line pb-7">
               <h2 className="text-2xl font-bold">Archive Preferences</h2>
               <p className="mt-3 text-vault-text-secondary">
-                Choose how moves are displayed and configure auto-analysis settings.
+                Choose how moves are displayed and configure theme and auto-analysis settings.
               </p>
             </div>
+
             <div className="mt-7 flex items-center justify-between border-b border-vault-line py-6">
+              <div>
+                <h3 className="text-lg font-bold">Interface Appearance</h3>
+                <p className="text-vault-text-secondary">
+                  Select between light parchment sanctuary, dark archival slate, or match system settings.
+                </p>
+              </div>
+              <ThemeSegmentedPicker />
+            </div>
+
+            <div className="flex items-center justify-between border-b border-vault-line py-6">
               <div>
                 <h3 className="text-lg font-bold">Default Notation Style</h3>
                 <p className="text-vault-text-secondary">

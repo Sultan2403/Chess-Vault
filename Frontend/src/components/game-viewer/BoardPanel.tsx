@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { motion, AnimatePresence } from "motion/react";
+import { useTheme } from "../../contexts";
 
 type BoardPanelProps = {
   fen: string;
@@ -12,6 +13,7 @@ type BoardPanelProps = {
 };
 
 export function BoardPanel({ fen, boardOrientation, activeMoveLabel, isPlaying = false }: BoardPanelProps) {
+  const { boardColors } = useTheme();
   const lastFenTimeRef = useRef<number>(Date.now());
   const [animationDuration, setAnimationDuration] = useState<number>(250);
 
@@ -40,10 +42,10 @@ export function BoardPanel({ fen, boardOrientation, activeMoveLabel, isPlaying =
             borderRadius: "0px",
           },
           darkSquareStyle: {
-            backgroundColor: "#282e3b",
+            backgroundColor: boardColors.boardDark,
           },
           lightSquareStyle: {
-            backgroundColor: "#e6e4df",
+            backgroundColor: boardColors.boardLight,
           },
         }}
       />
