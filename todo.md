@@ -6,10 +6,9 @@
 
 ## Up next
 
-- Finish the import flow end to end
+- Imports are... kinda done? So much is wrong and needs to be fixed. First... Damn idk I'm tired. The future me might have to tackle this on his own... Okay sockets don't relay, the import progress thingy closes automatically, and the code is genuinely bs I don't like it. Umm I had something else to complain about but I don't remeber.... Oh well. Don't take this part of the todo as a source of truth for what's next to do for imports tho cus a lot is geninely broken ugh. Oh well. It's 1am btw -_-
 - Rework the UI to something that represents the app.
 - Decide on platform flow: Should stats and views across Dashboard and Game Bank always default to unified (Chess.com + Lichess), or provide an explicit account/platform switcher?
-- BROOOO IMPORTSS!!! Like bro you just casually threw away the app's core 💀. Lock in man.
 - After imports we auto generate collections and all.
 
 ## Overall
