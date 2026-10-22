@@ -27,7 +27,7 @@ const envSchema = z.object({
 
   LOG_LEVEL: z
     .enum(["debug", "info", "warn", "error", "fatal", "silent"])
-    .default("info"),
+    .default(isProd ? "info" : "debug"),
 
   CLERK_PUBLISHABLE_KEY: z.string().min(5, "Clerk publishable key missing"),
   CLERK_SECRET_KEY: z.string().min(5, "Clerk secret key missing"),

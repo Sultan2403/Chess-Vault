@@ -1,7 +1,7 @@
 import { verifyToken } from "@clerk/express";
 import env from "../Config/env";
 import type { Socket } from "socket.io";
-import { logger } from "@sentry/node";
+import { logger } from "../Config/logger";
 
 /**
  * Authenticates an incoming Socket.IO connection using a Clerk session token.
@@ -20,6 +20,7 @@ export const authenticateSocket = async (
   const token = socket.handshake.auth?.token;
 
   if (!token || typeof token !== "string") {
+    logger.warn({ socketId: socket.id }, "Socket connection rejected: missing auth token");
     next(new Error("Authentication required"));
     return;
   }
@@ -33,10 +34,11 @@ export const authenticateSocket = async (
 
     socket.data.userId = userId;
     await socket.join(`user:${userId}`);
-    logger.debug("Socket authenticated and joined successfully", { userId });
+    logger.debug({ userId }, "Socket authenticated and joined successfully");
 
     next();
-  } catch {
+  } catch (err) {
+    logger.warn({ err, socketId: socket.id }, "Socket authentication failed: invalid or expired token");
     next(new Error("Invalid or expired authentication token"));
   }
 };

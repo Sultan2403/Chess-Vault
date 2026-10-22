@@ -18,12 +18,25 @@ export const initSocket = (server: HttpServer) => {
 
   // --- Socket.IO connection handling ---
   io.on(SOCKET_EVENTS.CONNECTION, (socket) => {
-    logger.info({ socketId: socket.id }, "Socket client connected");
+    const userId = socket.data.userId;
+    if (userId) {
+      socket.join(`user:${userId}`);
+    }
+
+    logger.info(
+      {
+        socketId: socket.id,
+        userId,
+        rooms: Array.from(socket.rooms),
+      },
+      "Socket client connected and ready",
+    );
 
     socket.on(SOCKET_EVENTS.DISCONNECT, (reason) => {
       logger.info(
         {
           socketId: socket.id,
+          userId: socket.data.userId,
           reason,
         },
         "Socket client disconnected",
