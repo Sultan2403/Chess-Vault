@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import socket from "../sockets/socket";
 import { SOCKET_EVENTS } from "@chess-vault/shared";
 import type { ImportCompleteType, ImportProgressType } from "../types/socket";
+import { QUERY_KEYS } from "../constants/queryKeys";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const useImportProgress = () => {
   const [importProgress, setImportProgress] =
     useState<ImportProgressType | null>(null);
   const [importComplete, setImportComplete] =
     useState<ImportCompleteType | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const handleImportProgress = (payload: ImportProgressType) => {
@@ -15,6 +18,9 @@ export const useImportProgress = () => {
     };
 
     const handleImportComplete = (payload: ImportCompleteType) => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.games.lists(),
+      });
       setImportComplete(payload);
     };
 

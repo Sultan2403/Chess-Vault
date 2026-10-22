@@ -1,19 +1,32 @@
-import { useState } from "react";
-import { User, ArrowRight, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { Button } from "../ui/Button";
+import { useState, useEffect } from "react";
 import { Modal } from "../ui/Modal";
 import { Platforms } from "@chess-vault/shared";
-import type { PlatformType, VerifyLinkedAccountResult } from "@chess-vault/shared";
+import type {
+  PlatformType,
+  VerifyLinkedAccountResult,
+  AccountsStatsPreviewResult,
+} from "@chess-vault/shared";
+import { useStatsPreview } from "../../hooks/useAccount";
+import { useImportProgress } from "../../hooks/useSocket";
+import { OnboardingHeader, type OnboardingStage } from "./OnboardingHeader";
+import { ConnectAccountsStep, type PlatformMode } from "./ConnectAccountsStep";
+import { VerifyStatsStep } from "./VerifyStatsStep";
+import { ImportProgressStep } from "./ImportProgressStep";
 
 type OnboardingModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onBeginSync: (platforms: { chessComUsername?: string; lichessUsername?: string }) => Promise<void>;
+  onBeginSync: (platforms: {
+    chessComUsername?: string;
+    lichessUsername?: string;
+  }) => Promise<void>;
   onVerifyAccount: (account: {
     platform: PlatformType;
     username: string;
   }) => Promise<VerifyLinkedAccountResult>;
   required?: boolean;
+  initialStage?: OnboardingStage;
+  initialAccounts?: Array<{ platform: PlatformType; username: string }>;
 };
 
 export function OnboardingModal({
@@ -22,94 +35,203 @@ export function OnboardingModal({
   onBeginSync,
   onVerifyAccount,
   required = false,
+  initialStage = "connect",
+  initialAccounts = [],
 }: OnboardingModalProps) {
-  const [chessComUsername, setChessComUsername] = useState("");
-  const [lichessUsername, setLichessUsername] = useState("");
+  // Stage management
+  const [currentStage, setCurrentStage] = useState<OnboardingStage>(initialStage);
+
+  const initialChessCom = initialAccounts.find((a) => a.platform === Platforms.CHESS_COM)?.username || "";
+  const initialLichess = initialAccounts.find((a) => a.platform === Platforms.LICHESS)?.username || "";
+
+  const defaultMode: PlatformMode =
+    initialChessCom && !initialLichess
+      ? "chessCom"
+      : !initialChessCom && initialLichess
+      ? "lichess"
+      : "both";
+
+  const [platformMode, setPlatformMode] = useState<PlatformMode>(defaultMode);
+
+  // Form input states
+  const [chessComUsername, setChessComUsername] = useState(initialChessCom);
+  const [lichessUsername, setLichessUsername] = useState(initialLichess);
   const [error, setError] = useState<string>();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
+
+  // Inline verification per platform (debounced in Step 1)
   const [verification, setVerification] = useState<
-    Partial<Record<PlatformType, { status: "idle" | "checking" | "valid" | "invalid"; message?: string }>>
-  >({});
+    Partial<
+      Record<
+        PlatformType,
+        { status: "idle" | "checking" | "valid" | "invalid"; message?: string }
+      >
+    >
+  >({
+    ...(initialChessCom ? { [Platforms.CHESS_COM]: { status: "valid", message: `Found @${initialChessCom}` } } : {}),
+    ...(initialLichess ? { [Platforms.LICHESS]: { status: "valid", message: `Found @${initialLichess}` } } : {}),
+  });
 
-  const hasChessComUsername = Boolean(chessComUsername.trim());
-  const hasLichessUsername = Boolean(lichessUsername.trim());
-  const hasAtLeastOneUsername = hasChessComUsername || hasLichessUsername;
-  const areEnteredAccountsVerified =
-    (!hasChessComUsername || verification[Platforms.CHESS_COM]?.status === "valid") &&
-    (!hasLichessUsername || verification[Platforms.LICHESS]?.status === "valid");
-  const canConnect =
-    hasAtLeastOneUsername && areEnteredAccountsVerified && !isSubmitting;
+  // Verified profile & stats data for Step 2
+  const [statsPreview, setStatsPreview] = useState<AccountsStatsPreviewResult>(
+    {},
+  );
 
-  const verifyAccount = async (platform: PlatformType, username: string) => {
-    const cleanedUsername = username.trim();
-    if (!cleanedUsername) return false;
+  // Step 3 Import progress and triggering
+  const [isImportTriggered, setIsImportTriggered] = useState(false);
+  const [importStatusMessage, setImportStatusMessage] = useState<string>(
+    "Connecting accounts and initiating import...",
+  );
+  const { importProgress, importComplete } = useImportProgress();
+  const statsPreviewMutation = useStatsPreview();
 
-    setVerification((current) => ({
-      ...current,
+  // Watch for import socket completion
+  useEffect(() => {
+    if (importComplete && isImportTriggered) {
+      if (importComplete.success) {
+        setImportStatusMessage("All games indexed successfully!");
+      } else {
+        setImportStatusMessage(
+          importComplete.message || "Import completed with issues.",
+        );
+      }
+    }
+  }, [importComplete, isImportTriggered]);
+
+  // If opening directly into stage "verify" with existing accounts, auto-fetch stats
+  useEffect(() => {
+    if (isOpen && initialStage === "verify" && initialAccounts.length > 0) {
+      setIsLoadingStats(true);
+      statsPreviewMutation
+        .mutateAsync({ accounts: initialAccounts })
+        .then((res) => {
+          const payload = (res as any)?.data ?? res ?? {};
+          setStatsPreview(payload);
+        })
+        .catch(() => undefined)
+        .finally(() => setIsLoadingStats(false));
+    }
+  }, [isOpen, initialStage]);
+
+  const showChessCom = platformMode === "both" || platformMode === "chessCom";
+  const showLichess = platformMode === "both" || platformMode === "lichess";
+
+  // Single account check function passed down to Step 1
+  const handleVerifySingle = async (
+    platform: PlatformType,
+    username: string,
+  ) => {
+    const cleaned = username.trim();
+    if (!cleaned) return { success: false, username };
+
+    setVerification((prev) => ({
+      ...prev,
       [platform]: { status: "checking" },
     }));
 
     try {
-      const result = await onVerifyAccount({ platform, username: cleanedUsername });
-      setVerification((current) => ({
-        ...current,
+      const res = await onVerifyAccount({ platform, username: cleaned });
+      setVerification((prev) => ({
+        ...prev,
         [platform]: {
-          status: result.success ? "valid" : "invalid",
-          message: result.success ? `Found ${result.username}` : result.message,
+          status: res.success ? "valid" : "invalid",
+          message: res.success ? `Found @${res.username}` : res.message,
         },
       }));
-      return result.success;
+      return res;
     } catch {
-      setVerification((current) => ({
-        ...current,
+      setVerification((prev) => ({
+        ...prev,
         [platform]: {
           status: "invalid",
-          message: "We couldn't verify that account right now.",
+          message: `Unable to verify ${platform} account.`,
         },
       }));
-      return false;
+      return { success: false, username };
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const platforms = {
-      chessComUsername: chessComUsername.trim() || undefined,
-      lichessUsername: lichessUsername.trim() || undefined,
-    };
-
-    if (!platforms.chessComUsername && !platforms.lichessUsername) {
-      setError("Connect at least one chess account to build your vault.");
-      return;
-    }
-
-    const accountsToVerify: Array<{ platform: PlatformType; username: string }> = [];
-    if (platforms.chessComUsername) {
-      accountsToVerify.push({ platform: Platforms.CHESS_COM, username: platforms.chessComUsername });
-    }
-    if (platforms.lichessUsername) {
-      accountsToVerify.push({ platform: Platforms.LICHESS, username: platforms.lichessUsername });
-    }
-
-    for (const account of accountsToVerify) {
-      if (verification[account.platform]?.status !== "valid") {
-        const isValid = await verifyAccount(account.platform, account.username);
-        if (!isValid) return;
-      }
-    }
-
+  // Transition from Step 1 to Step 2: Fetch stats for verified accounts in ONE batch call
+  const handleProceedToVerify = async () => {
     setError(undefined);
-    setIsSubmitting(true);
+    setIsLoadingStats(true);
+
     try {
-      await onBeginSync(platforms);
-    } catch (submissionError) {
+      const accountsToVerify: Array<{
+        platform: PlatformType;
+        username: string;
+      }> = [];
+      if (showChessCom && chessComUsername.trim()) {
+        accountsToVerify.push({
+          platform: Platforms.CHESS_COM,
+          username: chessComUsername.trim(),
+        });
+      }
+      if (showLichess && lichessUsername.trim()) {
+        accountsToVerify.push({
+          platform: Platforms.LICHESS,
+          username: lichessUsername.trim(),
+        });
+      }
+
+      if (accountsToVerify.length === 0) {
+        setError("Please enter at least one username.");
+        setIsLoadingStats(false);
+        return;
+      }
+
+      // Ensure any unverified account is confirmed first
+      for (const acc of accountsToVerify) {
+        if (verification[acc.platform]?.status !== "valid") {
+          const res = await handleVerifySingle(acc.platform, acc.username);
+          if (!res.success) {
+            setIsLoadingStats(false);
+            return;
+          }
+        }
+      }
+
+      // Single batch call accepting array of accounts to fetch stats exclusively in Step 2
+      const previewRes = await statsPreviewMutation.mutateAsync({
+        accounts: accountsToVerify,
+      });
+
+      const payload = previewRes;
+      setStatsPreview(payload);
+      setCurrentStage("verify");
+    } catch (err: unknown) {
       setError(
-        submissionError instanceof Error
-          ? submissionError.message
-          : "We couldn't connect those accounts. Please try again.",
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please check your usernames.",
       );
     } finally {
-      setIsSubmitting(false);
+      setIsLoadingStats(false);
+    }
+  };
+
+  // Transition from Step 2 to Step 3: Trigger real import
+  const handleStartImport = async () => {
+    setError(undefined);
+    setCurrentStage("import");
+    setIsImportTriggered(true);
+
+    try {
+      await onBeginSync({
+        chessComUsername: showChessCom
+          ? chessComUsername.trim() || undefined
+          : undefined,
+        lichessUsername: showLichess
+          ? lichessUsername.trim() || undefined
+          : undefined,
+      });
+      setImportStatusMessage(
+        "Accounts connected! Ingestion queue running in background...",
+      );
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Failed to initiate import.",
+      );
     }
   };
 
@@ -118,170 +240,61 @@ export function OnboardingModal({
       isOpen={isOpen}
       onClose={required ? () => {} : onClose}
       blurScreen={true}
-      maxWidth="2xl"
+      maxWidth="3xl"
       showCloseButton={!required}
       closeOnBackdropClick={!required}
       closeOnEscape={!required}
+      className="p-6 sm:p-8"
     >
       <div>
-        {/* Top Brand Tag */}
-        <div className="text-center mb-6">
-          <h2 className="font-display text-2xl font-normal text-vault-text-primary tracking-tight">
-            Chess Vault
-          </h2>
-          <p className="mt-1 font-mono text-[10px] uppercase tracking-widest text-vault-bronze">
-            Personal Archive &amp; Registry
-          </p>
-        </div>
+        <OnboardingHeader currentStage={currentStage} />
 
-        <div className="grid gap-8 sm:grid-cols-[1.2fr_0.8fr] items-center">
-          {/* Left Form */}
-          <div>
-            <h1 className="font-display text-2xl sm:text-3xl font-normal text-vault-text-primary leading-tight tracking-tight">
-              Let's build your vault.
-            </h1>
-            <p className="mt-2 text-xs leading-relaxed text-vault-text-secondary">
-              Tell us where you play chess and we'll bring your games into your permanent archive.
-            </p>
-            <p className="mt-1.5 font-mono text-[11px] leading-5 text-vault-text-muted">
-              Enter your exact public username. We'll verify it before connecting.
-            </p>
+        {currentStage === "connect" && (
+          <ConnectAccountsStep
+            platformMode={platformMode}
+            onPlatformModeChange={setPlatformMode}
+            chessComUsername={chessComUsername}
+            onChessComUsernameChange={(val) => {
+              setChessComUsername(val);
+              setVerification((prev) => ({
+                ...prev,
+                [Platforms.CHESS_COM]: { status: "idle" },
+              }));
+            }}
+            lichessUsername={lichessUsername}
+            onLichessUsernameChange={(val) => {
+              setLichessUsername(val);
+              setVerification((prev) => ({
+                ...prev,
+                [Platforms.LICHESS]: { status: "idle" },
+              }));
+            }}
+            verification={verification}
+            onVerifySingle={handleVerifySingle}
+            onProceed={handleProceedToVerify}
+            isLoadingStats={isLoadingStats}
+            error={error}
+            required={required}
+            onClose={onClose}
+          />
+        )}
 
-            <form onSubmit={handleSubmit} className="mt-5 space-y-4">
-              <div>
-                <label className="block font-mono text-[10px] uppercase tracking-wider text-vault-text-muted mb-1.5">
-                  Chess.com Username
-                </label>
-                <div className="flex items-center gap-2.5 rounded-vault border border-vault-border-base bg-vault-surface-layer-2 px-3 py-2 transition-colors focus-within:border-vault-bronze">
-                  <User size={14} className="text-vault-text-muted shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="e.g. magnuscarlsen"
-                    value={chessComUsername}
-                    onChange={(e) => {
-                      setChessComUsername(e.target.value);
-                      setVerification((current) => ({ ...current, [Platforms.CHESS_COM]: { status: "idle" } }));
-                    }}
-                    onBlur={() => verifyAccount(Platforms.CHESS_COM, chessComUsername)}
-                    className="w-full bg-transparent font-mono text-xs text-vault-text-primary placeholder:text-vault-text-muted/50 outline-none"
-                  />
-                </div>
-                {verification["chess.com"]?.status === "checking" && (
-                  <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-vault-text-muted">
-                    <Loader2 size={12} className="animate-spin text-vault-bronze" /> Checking Chess.com account...
-                  </p>
-                )}
-                {verification["chess.com"]?.status === "valid" && (
-                  <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-vault-win">
-                    <CheckCircle2 size={13} className="text-vault-win shrink-0" /> {verification["chess.com"]?.message}
-                  </p>
-                )}
-                {verification["chess.com"]?.status === "invalid" && (
-                  <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-vault-loss">
-                    <AlertCircle size={13} className="text-vault-loss shrink-0" /> {verification["chess.com"]?.message}
-                  </p>
-                )}
-              </div>
+        {currentStage === "verify" && (
+          <VerifyStatsStep
+            statsPreview={statsPreview}
+            onBack={() => setCurrentStage("connect")}
+            onContinue={handleStartImport}
+          />
+        )}
 
-              <div>
-                <label className="block font-mono text-[10px] uppercase tracking-wider text-vault-text-muted mb-1.5">
-                  Lichess Username
-                </label>
-                <div className="flex items-center gap-2.5 rounded-vault border border-vault-border-base bg-vault-surface-layer-2 px-3 py-2 transition-colors focus-within:border-vault-bronze">
-                  <User size={14} className="text-vault-text-muted shrink-0" />
-                  <input
-                    type="text"
-                    placeholder="e.g. DrNykterstein"
-                    value={lichessUsername}
-                    onChange={(e) => {
-                      setLichessUsername(e.target.value);
-                      setVerification((current) => ({ ...current, [Platforms.LICHESS]: { status: "idle" } }));
-                    }}
-                    onBlur={() => verifyAccount(Platforms.LICHESS, lichessUsername)}
-                    className="w-full bg-transparent font-mono text-xs text-vault-text-primary placeholder:text-vault-text-muted/50 outline-none"
-                  />
-                </div>
-                {verification.lichess?.status === "checking" && (
-                  <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-vault-text-muted">
-                    <Loader2 size={12} className="animate-spin text-vault-bronze" /> Checking Lichess account...
-                  </p>
-                )}
-                {verification.lichess?.status === "valid" && (
-                  <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-vault-win">
-                    <CheckCircle2 size={13} className="text-vault-win shrink-0" /> {verification.lichess?.message}
-                  </p>
-                )}
-                {verification.lichess?.status === "invalid" && (
-                  <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-vault-loss">
-                    <AlertCircle size={13} className="text-vault-loss shrink-0" /> {verification.lichess?.message}
-                  </p>
-                )}
-              </div>
-
-              {error && (
-                <div className="rounded-vault border border-vault-loss/40 bg-vault-loss/10 p-2.5 font-mono text-xs text-vault-loss flex items-start gap-2" role="alert">
-                  <AlertCircle size={14} className="shrink-0 mt-0.5 text-vault-loss" />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              <div className="pt-2 flex items-center gap-3">
-                {!required && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={onClose}
-                    className="font-mono text-xs uppercase px-4 py-2.5"
-                  >
-                    Skip for now
-                  </Button>
-                )}
-                <Button
-                  type="submit"
-                  variant="solid-bronze"
-                  className="flex-1 font-mono text-xs uppercase py-2.5"
-                  disabled={!canConnect}
-                >
-                  {isSubmitting ? "Connecting..." : "Connect accounts"} <ArrowRight size={13} />
-                </Button>
-              </div>
-            </form>
-          </div>
-
-          {/* Right Archival Preview */}
-          <div className="flex flex-col gap-3 rounded-vault border border-vault-border-base bg-vault-surface-layer-2 p-3.5">
-            <div className="relative overflow-hidden rounded-vault border border-vault-border-interactive aspect-4/3 bg-vault-surface-container-lowest">
-              <img
-                src="https://images.unsplash.com/photo-1528819622765-d6bcf132f793?w=500&auto=format&fit=crop&q=80"
-                alt="Chess piece archive"
-                className="h-full w-full object-cover opacity-60 brightness-90 contrast-110 grayscale-[40%]"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-vault-surface-layer-1 via-vault-surface-layer-1/20 to-transparent" />
-              <div className="absolute bottom-2.5 left-2.5 right-2.5 font-mono text-[10px] text-vault-text-secondary">
-                <span className="text-vault-bronze font-semibold">LEDGER REGISTRY</span>
-                <p className="text-[11px] font-sans text-vault-text-primary mt-0.5 font-medium leading-tight">
-                  Multi-platform game ingestion &amp; opening classification
-                </p>
-              </div>
-            </div>
-            <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1/80 p-2.5 font-mono text-[10px] text-vault-text-muted space-y-1">
-              <div className="flex items-center justify-between">
-                <span>FEDERATION</span>
-                <span className="text-vault-win font-semibold">ONLINE</span>
-              </div>
-              <div className="text-vault-text-secondary font-sans text-xs">
-                Chess.com &bull; Lichess.org
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Pagination Indicators */}
-        <div className="mt-6 flex justify-center items-center gap-1.5">
-          <span className="h-1 w-6 rounded-full bg-vault-bronze" />
-          <span className="h-1 w-1.5 rounded-full bg-vault-border-interactive" />
-          <span className="h-1 w-1.5 rounded-full bg-vault-border-interactive" />
-        </div>
+        {currentStage === "import" && (
+          <ImportProgressStep
+            importStatusMessage={importStatusMessage}
+            importProgress={importProgress}
+            importComplete={importComplete}
+            onGoToDashboard={onClose}
+          />
+        )}
       </div>
     </Modal>
   );

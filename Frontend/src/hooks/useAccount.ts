@@ -42,3 +42,6 @@ export const useConnectLinkedAccounts = () => {
 export const useVerifyLinkedAccount = () =>
   useMutation({ mutationFn: accountApi.verifyLinkedAccount });
 
+export const useStatsPreview = () =>
+  useMutation({ mutationFn: accountApi.getStatsPreview });
+

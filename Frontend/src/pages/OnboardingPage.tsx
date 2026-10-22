@@ -2,18 +2,20 @@ import { useNavigate } from "react-router-dom";
 import { Platforms } from "@chess-vault/shared";
 import { OnboardingModal } from "../components/onboarding/OnboardingModal";
 import { useConnectLinkedAccounts, useVerifyLinkedAccount } from "../hooks/useAccount";
+import { useImportGames } from "../hooks/useGames";
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const connectMutation = useConnectLinkedAccounts();
   const verificationMutation = useVerifyLinkedAccount();
+  const importGamesMutation = useImportGames();
 
   return (
     <div className="min-h-screen bg-vault-background">
       <OnboardingModal
         isOpen
         required
-        onClose={() => undefined}
+        onClose={() => navigate("/dashboard", { replace: true })}
         onVerifyAccount={(account) => verificationMutation.mutateAsync(account)}
         onBeginSync={async ({ chessComUsername, lichessUsername }) => {
           const accounts: Array<{ platform: (typeof Platforms)[keyof typeof Platforms]; username: string }> = [];
@@ -35,9 +37,20 @@ export default function OnboardingPage() {
             );
           }
 
-          navigate("/dashboard", { replace: true });
+          // Trigger real BullMQ background imports for each connected account
+          for (const acc of accounts) {
+            try {
+              await importGamesMutation.mutateAsync({
+                platform: acc.platform,
+                username: acc.username,
+              });
+            } catch (importErr) {
+              console.error("Failed to queue import for", acc.platform, importErr);
+            }
+          }
         }}
       />
     </div>
   );
 }
+

@@ -4,6 +4,7 @@ import {
   connectLinkedAccountsController,
   getAccountBootstrapController,
   verifyLinkedAccountController,
+  getAccountsStatsPreviewController,
 } from "../Controllers/accounts.controller";
 import {
   connectLinkedAccountsBody,
@@ -17,6 +18,11 @@ router.post(
   "/linked-accounts/verify",
   validate({ body: linkedAccountInput }),
   verifyLinkedAccountController,
+);
+router.post(
+  "/linked-accounts/stats-preview",
+  validate({ body: connectLinkedAccountsBody }),
+  getAccountsStatsPreviewController,
 );
 router.post(
   "/linked-accounts/connect",

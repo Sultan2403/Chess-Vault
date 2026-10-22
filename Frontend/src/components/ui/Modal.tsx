@@ -11,7 +11,7 @@ export type ModalProps = {
   children: ReactNode;
   /** Controls backdrop blur effect. Defaults to true. */
   blurScreen?: boolean;
-  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl";
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
   showCloseButton?: boolean;
   closeOnBackdropClick?: boolean;
   closeOnEscape?: boolean;
@@ -24,6 +24,8 @@ const maxWidthClasses = {
   lg: "max-w-lg",
   xl: "max-w-xl",
   "2xl": "max-w-2xl",
+  "3xl": "max-w-3xl",
+  "4xl": "max-w-4xl",
 };
 
 export function Modal({

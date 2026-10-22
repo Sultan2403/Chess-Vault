@@ -27,6 +27,7 @@ import {
   useConnectLinkedAccounts,
   useVerifyLinkedAccount,
 } from "../hooks/useAccount";
+import { useImportGames } from "../hooks/useGames";
 import {
   getPlayerPerspective,
   parseOpeningDetails,
@@ -38,7 +39,7 @@ import { Platforms } from "@chess-vault/shared";
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const userName = user?.username || user?.firstName || "Player";
+  const userName = user?.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : "Player";
 
   const [selectedRediscoverIndex, setSelectedRediscoverIndex] = useState(0);
 
@@ -61,6 +62,7 @@ export default function DashboardPage() {
   const { data: accountData } = useAccountBootstrap();
   const connectMutation = useConnectLinkedAccounts();
   const verificationMutation = useVerifyLinkedAccount();
+  const importGamesMutation = useImportGames();
 
   const connectedAccounts = accountData?.linkedAccounts ?? [];
 
@@ -844,6 +846,11 @@ export default function DashboardPage() {
       <OnboardingModal
         isOpen={isOnboardingOpen}
         onClose={() => setIsOnboardingOpen(false)}
+        initialStage={connectedAccounts.length > 0 ? "verify" : "connect"}
+        initialAccounts={connectedAccounts.map((a) => ({
+          platform: a.platform,
+          username: a.username,
+        }))}
         onVerifyAccount={(account) => verificationMutation.mutateAsync(account)}
         onBeginSync={async (platforms) => {
           const accounts: Array<{
@@ -874,7 +881,18 @@ export default function DashboardPage() {
             );
           }
 
-          setIsOnboardingOpen(false);
+          // Trigger real BullMQ background imports for each connected account
+          for (const acc of accounts) {
+            try {
+              await importGamesMutation.mutateAsync({
+                platform: acc.platform,
+                username: acc.username,
+              });
+            } catch (importErr) {
+              console.error("Failed to queue import for", acc.platform, importErr);
+            }
+          }
+
           refetchDashboard();
         }}
       />

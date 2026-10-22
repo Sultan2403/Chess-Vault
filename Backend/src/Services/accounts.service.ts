@@ -95,6 +95,73 @@ export const verifyLinkedAccount = async (
   }
 };
 
+export const getAccountsStatsPreview = async (
+  accounts: ConnectLinkedAccountsInput["accounts"],
+) => {
+  const result: {
+    chessCom?: {
+      username: string;
+      profile: any;
+      stats?: any;
+    };
+    lichess?: {
+      username: string;
+      profile: any;
+      stats: {
+        perfs: any;
+        count?: any;
+        playTime?: any;
+      };
+    };
+  } = {};
+
+  for (const acc of accounts) {
+    if (acc.platform === Platforms.CHESS_COM) {
+      try {
+        const profile = await chessComApi.getPlayerProfile(acc.username);
+        let stats = undefined;
+        try {
+          stats = await chessComApi.getPlayerStats(acc.username);
+        } catch {
+          // stats optional if user has no played games yet
+        }
+        result.chessCom = {
+          username: profile.username,
+          profile,
+          stats,
+        };
+      } catch {
+        // skip if not found
+      }
+    } else if (acc.platform === Platforms.LICHESS) {
+      try {
+        const user = await lichessApi.getUserProfile(acc.username);
+        result.lichess = {
+          username: user.username,
+          profile: {
+            title: user.title,
+            createdAt: user.createdAt,
+            tosViolation: user.tosViolation,
+            country: user.profile?.country,
+            location: user.profile?.location,
+            bio: user.profile?.bio,
+            fideRating: user.profile?.fideRating,
+          },
+          stats: {
+            perfs: user.perfs,
+            count: user.count,
+            playTime: user.playTime,
+          },
+        };
+      } catch {
+        // skip if not found
+      }
+    }
+  }
+
+  return result;
+};
+
 export const connectLinkedAccounts = async (
   userId: string,
   { accounts }: ConnectLinkedAccountsInput,

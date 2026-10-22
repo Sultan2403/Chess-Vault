@@ -1,4 +1,9 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { gamesApi } from "../apis";
 import type {
   SearchGamesParams,
@@ -10,7 +15,11 @@ import type {
   BulkDeleteGamesResponse,
 } from "../apis/api.games";
 import { QUERY_KEYS } from "../constants/queryKeys";
-import type { Game, BulkAddFolderIdsInput, BulkDeleteGamesInput } from "@chess-vault/shared";
+import type {
+  Game,
+  BulkAddFolderIdsInput,
+  BulkDeleteGamesInput,
+} from "@chess-vault/shared";
 
 export const useGames = (params?: SearchGamesParams) => {
   return useQuery<SearchGamesResponse, unknown, SearchGamesResponse>({
@@ -86,28 +95,24 @@ export const useDeleteGame = () => {
 };
 
 export const useImportGames = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (data: FrontendImportGamesPayload) => gamesApi.importGames(data),
-    onSuccess: () => {
-      // Invalidate games cache so any visible tables / lists refresh with newly imported games
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.games.lists() });
-    },
+    mutationFn: (data: FrontendImportGamesPayload) =>
+      gamesApi.importGames(data),
   });
 };
-
-
 
 export const useBulkAddFolderIds = () => {
   const queryClient = useQueryClient();
 
   return useMutation<BulkAddFolderIdsResponse, unknown, BulkAddFolderIdsInput>({
-    mutationFn: (data: BulkAddFolderIdsInput) => gamesApi.bulkAddFolderIds(data),
+    mutationFn: (data: BulkAddFolderIdsInput) =>
+      gamesApi.bulkAddFolderIds(data),
     onSuccess: (_result, { gameIds }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.games.lists() });
       gameIds.forEach((id) => {
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.games.detail(id) });
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.games.detail(id),
+        });
       });
     },
   });

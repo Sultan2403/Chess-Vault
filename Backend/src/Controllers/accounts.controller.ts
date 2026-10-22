@@ -9,6 +9,7 @@ import {
   connectLinkedAccounts,
   getAccountBootstrap,
   verifyLinkedAccount,
+  getAccountsStatsPreview,
 } from "../Services/accounts.service";
 import type { ConnectLinkedAccountsInput } from "@chess-vault/shared";
 import type { PlatformType } from "@chess-vault/shared";
@@ -77,6 +78,27 @@ export const verifyLinkedAccountController = async (
     });
   } catch (error) {
     return internalError({ res, error, message: "Failed to verify account" });
+  }
+};
+
+export const getAccountsStatsPreviewController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { accounts }: ConnectLinkedAccountsInput = req.body;
+    const data = await getAccountsStatsPreview(accounts);
+    return successResponse({
+      res,
+      message: "Player stats preview fetched successfully",
+      data,
+    });
+  } catch (error) {
+    return internalError({
+      res,
+      error,
+      message: "Failed to load player stats preview",
+    });
   }
 };
 

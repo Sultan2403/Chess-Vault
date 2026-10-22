@@ -64,3 +64,40 @@ export type VerifyLinkedAccountResult = {
   username: string;
   message?: string;
 };
+
+export type ChessComPlayerProfile = {
+  username: string;
+  title?: string;
+  avatar?: string;
+  joined?: number;
+  country?: string;
+  status?: string;
+  fide?: number;
+};
+
+export type LichessPlayerProfile = {
+  title?: string;
+  createdAt: number;
+  tosViolation?: boolean;
+  country?: string;
+  location?: string;
+  bio?: string;
+  fideRating?: number;
+};
+
+export type AccountsStatsPreviewResult = {
+  chessCom?: {
+    username: string;
+    profile: ChessComPlayerProfile;
+    stats?: import("./games.types.js").Chess_Com_Player_Stats;
+  };
+  lichess?: {
+    username: string;
+    profile: LichessPlayerProfile;
+    stats: {
+      perfs: import("./games.types.js").Lichess_Perfs;
+      count?: import("./games.types.js").Lichess_Count;
+      playTime?: import("./games.types.js").Lichess_PlayTime;
+    };
+  };
+};

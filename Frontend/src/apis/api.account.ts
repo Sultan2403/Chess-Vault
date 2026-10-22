@@ -4,6 +4,7 @@ import type {
   ConnectLinkedAccountsResult,
   PlatformType,
   VerifyLinkedAccountResult,
+  AccountsStatsPreviewResult,
 } from "@chess-vault/shared";
 import api from "./api.client";
 
@@ -23,6 +24,12 @@ const accountApi = {
     username: string;
   }): Promise<VerifyLinkedAccountResult> =>
     api.post("/account/linked-accounts/verify", data),
+
+  getStatsPreview: (
+    data: ConnectLinkedAccountsInput,
+  ): Promise<AccountsStatsPreviewResult> =>
+    api.post("/account/linked-accounts/stats-preview", data),
 };
 
 export default accountApi;
+
