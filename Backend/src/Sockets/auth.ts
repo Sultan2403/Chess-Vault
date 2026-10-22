@@ -1,6 +1,7 @@
 import { verifyToken } from "@clerk/express";
 import env from "../Config/env";
 import type { Socket } from "socket.io";
+import { logger } from "@sentry/node";
 
 /**
  * Authenticates an incoming Socket.IO connection using a Clerk session token.
@@ -32,6 +33,7 @@ export const authenticateSocket = async (
 
     socket.data.userId = userId;
     await socket.join(`user:${userId}`);
+    logger.debug("Socket authenticated and joined successfully", { userId });
 
     next();
   } catch {

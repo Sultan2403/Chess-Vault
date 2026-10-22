@@ -14,6 +14,9 @@ export const useImportProgress = () => {
 
   useEffect(() => {
     const handleImportProgress = (payload: ImportProgressType) => {
+      queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.games.lists(),
+      });
       setImportProgress(payload);
     };
 

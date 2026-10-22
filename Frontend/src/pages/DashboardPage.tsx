@@ -22,12 +22,7 @@ import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
 import { useDashboard } from "../hooks/useDashboard";
 import { useFolders } from "../hooks/useFolders";
-import {
-  useAccountBootstrap,
-  useConnectLinkedAccounts,
-  useVerifyLinkedAccount,
-} from "../hooks/useAccount";
-import { useImportGames } from "../hooks/useGames";
+import { useAccountBootstrap } from "../hooks/useAccount";
 import {
   getPlayerPerspective,
   parseOpeningDetails,
@@ -60,10 +55,6 @@ export default function DashboardPage() {
   });
 
   const { data: accountData } = useAccountBootstrap();
-  const connectMutation = useConnectLinkedAccounts();
-  const verificationMutation = useVerifyLinkedAccount();
-  const importGamesMutation = useImportGames();
-
   const connectedAccounts = accountData?.linkedAccounts ?? [];
 
   // Metrics
@@ -851,50 +842,7 @@ export default function DashboardPage() {
           platform: a.platform,
           username: a.username,
         }))}
-        onVerifyAccount={(account) => verificationMutation.mutateAsync(account)}
-        onBeginSync={async (platforms) => {
-          const accounts: Array<{
-            platform: (typeof Platforms)[keyof typeof Platforms];
-            username: string;
-          }> = [];
-
-          if (platforms.chessComUsername) {
-            accounts.push({
-              platform: Platforms.CHESS_COM,
-              username: platforms.chessComUsername,
-            });
-          }
-          if (platforms.lichessUsername) {
-            accounts.push({
-              platform: Platforms.LICHESS,
-              username: platforms.lichessUsername,
-            });
-          }
-
-          const result = await connectMutation.mutateAsync({ accounts });
-          if (!result.success) {
-            throw new Error(
-              result.results
-                .map((connection) => connection.message)
-                .filter(Boolean)
-                .join(" ") || result.message,
-            );
-          }
-
-          // Trigger real BullMQ background imports for each connected account
-          for (const acc of accounts) {
-            try {
-              await importGamesMutation.mutateAsync({
-                platform: acc.platform,
-                username: acc.username,
-              });
-            } catch (importErr) {
-              console.error("Failed to queue import for", acc.platform, importErr);
-            }
-          }
-
-          refetchDashboard();
-        }}
+        onSuccess={() => refetchDashboard()}
       />
 
       {/* Building Vault Progress Modal */}

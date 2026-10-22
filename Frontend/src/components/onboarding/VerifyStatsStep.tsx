@@ -1,18 +1,80 @@
-import { ArrowLeft, ArrowRight, Clock, Flame, Trophy, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, Flame, Trophy, Zap, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "../ui/Button";
 import type { AccountsStatsPreviewResult } from "@chess-vault/shared";
 
 type VerifyStatsStepProps = {
-  statsPreview: AccountsStatsPreviewResult;
+  statsPreview: AccountsStatsPreviewResult | null;
+  isLoading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
   onBack: () => void;
   onContinue: () => void;
 };
 
 export function VerifyStatsStep({
   statsPreview = {},
+  isLoading = false,
+  error = null,
+  onRetry,
   onBack,
   onContinue,
 }: VerifyStatsStepProps) {
+  if (isLoading) {
+    return (
+      <div className="py-12 text-center max-w-md mx-auto space-y-4">
+        <div className="grid h-12 w-12 mx-auto place-items-center rounded-full bg-vault-surface-layer-2 border border-vault-border-base">
+          <Loader2 size={24} className="animate-spin text-vault-bronze" />
+        </div>
+        <div>
+          <h2 className="font-display text-xl font-normal text-vault-text-primary">
+            Retrieving Player Profiles...
+          </h2>
+          <p className="text-xs text-vault-text-secondary mt-1">
+            Querying public rating servers and calculating your lifetime match statistics.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="py-8 text-center max-w-md mx-auto space-y-5">
+        <div className="grid h-12 w-12 mx-auto place-items-center rounded-full bg-vault-loss/10 border border-vault-loss/30">
+          <AlertCircle size={24} className="text-vault-loss" />
+        </div>
+        <div>
+          <h2 className="font-display text-xl font-normal text-vault-text-primary">
+            Unable to retrieve player profiles
+          </h2>
+          <p className="text-xs text-vault-text-secondary mt-1 leading-relaxed">
+            {error}
+          </p>
+        </div>
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onBack}
+            className="font-mono text-xs uppercase px-4 py-2"
+          >
+            Edit Usernames
+          </Button>
+          {onRetry && (
+            <Button
+              type="button"
+              variant="solid-bronze"
+              onClick={onRetry}
+              className="font-mono text-xs uppercase px-4 py-2 flex items-center gap-2"
+            >
+              <RefreshCw size={12} /> Retry
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const { chessCom, lichess } = statsPreview ?? {};
 
   // Calculate estimated match count

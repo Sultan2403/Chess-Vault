@@ -205,8 +205,8 @@ export const connectLinkedAccounts = async (
       results.push({
         platform: requestedAccount.platform,
         username: verification.username,
-        success: false,
-        message: `This ${requestedAccount.platform} account is already linked.`,
+        success: true,
+        message: `${verification.username} is already connected.`,
       });
       continue;
     }
