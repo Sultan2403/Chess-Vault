@@ -28,18 +28,15 @@ import {
   parseOpeningDetails,
   getGameDate,
 } from "../utils/game";
-import { OnboardingModal } from "../components/onboarding/OnboardingModal";
-import { BuildingVaultModal } from "../components/onboarding/BuildingVaultModal";
 import { Platforms } from "@chess-vault/shared";
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const userName = user?.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : "Player";
+  const userName = user?.username
+    ? user.username.charAt(0).toUpperCase() + user.username.slice(1)
+    : "Player";
 
   const [selectedRediscoverIndex, setSelectedRediscoverIndex] = useState(0);
-
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-  const [isBuildingVaultOpen, setIsBuildingVaultOpen] = useState(false);
 
   // Queries
   const {
@@ -118,7 +115,11 @@ export default function DashboardPage() {
               </NavLink>
               <Button
                 variant="solid-bronze"
-                onClick={() => setIsOnboardingOpen(true)}
+                onClick={() =>
+                  alert(
+                    "Import feature not implemented yet. Btw checking for imports should be a global component thing like onboarding gate and it influences every page. hm maybe a hook for reusability or idk",
+                  )
+                }
                 className="font-mono text-xs px-4 py-2 flex items-center gap-2"
               >
                 <Upload size={13} />
@@ -501,7 +502,11 @@ export default function DashboardPage() {
               <p>No games found for this platform filter.</p>
               <Button
                 variant="secondary"
-                onClick={() => setIsOnboardingOpen(true)}
+                onClick={() =>
+                  alert(
+                    "Import feature not implemented yet. Btw checking for imports should be a global component thing like onboarding gate and it influences every page. hm maybe a hook for reusability or idk",
+                  )
+                }
                 className="text-xs font-mono uppercase"
               >
                 Import Games
@@ -832,28 +837,6 @@ export default function DashboardPage() {
           </div>
         </section>
       </div>
-
-      {/* Onboarding / Import Modal */}
-      <OnboardingModal
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
-        initialStage={connectedAccounts.length > 0 ? "verify" : "connect"}
-        initialAccounts={connectedAccounts.map((a) => ({
-          platform: a.platform,
-          username: a.username,
-        }))}
-        onSuccess={() => refetchDashboard()}
-      />
-
-      {/* Building Vault Progress Modal */}
-      <BuildingVaultModal
-        isOpen={isBuildingVaultOpen}
-        onCancel={() => setIsBuildingVaultOpen(false)}
-        onComplete={() => {
-          setIsBuildingVaultOpen(false);
-          refetchDashboard();
-        }}
-      />
     </>
   );
 }
