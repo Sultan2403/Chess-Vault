@@ -153,14 +153,20 @@ queued|running -> cancelled      (if/when cancel is supported)
    - Step 3: confirm. Confirming is **one backend command** that links the
      accounts and creates the runs, returning run ids. No client-side
      multi-step orchestration, and no half-connected state. **(Core)**
-2. **Linked account with no import history -> import prompt, not onboarding.
-   (Core)**
-   Importing is the app's core feature, so any account that has never been
-   imported shows a clear "Import your games" call to action (dashboard and
-   anywhere empty states appear). This is a prompt, not a gate.
+2. **Linked account with no games -> global import required prompt. (Core)**
+   - `needsOnboarding` is strictly for accounts (`linkedAccounts.length === 0`).
+   - If a user has linked accounts but 0 games (e.g. initial import failed, skipped, closed tab, or pending), we do not render complex empty charts or broken partial pages.
+   - The backend bootstrap payload (`getAccountBootstrap`) includes a fast server-computed signal: `hasGames: boolean` (or `gameCount: number`).
+   - **Component architecture:** An `<ImportRequiredGate />` wrapper sits directly in the route tree inside `ProtectedAppGate` (wrapping `/dashboard`, `/game-bank`, `/collections`), keeping `AppShell` intact so header, user button, and settings remain accessible.
+   - When `hasGames === false`, the gate intercepts the child routes and renders a unified route-contextual prompt instead of individual page fallbacks:
+     - Dashboard: *"You haven't imported your games yet. Sync your games to view your stats, ratings, and recent matches."*
+     - Game Bank: *"Your Game Bank is empty. Import your games to explore your archive."*
+     - Collections: *"No collections can be displayed right now. Import your games to begin organizing them."*
+     - Each provides a clear **[Sync Games Now]** action to trigger/resume the import flow.
+     - Note: `/settings` remains unblocked so the user can manage linked accounts.
+   - Once at least one game exists (`hasGames === true`), `<ImportRequiredGate />` simply renders `<Outlet />`, unlocking standard page views. If anything looks incomplete, users always have the manual sync button in the UI/badge.
 3. **Where the user is comes from data, not client memory. (Core)**
-   A refresh or closed tab resumes correctly because import state is queried
-   from the server.
+   - A refresh or closed tab resumes correctly because import state and game presence are queried from the server.
 
 The progress UI renders from the run state (queried), with socket events as a
 live-update layer on top.
@@ -286,4 +292,5 @@ client learns about it.
 
 ## Change log
 
+- 2026-10-23: Added global import required prompt pattern and `hasGames` bootstrap signal to Section 6.
 - 2026-10-23: Initial draft from architecture discussion.
