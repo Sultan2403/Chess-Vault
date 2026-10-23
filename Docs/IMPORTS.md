@@ -219,9 +219,15 @@ Goal: never get our server blocked by Chess.com or Lichess.
   mid-import, so remaining capacity is re-checked as it goes.
 - **Reaching the cap ends the run as `partial` with a reason** such as "cap
   reached". (Leaning)
-- Imports go newest-first, so a capped user keeps their most recent games.
-  **This is a product decision to confirm, not an accident.** (Open)
-- What the cap counts (stored games per user, versus per account) is **Open**.
+- **The cap is per user, combined across all platforms. (Core)** `gameBankLimit`
+  counts the total number of games in the games collection for that userId,
+  regardless of platform. If Chess.com has 5,000 games and the limit is 5,000,
+  only Chess.com games get imported. Adding per-platform sub-limits is
+  unnecessary complexity and will not be implemented.
+- **Imports go newest-first. (Core)** A capped user keeps their most recent
+  games. Users remember and care about recent games more than old ones. UI
+  sorting (newest/oldest) is a separate query-filter concern and does not affect
+  import order.
 - **The onboarding preview must not promise more than the importer will
   deliver.** If the preview says "~12,000 games" and the cap is lower, say so.
 
@@ -233,6 +239,11 @@ Goal: never get our server blocked by Chess.com or Lichess.
 - Clients match progress to the run they care about via run id. There is no
   single global "import complete" value. (Core)
 - Socket delivery is best-effort; correctness never depends on it. (Core)
+- **Notification UX. (Leaning)** Socket events surface as:
+  - **Desktop / tablet:** a small toast in the bottom-right corner.
+  - **Mobile:** a slim banner at the top of the screen.
+  - Example message: *"Chess.com import complete — 4,821 games added."*
+  - These are informational only. The user does not need to act on them.
 
 ## 10. Failure cases the design must handle
 
@@ -253,15 +264,20 @@ A checklist, not an implementation. Each needs a defined behavior and a test.
 
 ## 11. Open questions
 
-1. What exactly does the game cap count, and per user or per account?
-2. Newest-first with the cap: is "keep the most recent games" the intended
-   behavior?
-3. Retry/backoff policy for failed runs; when does an account get flagged
+1. Retry/backoff policy for failed runs; when does an account get flagged
    "needs attention" (e.g. reconnect needed) instead of retrying forever?
-4. Scheduled sync: frequency per plan, jitter, pause/resume by the user.
-5. Is run cancellation required for v1?
-6. Do we show import history in the UI at launch, or only store it?
-7. Lichess server API token: worth it for higher limits?
+2. Scheduled sync: frequency per plan, jitter, pause/resume by the user.
+3. Lichess server API token: worth it for higher limits?
+
+**Decided:**
+- ~~What exactly does the game cap count, and per user or per account?~~
+  → Per user, combined across all platforms.
+- ~~Newest-first with the cap: is "keep the most recent games" the intended behavior?~~
+  → Yes. Confirmed. Newest-first always.
+- ~~Is run cancellation required for v1?~~
+  → No. Not in v1. Adds unnecessary complexity.
+- ~~Do we show import history in the UI at launch, or only store it?~~
+  → Yes, import history is shown in the UI at launch.
 
 ## 12. Lessons from the first implementation (do not carry over)
 
@@ -292,5 +308,6 @@ client learns about it.
 
 ## Change log
 
+- 2026-10-23: Closed open decisions: combined cap, newest-first, no cancellation v1, import history UI at launch. Documented notification UX (toast/banner) in Section 9.
 - 2026-10-23: Added global import required prompt pattern and `hasGames` bootstrap signal to Section 6.
 - 2026-10-23: Initial draft from architecture discussion.
