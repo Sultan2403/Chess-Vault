@@ -53,8 +53,9 @@ flowchart TD
         T -- "all completed or partial" --> WEL
     end
 
-    A(["App loads"]) --> B{"Bootstrap:<br/>any linked accounts?"}
-    B -- "no" --> S1
+    A(["App loads"]) --> B{"Bootstrap:<br/>onboarding done?<br/>(has games or a finished run)"}
+    B -- "no, no linked accounts" --> S1
+    B -- "no, has linked accounts" --> S3A
     B -- "yes" --> G{"Has games?"}
     G -- "yes" --> DASH(["Dashboard"])
     G -- "no" --> GATE["Import-required gate<br/>Import your games button"]
@@ -128,18 +129,41 @@ Outcomes:
 - **A run failed** -> show the error with a Retry for that account only; the
   other account is unaffected.
 
-## Leaving or refreshing mid-flow (Leaning)
+## Deciding where the user is (Leaning)
 
-`needsOnboarding` means "no linked accounts", and only that. So after confirming
-in Step 2 the user is no longer "in onboarding" as far as the app can tell:
+The server decides, the client just consumes it. No onboarding flag is stored.
 
-- Leaving before Step 2's confirm: nothing was saved; they restart at Step 1.
-- Leaving after confirm but before importing: they land on the dashboard behind
-  the import-required gate, which offers the same import button.
-- Leaving during an import: the run continues on the server. A toast announces
-  completion or failure, and the status can be re-read from the server.
-- The import-required gate should show live progress when a run is already
-  active, instead of offering to start another.
+**Onboarding is done when the user has games, or any import run has reached a
+terminal state** (completed, partial, or failed). `needsOnboarding` is the
+negation, computed in the bootstrap.
+
+A failed run still counts as done: the user is told something broke (toast /
+status screen) and gets access to the app. The import-required gate on the data
+pages is the safety net, and offers a retry.
+
+Resume point, when `needsOnboarding` is true:
+
+| State | Resume at |
+| :--- | :--- |
+| No linked accounts | Step 1 (connect) |
+| Linked accounts, not done | Step 3 ready screen (import) |
+
+- Leaving before Step 2's confirm: nothing was saved; restart at Step 1.
+- Leaving after confirm, before importing: resume at the import ready screen.
+- Leaving during an import: the run continues on the server. On return, the
+  status screen hydrates from the server's runs (history endpoint); the socket
+  only adds live updates. If the run finished meanwhile, onboarding is already
+  done and the user goes to the dashboard with the toast.
+- The import screen reads runs from the server, so it always knows whether a run
+  is queued, running, or finished.
+
+**Client latch.** Because the flag flips the instant the first run finishes, the
+onboarding gate reads `needsOnboarding` once on entry and ignores later
+refetches. Otherwise the user would be bounced to the dashboard before seeing
+the final summary and Welcome screen. They leave only by clicking through.
+
+Existing accounts with games (from the old importer) are done automatically via
+`hasGames`, with no migration.
 
 ## Backend support needed for the transparency requirement
 
@@ -165,6 +189,11 @@ Found by reading the current import service. These are gaps, not bugs:
 - A short **tutorial** on using the app is wanted, but **after** the
   import/onboarding flow, as its own feature. It is not part of these three
   steps. (**Core**)
+- Tutorial state is one stored boolean on the account, `needsTutorial`
+  (default `true` for new accounts). The client sets it to `false` when the
+  tutorial is finished or skipped. It is only reachable after onboarding, so no
+  second field or derivation is needed. Accounts that predate the field default
+  to `false`. No timestamps; a boolean is enough. (**Leaning**)
 
 ## Open questions
 
@@ -177,3 +206,6 @@ Found by reading the current import service. These are gaps, not bugs:
 ## Change log
 
 - 2026-10-24: Initial draft from the onboarding flow discussion.
+- 2026-10-24: Onboarding done = has games or a finished run (failed counts).
+  Server picks the resume step. Added client latch and a single `needsTutorial` boolean.
+  Replaced the old "needsOnboarding = no linked accounts" rule.
