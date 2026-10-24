@@ -49,14 +49,15 @@ flowchart TD
         EV -. "live updates" .-> S3B
         S3B --> T
         T -- "some failed" --> RETRY
+        RETRY -. "or continue anyway" .-> DASH
         RETRY --> ENQ
         T -- "all completed or partial" --> WEL
     end
 
-    A(["App loads"]) --> B{"Bootstrap:<br/>onboarding done?<br/>(has games or a finished run)"}
-    B -- "no, no linked accounts" --> S1
-    B -- "no, has linked accounts" --> S3A
-    B -- "yes" --> G{"Has games?"}
+    A(["App loads"]) --> B{"Bootstrap:<br/>needsOnboarding?"}
+    B -- "yes, no linked accounts" --> S1
+    B -- "yes, has linked accounts" --> S3A
+    B -- "no" --> G{"Has games?"}
     G -- "yes" --> DASH(["Dashboard"])
     G -- "no" --> GATE["Import-required gate<br/>Import your games button"]
     GATE -- "starts import" --> ENQ
@@ -129,41 +130,38 @@ Outcomes:
 - **A run failed** -> show the error with a Retry for that account only; the
   other account is unaffected.
 
-## Deciding where the user is (Leaning)
+## Deciding where the user is (Core)
 
-The server decides, the client just consumes it. No onboarding flag is stored.
+One stored boolean on the `Account`: **`needsOnboarding`**. It defaults to `true`
+for new accounts. Existing accounts are migrated to `false`, so current users
+are never sent back through onboarding. The resume step is not stored; the
+server derives it.
 
-**Onboarding is done when the user has games, or any import run has reached a
-terminal state** (completed, partial, or failed). `needsOnboarding` is the
-negation, computed in the bootstrap.
+`needsOnboarding` flips to `false` only by an explicit action, never by itself:
 
-A failed run still counts as done: the user is told something broke (toast /
-status screen) and gets access to the app. The import-required gate on the data
-pages is the safety net, and offers a retry.
+- the user clicks **Enter Vault** on the Welcome screen, or
+- the user takes the **failure escape hatch**: if an import run failed, the
+  status screen offers "Continue to the app" next to Retry. The user is told
+  something broke and gets access. The import-required gate on the data pages
+  is the safety net and offers another import.
 
 Resume point, when `needsOnboarding` is true:
 
 | State | Resume at |
 | :--- | :--- |
 | No linked accounts | Step 1 (connect) |
-| Linked accounts, not done | Step 3 ready screen (import) |
+| Linked accounts exist | Step 3 (ready screen, or live status if a run exists) |
+
+Step 2 is never a resume point: nothing is saved until Confirm, and Confirm
+moves the user on to Step 3.
 
 - Leaving before Step 2's confirm: nothing was saved; restart at Step 1.
-- Leaving after confirm, before importing: resume at the import ready screen.
-- Leaving during an import: the run continues on the server. On return, the
-  status screen hydrates from the server's runs (history endpoint); the socket
-  only adds live updates. If the run finished meanwhile, onboarding is already
-  done and the user goes to the dashboard with the toast.
-- The import screen reads runs from the server, so it always knows whether a run
-  is queued, running, or finished.
-
-**Client latch.** Because the flag flips the instant the first run finishes, the
-onboarding gate reads `needsOnboarding` once on entry and ignores later
-refetches. Otherwise the user would be bounced to the dashboard before seeing
-the final summary and Welcome screen. They leave only by clicking through.
-
-Existing accounts with games (from the old importer) are done automatically via
-`hasGames`, with no migration.
+- Leaving after confirm, before or during an import: resume at Step 3. The run
+  continues on the server. The status screen hydrates from the server's runs
+  (import history endpoint); the socket only adds live updates. The history
+  endpoint needs an "active" filter for this (it does not have one yet).
+- Because the flag changes only on a user action, it cannot flip mid-flow, so no
+  client latch is needed.
 
 ## Backend support needed for the transparency requirement
 
@@ -206,6 +204,7 @@ Found by reading the current import service. These are gaps, not bugs:
 ## Change log
 
 - 2026-10-24: Initial draft from the onboarding flow discussion.
-- 2026-10-24: Onboarding done = has games or a finished run (failed counts).
-  Server picks the resume step. Added client latch and a single `needsTutorial` boolean.
-  Replaced the old "needsOnboarding = no linked accounts" rule.
+- 2026-10-24: Onboarding state is one stored boolean, `needsOnboarding`, flipped
+  only by an explicit click (Enter Vault or the failure escape hatch). Resume
+  step is derived from linked accounts. Single `needsTutorial` boolean. No
+  client latch. Existing accounts migrate to `needsOnboarding: false`.
