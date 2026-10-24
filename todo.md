@@ -6,6 +6,7 @@
 
 ## Up next
 
+- Redo the onboarding flow since imports have been reworked.
 - Import have been reworked to something better and more manageable. Seems pretty good ngl. I'm yet to test it tho. Architechture has been decided and documented in `Docs/IMPORTS.md`.
 - **Finalize bidirectional sync architecture (Future vs Past)**:
   - Separate *forward sync* (importing newly played games since newest cursor) from *historical backfill* (crawling backward before the oldest imported game when capped accounts upgrade).
