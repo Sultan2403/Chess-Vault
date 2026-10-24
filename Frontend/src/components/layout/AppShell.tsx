@@ -5,6 +5,8 @@ import { UserButton } from "@clerk/react";
 import { useAccountBootstrap } from "../../hooks/useAccount";
 import { ThemeToggle } from "../ui/ThemeToggle";
 
+import { ImportNotificationToast } from "../ui/ImportNotificationToast";
+
 const navItems = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/game-bank", label: "Game Bank" },
@@ -24,6 +26,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-vault-background text-vault-on-background flex flex-col font-body selection:bg-vault-primary/20 selection:text-vault-primary">
+      <ImportNotificationToast />
       {/* Header */}
       <header className="border-b border-vault-border-base bg-vault-surface-container-lowest/90 backdrop-blur-md sticky top-0 z-30">
         <div className="mx-auto flex h-16 max-w-content items-center justify-between px-6">

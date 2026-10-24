@@ -28,4 +28,8 @@ export const QUERY_KEYS = {
     all: ["dashboard"] as const,
     data: (platform?: string) => [...QUERY_KEYS.dashboard.all, platform ?? "all"] as const,
   },
+  imports: {
+    all: ["imports"] as const,
+    history: () => [...QUERY_KEYS.imports.all, "history"] as const,
+  },
 } as const;

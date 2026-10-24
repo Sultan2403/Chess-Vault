@@ -10,6 +10,7 @@ import SettingsPage from "./pages/SettingsPage";
 import GameViewer from "./pages/GameViewer";
 import OnboardingPage from "./pages/OnboardingPage";
 import { OnboardingGate, ProtectedAppGate } from "./components/auth/AppGate";
+import { ImportRequiredGate } from "./components/auth/ImportRequiredGate";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import NotFoundPage from "./pages/NotFoundPage";
 
@@ -28,12 +29,14 @@ function App() {
               <Route path="/onboarding" element={<OnboardingPage />} />
             </Route>
             <Route element={<ProtectedAppGate />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/game-bank" element={<GameBankPage />} />
-              <Route path="/collections" element={<CollectionsPage />} />
-              <Route path="/collections/:id" element={<CollectionsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/game/:id" element={<GameViewer />} />
+              <Route element={<ImportRequiredGate />}>
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/game-bank" element={<GameBankPage />} />
+                <Route path="/collections" element={<CollectionsPage />} />
+                <Route path="/collections/:id" element={<CollectionsPage />} />
+                <Route path="/game/:id" element={<GameViewer />} />
+              </Route>
             </Route>
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
