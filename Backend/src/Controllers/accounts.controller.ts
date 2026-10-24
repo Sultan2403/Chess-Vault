@@ -10,6 +10,8 @@ import {
   getAccountBootstrap,
   verifyLinkedAccount,
   getAccountsStatsPreview,
+  completeOnboarding,
+  completeTutorial,
 } from "../Services/accounts.service";
 import type { ConnectLinkedAccountsInput } from "@chess-vault/shared";
 import type { PlatformType } from "@chess-vault/shared";
@@ -102,3 +104,35 @@ export const getAccountsStatsPreviewController = async (
   }
 };
 
+
+export const completeOnboardingController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const account = await completeOnboarding(getUserId(req)!);
+    return successResponse({
+      res,
+      message: "Onboarding completed successfully",
+      data: { account },
+    });
+  } catch (error) {
+    return internalError({ res, error, message: "Failed to complete onboarding" });
+  }
+};
+
+export const completeTutorialController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const account = await completeTutorial(getUserId(req)!);
+    return successResponse({
+      res,
+      message: "Tutorial completed successfully",
+      data: { account },
+    });
+  } catch (error) {
+    return internalError({ res, error, message: "Failed to complete tutorial" });
+  }
+};

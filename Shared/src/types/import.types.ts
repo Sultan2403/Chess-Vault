@@ -40,6 +40,10 @@ export type ImportProgressPayload = {
   importId: string;
   platform: PlatformType;
   counters: ImportCounters;
+  vaultUsage?: {
+    current: number;
+    limit: number;
+  };
 };
 
 /**

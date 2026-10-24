@@ -5,6 +5,8 @@ import {
   getAccountBootstrapController,
   verifyLinkedAccountController,
   getAccountsStatsPreviewController,
+  completeOnboardingController,
+  completeTutorialController,
 } from "../Controllers/accounts.controller";
 import {
   connectLinkedAccountsBody,
@@ -29,5 +31,8 @@ router.post(
   validate({ body: connectLinkedAccountsBody }),
   connectLinkedAccountsController,
 );
+
+router.post("/onboarding/complete", completeOnboardingController);
+router.post("/tutorial/complete", completeTutorialController);
 
 export default router;

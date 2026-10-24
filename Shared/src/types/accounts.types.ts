@@ -20,6 +20,8 @@ export type Account = {
   id: string;
   userId: string;
   plan: AccountPlan;
+  needsOnboarding: boolean;
+  needsTutorial: boolean;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -51,6 +53,7 @@ export type AccountBootstrap = {
   account: Account;
   linkedAccounts: LinkedAccount[];
   needsOnboarding: boolean;
+  needsTutorial: boolean;
   hasGames: boolean;
 };
 

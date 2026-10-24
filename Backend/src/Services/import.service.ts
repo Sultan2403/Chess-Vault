@@ -44,7 +44,7 @@ async function* fetchChessComBatches(
   username: string,
   userId: string,
   lastArchiveUrl?: string | null,
-): AsyncGenerator<{ batch: NormalizedGame[]; archiveUrl: string }> {
+): AsyncGenerator<{ batch: NormalizedGame[]; archiveUrl: string; skipped: number }> {
   const archivesResponse = await chessComApi.getPlayerArchives(username);
   const archiveUrls = archivesResponse.archives;
 
@@ -78,9 +78,11 @@ async function* fetchChessComBatches(
     const reversedGames = [...monthlyData.games].reverse();
     const batch: NormalizedGame[] = [];
 
+    let skipped = 0;
     for (const rawGame of reversedGames) {
       const rule = rawGame.rules?.toLowerCase();
       if (!rule || !(ChessComSupportedRules as readonly string[]).includes(rule)) {
+        skipped++;
         continue;
       }
 
@@ -92,10 +94,11 @@ async function* fetchChessComBatches(
         }),
       );
     }
-
-    if (batch.length > 0) {
-      yield { batch, archiveUrl };
+    if (batch.length > 0 || skipped > 0) {
+      yield { batch, archiveUrl, skipped };
     }
+
+
   }
 }
 
@@ -107,7 +110,7 @@ async function* fetchLichessBatches(
   userId: string,
   max: number,
   lastGamePlayedAt?: number | null,
-): AsyncGenerator<NormalizedGame[]> {
+): AsyncGenerator<{ batch: NormalizedGame[]; skipped: number }> {
   // Apply a 2-minute overlap buffer to guarantee no mid-run finished games are missed
   const since = lastGamePlayedAt
     ? Math.max(0, lastGamePlayedAt - 2 * 60 * 1000)
@@ -126,10 +129,12 @@ async function* fetchLichessBatches(
     v.toLowerCase(),
   );
 
+  let skipped = 0;
   for await (const rawGame of stream) {
     const game = rawGame as Lichess_Game;
     const variant = game.variant?.toLowerCase();
     if (!variant || !supportedVariants.includes(variant)) {
+      skipped++;
       continue;
     }
 
@@ -142,13 +147,14 @@ async function* fetchLichessBatches(
     );
 
     if (buffer.length >= CHUNK_SIZE) {
-      yield buffer;
+      yield { batch: buffer, skipped };
       buffer = [];
+      skipped = 0;
     }
   }
 
-  if (buffer.length > 0) {
-    yield buffer;
+  if (buffer.length > 0 || skipped > 0) {
+    yield { batch: buffer, skipped };
   }
 }
 
@@ -451,10 +457,12 @@ export const importService = {
           linkedAccount.cursor?.lastArchiveUrl,
         );
 
-        for await (const { batch, archiveUrl } of batchGenerator) {
+        for await (const { batch, archiveUrl, skipped } of batchGenerator) {
           if (!lastProcessedArchiveUrl) {
             lastProcessedArchiveUrl = archiveUrl;
           }
+          counters.skipped += skipped;
+          counters.fetched += skipped;
 
           const result = await processBatch({
             userId,
@@ -475,6 +483,10 @@ export const importService = {
             importId,
             platform,
             counters: { ...counters },
+            vaultUsage: {
+              current: currentDbCount + counters.inserted,
+              limit: planLimit,
+            },
           } as ImportProgressPayload);
 
           if (isCapped) {
@@ -489,7 +501,9 @@ export const importService = {
           linkedAccount.cursor?.lastGamePlayedAt,
         );
 
-        for await (const batch of batchGenerator) {
+        for await (const { batch, skipped } of batchGenerator) {
+          counters.skipped += skipped;
+          counters.fetched += skipped;
           for (const game of batch) {
             if (!newestGameAt || game.playedAt > newestGameAt) {
               newestGameAt = game.playedAt;
@@ -515,6 +529,10 @@ export const importService = {
             importId,
             platform,
             counters: { ...counters },
+            vaultUsage: {
+              current: currentDbCount + counters.inserted,
+              limit: planLimit,
+            },
           } as ImportProgressPayload);
 
           if (isCapped) {

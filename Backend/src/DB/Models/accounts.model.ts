@@ -57,6 +57,18 @@ const accountsSchema = new mongoose.Schema(
       required: true,
       default: () => ({}),
     },
+
+    needsOnboarding: {
+      type: Boolean,
+      default: true,
+      required: true,
+    },
+
+    needsTutorial: {
+      type: Boolean,
+      default: true,
+      required: true,
+    },
   },
   { strict: true, timestamps: true },
 );

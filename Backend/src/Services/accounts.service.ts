@@ -51,10 +51,12 @@ export const getAccountBootstrap = async (
     Games.exists({ userId }),
   ]);
 
+  const accountData = toAccount(account);
   return {
-    account: toAccount(account),
+    account: accountData,
     linkedAccounts,
-    needsOnboarding: linkedAccounts.length === 0,
+    needsOnboarding: accountData.needsOnboarding ?? true,
+    needsTutorial: accountData.needsTutorial ?? true,
     hasGames: Boolean(gameExists),
   };
 };
@@ -258,3 +260,19 @@ export const connectLinkedAccounts = async (
   };
 };
 
+
+export const completeOnboarding = async (userId: string) => {
+  return Accounts.findOneAndUpdate(
+    { userId },
+    { $set: { needsOnboarding: false } },
+    { returnDocument: "after" },
+  ).lean();
+};
+
+export const completeTutorial = async (userId: string) => {
+  return Accounts.findOneAndUpdate(
+    { userId },
+    { $set: { needsTutorial: false } },
+    { returnDocument: "after" },
+  ).lean();
+};

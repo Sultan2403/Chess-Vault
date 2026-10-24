@@ -49,9 +49,17 @@ export const startImportController = async (req: Request, res: Response) => {
 
 export const getImportHistoryController = async (req: Request, res: Response) => {
   const userId = getUserId(req)!;
+  const status = typeof req.query.status === "string" ? req.query.status.trim() : undefined;
 
   try {
-    const history = await Imports.find({ userId })
+    const filter: Record<string, unknown> = { userId };
+    if (status === "active") {
+      filter.status = { $in: ["queued", "running"] };
+    } else if (status) {
+      filter.status = status;
+    }
+
+    const history = await Imports.find(filter)
       .sort({ createdAt: -1 })
       .limit(50)
       .lean();
