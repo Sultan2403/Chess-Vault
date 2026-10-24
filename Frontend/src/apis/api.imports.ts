@@ -11,9 +11,10 @@ const importsApi = {
 
   /**
    * Fetches the user's import history (most recent first).
+   * Supports optional status filtering (e.g., status=active, completed, running).
    */
-  getImportHistory: async (): Promise<{ success: boolean; message: string; history: Import[] }> => {
-    return api.get("/imports/history");
+  getImportHistory: async (params?: { status?: string }): Promise<{ success: boolean; message: string; history: Import[] }> => {
+    return api.get("/imports/history", { params });
   },
 };
 

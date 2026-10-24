@@ -3,10 +3,10 @@ import { importsApi } from "../apis";
 import { QUERY_KEYS } from "../constants/queryKeys";
 import type { StartImportInput } from "@chess-vault/shared";
 
-export const useImportHistory = (enabled = true) =>
+export const useImportHistory = (params?: { status?: string }, enabled = true) =>
   useQuery({
-    queryKey: QUERY_KEYS.imports.history(),
-    queryFn: importsApi.getImportHistory,
+    queryKey: QUERY_KEYS.imports.history(params?.status),
+    queryFn: () => importsApi.getImportHistory(params),
     enabled,
   });
 

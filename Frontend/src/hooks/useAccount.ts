@@ -45,3 +45,13 @@ export const useVerifyLinkedAccount = () =>
 export const useStatsPreview = () =>
   useMutation({ mutationFn: accountApi.getStatsPreview });
 
+export const useCompleteOnboarding = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: accountApi.completeOnboarding,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.account.all });
+    },
+  });
+};

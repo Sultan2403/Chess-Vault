@@ -30,6 +30,6 @@ export const QUERY_KEYS = {
   },
   imports: {
     all: ["imports"] as const,
-    history: () => [...QUERY_KEYS.imports.all, "history"] as const,
+    history: (status?: string) => [...QUERY_KEYS.imports.all, "history", status ?? "all"] as const,
   },
 } as const;
