@@ -25,12 +25,17 @@ Two small details from our discussion, so you don’t have to rediscover them:
 
 Run backfills in the same platform queue at lower priority, not in a separate queue, so the one-request-at-a-time rule per platform still holds.
 The boundary to go older than can be computed from your stored games (the oldest game you hold for that platform), so no extra cursor field is needed.
+
 - Rework the UI to something that represents the app.
 - Decide on platform flow: Should stats and views across Dashboard and Game Bank always default to unified (Chess.com + Lichess), or provide an explicit account/platform switcher?
 - After imports we auto generate collections and all.
 
 ## Overall
 
+- Error handling could be better. for example failed imports have a retry button but the ui doesnt really let the user know that the server is working.
+- The import complete ui doesnt show but at least the core thing works. Just needs patches at the edges.
+- The import also renders duplicate ui and stuff.
+- Might wanna consider increasing the batches we process.
 - I actually wanted to do CI but I'm hungry rn. Hopefully we'll do that later. Anyways I think we've modified the game model enough to support a huge ton of features and render some useful things on the UI so.... BACK TO FRONTEND BRO!!!!!! I'M SERIOUS! lol.
 - Once it's time, make evrything in the app account oriented. For examples max-games should be per account from `Account.plan.gameBankLimit`. Similarly for analysis minutes and such.
 
