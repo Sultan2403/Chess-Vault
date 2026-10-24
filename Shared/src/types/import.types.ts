@@ -1,27 +1,65 @@
 import type { PlatformType } from "../constants/platforms.js";
+import type {
+  ImportStatus,
+  ImportTrigger,
+} from "../constants/imports.js";
 
-/**
- * Emitted by the BullMQ import worker via job.updateProgress() at each
- * meaningful milestone during a game import. The Socket.IO QueueEvents bridge
- * picks this up and forwards it to the user's room as `import:progress`.
- * 
- * @property userId     - Clerk user ID — used to route the event to the correct Socket.IO room.
- * @property processed  - Total number of games processed so far in this job.
- * @property platform   - The platform being imported from.
- * @property archiveUrl - Only for chess.com imports and its the monthly archive url but maybe instead of sending this we can send the games from each archive
- */
-export type ImportProgressPayload = {
+export type ImportCounters = {
+  fetched: number;
+  inserted: number;
+  duplicates: number;
+  skipped: number;
+};
+
+export type ImportError = {
+  code: string;
+  message: string;
+};
+
+export type Import = {
+  id: string;
   userId: string;
-  processed: number;
+  linkedAccountId: string;
   platform: PlatformType;
+  trigger: ImportTrigger;
+  status: ImportStatus;
+  counters: ImportCounters;
+  error?: ImportError;
+  startedAt: Date | string;
+  finishedAt?: Date | string;
+  jobRef?: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 };
 
 /**
- * The final result object stored as job.returnvalue when an import job completes.
- * The Socket.IO QueueEvents bridge emits this to the user's room as `import:complete`.
+ * Emitted during an import run to report live progress.
+ */
+export type ImportProgressPayload = {
+  userId: string;
+  importId: string;
+  platform: PlatformType;
+  counters: ImportCounters;
+};
+
+/**
+ * Emitted when an import run reaches a terminal state (completed or partial).
  */
 export type ImportCompletePayload = {
   userId: string;
-  success: boolean;
-  message: string;
+  importId: string;
+  platform: PlatformType;
+  status: "completed" | "partial";
+  counters: ImportCounters;
+  message?: string;
+};
+
+/**
+ * Emitted when an import run fails due to an error.
+ */
+export type ImportFailedPayload = {
+  userId: string;
+  importId: string;
+  platform: PlatformType;
+  error: ImportError;
 };

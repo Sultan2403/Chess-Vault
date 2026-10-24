@@ -1,5 +1,6 @@
 import type { PlatformType } from "../constants/platforms.js";
 import type { PlanType } from "../constants/plans.js";
+import type { SyncStatus } from "../constants/imports.js";
 import type {
   connectLinkedAccountsBody,
   linkedAccountParams,
@@ -29,6 +30,7 @@ export type LinkedAccount = {
   platform: PlatformType;
   username: string;
   lastSyncedAt?: Date | string | null;
+  syncStatus: SyncStatus;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 };
@@ -43,6 +45,7 @@ export type AccountBootstrap = {
   account: Account;
   linkedAccounts: LinkedAccount[];
   needsOnboarding: boolean;
+  hasGames: boolean;
 };
 
 export type LinkedAccountConnectionResult = {
