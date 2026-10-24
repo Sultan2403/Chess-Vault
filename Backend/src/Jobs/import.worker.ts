@@ -1,5 +1,5 @@
 import { Worker } from "bullmq";
-import redisClient from "../DB/Connections/redis";
+import { BullMQRedis } from "../DB/Connections/redis";
 import { importGames } from "../Services/games.service";
 import { logger } from "../Config/logger";
 import type { ImportJobData } from "../Types/jobs.types";
@@ -27,7 +27,7 @@ export const importWorker = new Worker<ImportJobData, ImportCompletePayload>(
       message: result.message ?? (result.success ? "Import complete" : "Import failed"),
     };
   },
-  { connection: redisClient },
+  { connection: { BullMQRedis } },
 );
 
 importWorker.on("completed", (job) => {

@@ -1,6 +1,6 @@
 import { Worker } from "bullmq";
 import * as Sentry from "@sentry/node";
-import redisClient from "../DB/Connections/redis";
+import { BullMQRedis } from "../DB/Connections/redis";
 import { purgeUserData } from "../Services/purge.service";
 import { logger } from "../Config/logger";
 import type { PurgeUserJobData } from "../Types/jobs.types";
@@ -12,7 +12,7 @@ export const purgeWorker = new Worker<PurgeUserJobData>(
     const { userId } = job.data;
     await purgeUserData({ userId });
   },
-  { connection: redisClient },
+  { connection: { BullMQRedis } },
 );
 
 purgeWorker.on("completed", (job) => {
