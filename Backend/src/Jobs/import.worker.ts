@@ -12,7 +12,7 @@ import LinkedAccounts from "../DB/Models/linked_accounts.model";
 import { logger } from "../Config/logger";
 import { ImportFailedPayload } from "@chess-vault/shared";
 
-const processJob = async (job: Job<ImportJobData>) => {
+const processImportJob = async (job: Job<ImportJobData>) => {
   logger.info(
     {
       jobId: job.id,
@@ -75,7 +75,7 @@ const handleWorkerJobFailure = async (
 // Dedicated worker for Chess.com (Concurrency 1 ensures rate-limit safe serial requests across all users)
 export const chessComWorker = new Worker<ImportJobData>(
   QUEUE_NAMES.IMPORT_CHESS_COM,
-  processJob,
+  processImportJob,
   {
     connection: BullMQRedis,
     concurrency: 1,
@@ -93,7 +93,7 @@ chessComWorker.on("failed", (job, err) => {
 // Dedicated worker for Lichess (Concurrency 1 ensures rate-limit safe serial requests across all users)
 export const lichessWorker = new Worker<ImportJobData>(
   QUEUE_NAMES.IMPORT_LICHESS,
-  processJob,
+  processImportJob,
   {
     connection: BullMQRedis,
     concurrency: 1,

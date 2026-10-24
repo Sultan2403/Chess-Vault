@@ -91,11 +91,12 @@ matter more than the exact names.
 
 The long-lived memory of an account:
 
-- **last synced at** (`lastSyncedAt?: Date`)
+- **last synced at** (`lastSyncedAt?: Date`): timestamp of when the sync completed (`new Date()`).
+- a **cursor** (`cursor?: { lastArchiveUrl?: string | null; lastGamePlayedAt?: number | null }`):
+  - **Chess.com**: `lastArchiveUrl` stores the latest monthly archive URL fetched (`.../games/YYYY/MM`), preventing wasteful re-fetching of older months on incremental syncs.
+  - **Lichess**: `lastGamePlayedAt` stores the epoch timestamp (ms) of the newest game seen, used as `since` (with a 2-minute safety overlap) for incremental stream fetches.
 - a **status** (`syncStatus`: `never_imported` | `healthy` | `needs_attention`)
 - later: whether background sync is enabled
-
-No complicated resume cursor needed for v1. Because upserts are idempotent, retrying or restarting runs from scratch is safe and eliminates state complexity.
 
 ### 4.2 Import run (Core)
 
@@ -341,7 +342,7 @@ sequenceDiagram
     Service->>Queue: enqueueImportJob({ jobId: linkedAccountId })
     Router-->>User: 202 Accepted { importDoc }
 
-    Queue->>Worker: processJob(job)
+    Queue->>Worker: processImportJob(job)
     Worker->>Service: processImportRun(importId)
     Service->>DB: Imports.update({ status: "running" })
     Service->>Redis: capCoordinator.initUserCap(userId, currentDbCount)
@@ -375,10 +376,10 @@ sequenceDiagram
    - `clearUserCap(userId)`: Deletes the counter once all active runs for the user conclude.
 
 2. **Core Service & Async Generators (`Backend/src/Services/import.service.ts`)**:
-   - `fetchChessComBatches(username, userId, lastSyncedAt)`: Fetches archive URLs, filters to months `>= lastSyncedAt`, and iterates monthly archives in reverse chronological order.
-   - `fetchLichessBatches(username, userId, max, lastSyncedAt)`: Streams NDJSON using `{ max, since }` params, filters supported chess variants, and yields batches of 100 games.
+   - `fetchChessComBatches(username, userId, lastArchiveUrl)`: Fetches archive URLs, filters to months `>= lastArchiveUrl`, and iterates monthly archives in reverse chronological order.
+   - `fetchLichessBatches(username, userId, max, lastGamePlayedAt)`: Streams NDJSON using `{ max, since }` params (with a 2-minute safety overlap buffer), filters supported chess variants, and yields batches of 100 games.
    - `processBatch`: Orchestrates reservation, `Games.bulkWrite(ops, { ordered: false })`, duplicate reconciliation, and live progress event emission.
-   - `finalizeRun`: Marks run as `"completed"` or `"partial"` (if cap ceiling reached), updates `linkedAccount.lastSyncedAt = new Date()`, updates `syncStatus = "healthy"`, and emits `import:completed`.
+   - `finalizeRun`: Marks run as `"completed"` or `"partial"` (if cap ceiling reached), updates `linkedAccount.lastSyncedAt = new Date()`, updates platform cursor (`cursor.lastArchiveUrl` or `cursor.lastGamePlayedAt`), updates `syncStatus = "healthy"`, and emits `import:completed`.
    - `handleRunFailure`: Marks run as `"failed"` with `{ error: { code, message } }`, sets `syncStatus = "needs_attention"`, and emits `import:failed`.
 
 3. **Dedicated Queues & Concurrency (`Backend/src/Jobs/import.queue.ts` & `import.worker.ts`)**:
@@ -401,6 +402,7 @@ sequenceDiagram
 
 ## 15. Change Log
 
+- **2026-10-24**: Modeled explicit sync cursors on `LinkedAccount` (`cursor.lastArchiveUrl` for Chess.com, `cursor.lastGamePlayedAt` for Lichess) to avoid re-fetching historical batches on subsequent runs while keeping `lastSyncedAt` as the completion timestamp. Removed duplicate Mongoose index on `linkedAccountId`.
 - **2026-10-24**: Implemented and verified full production import subsystem. Added Section 14 (Implementation Architecture). Preserved all foundational architectural principles and decision rationales.
 - **2026-10-23**: Closed open decisions: combined cap, newest-first, no cancellation v1, import history UI at launch. Documented notification UX (toast/banner) in Section 9.
 - **2026-10-23**: Added global import required prompt pattern and `hasGames` bootstrap signal to Section 6.

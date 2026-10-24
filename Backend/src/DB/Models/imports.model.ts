@@ -64,7 +64,6 @@ const importSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "linked_accounts",
       required: true,
-      index: true,
     },
 
     platform: {
@@ -125,8 +124,14 @@ const importSchema = new Schema(
 // Fast history query for a user: newest runs first
 importSchema.index({ userId: 1, createdAt: -1 });
 
-// Fast check for active/running imports on a specific linked account
-importSchema.index({ linkedAccountId: 1, status: 1 });
+// Database-level guard: at most ONE active (queued or running) import per linked account
+importSchema.index(
+  { linkedAccountId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: { $in: ["queued", "running"] } },
+  },
+);
 
 importSchema.set("toJSON", {
   transform: (_, obj) => {

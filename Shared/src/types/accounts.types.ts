@@ -24,12 +24,18 @@ export type Account = {
   updatedAt?: Date | string;
 };
 
+export type LinkedAccountCursor = {
+  lastArchiveUrl?: string | null;
+  lastGamePlayedAt?: number | null;
+};
+
 export type LinkedAccount = {
   id: string;
   userId: string;
   platform: PlatformType;
   username: string;
   lastSyncedAt?: Date | string | null;
+  cursor?: LinkedAccountCursor | null;
   syncStatus: SyncStatus;
   createdAt?: Date | string;
   updatedAt?: Date | string;

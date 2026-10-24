@@ -43,8 +43,8 @@ export const IMPORT_EVENT_NAMES = {
 async function* fetchChessComBatches(
   username: string,
   userId: string,
-  lastSyncedAt?: Date | null,
-): AsyncGenerator<NormalizedGame[]> {
+  lastArchiveUrl?: string | null,
+): AsyncGenerator<{ batch: NormalizedGame[]; archiveUrl: string }> {
   const archivesResponse = await chessComApi.getPlayerArchives(username);
   const archiveUrls = archivesResponse.archives;
 
@@ -52,20 +52,19 @@ async function* fetchChessComBatches(
     return;
   }
 
-  // Filter archives by lastSyncedAt month if incremental sync
+  // Filter archives by lastArchiveUrl if present (only process archives >= lastArchiveUrl)
   let filteredUrls = archiveUrls;
-  if (lastSyncedAt) {
-    const syncYear = lastSyncedAt.getUTCFullYear();
-    const syncMonth = lastSyncedAt.getUTCMonth() + 1; // 1-12
-    const minMonthPattern = `${syncYear}/${String(syncMonth).padStart(2, "0")}`;
-
-    filteredUrls = archiveUrls.filter((url) => {
-      // URL format: .../player/{username}/games/{YYYY}/{MM}
-      const match = url.match(/\/(\d{4})\/(\d{2})$/);
-      if (!match) return true;
-      const archiveMonth = `${match[1]}/${match[2]}`;
-      return archiveMonth >= minMonthPattern;
-    });
+  if (lastArchiveUrl) {
+    const lastMatch = lastArchiveUrl.match(/\/(\d{4})\/(\d{2})$/);
+    if (lastMatch) {
+      const minMonthPattern = `${lastMatch[1]}/${lastMatch[2]}`;
+      filteredUrls = archiveUrls.filter((url) => {
+        const match = url.match(/\/(\d{4})\/(\d{2})$/);
+        if (!match) return true;
+        const archiveMonth = `${match[1]}/${match[2]}`;
+        return archiveMonth >= minMonthPattern;
+      });
+    }
   }
 
   // Process archives newest first
@@ -85,12 +84,6 @@ async function* fetchChessComBatches(
         continue;
       }
 
-      // If incremental sync, omit games played before lastSyncedAt
-      const gamePlayedAt = new Date(rawGame.end_time * 1000);
-      if (lastSyncedAt && gamePlayedAt <= lastSyncedAt) {
-        continue;
-      }
-
       batch.push(
         normalizeChessComGame({
           game: rawGame,
@@ -101,7 +94,7 @@ async function* fetchChessComBatches(
     }
 
     if (batch.length > 0) {
-      yield batch;
+      yield { batch, archiveUrl };
     }
   }
 }
@@ -113,9 +106,12 @@ async function* fetchLichessBatches(
   username: string,
   userId: string,
   max: number,
-  lastSyncedAt?: Date | null,
+  lastGamePlayedAt?: number | null,
 ): AsyncGenerator<NormalizedGame[]> {
-  const since = lastSyncedAt ? lastSyncedAt.getTime() : undefined;
+  // Apply a 2-minute overlap buffer to guarantee no mid-run finished games are missed
+  const since = lastGamePlayedAt
+    ? Math.max(0, lastGamePlayedAt - 2 * 60 * 1000)
+    : undefined;
   const streamResponse = await lichessApi.getUserGames(username, {
     max,
     since,
@@ -223,7 +219,7 @@ async function processBatch({
 /**
  * Finalizes a successful or partial import run:
  * 1. Sets status on Import doc
- * 2. Updates LinkedAccount (lastSyncedAt, syncStatus)
+ * 2. Updates LinkedAccount (lastSyncedAt based on newest game, oldestSyncedAt, hasMoreHistory, syncStatus)
  * 3. Emits domain completion event
  */
 async function finalizeRun({
@@ -231,11 +227,17 @@ async function finalizeRun({
   linkedAccountId,
   isCapped,
   counters,
+  platform,
+  newestGameAt,
+  lastArchiveUrl,
 }: {
   importDoc: any;
   linkedAccountId: string;
   isCapped: boolean;
   counters: ImportCounters;
+  platform: string;
+  newestGameAt?: Date | null;
+  lastArchiveUrl?: string | null;
 }) {
   const finalStatus: ImportStatus = isCapped ? "partial" : "completed";
   importDoc.status = finalStatus;
@@ -243,13 +245,23 @@ async function finalizeRun({
   importDoc.counters = counters;
   await importDoc.save();
 
-  await LinkedAccounts.updateOne(
-    { _id: linkedAccountId },
-    {
-      lastSyncedAt: new Date(),
-      syncStatus: "healthy",
-    },
-  );
+  const accountUpdate: Record<string, unknown> = {
+    syncStatus: "healthy",
+    lastSyncedAt: new Date(),
+  };
+
+  if (platform === "chess.com") {
+    if (lastArchiveUrl) {
+      accountUpdate["cursor.lastArchiveUrl"] = lastArchiveUrl;
+    }
+  } else {
+    // Lichess uses timestamp cursor (milliseconds)
+    if (newestGameAt) {
+      accountUpdate["cursor.lastGamePlayedAt"] = newestGameAt.getTime();
+    }
+  }
+
+  await LinkedAccounts.updateOne({ _id: linkedAccountId }, accountUpdate);
 
   importEvents.emit(IMPORT_EVENT_NAMES.COMPLETED, {
     userId: importDoc.userId,
@@ -339,15 +351,25 @@ export const importService = {
       throw new Error("Linked account not found");
     }
 
-    const importDoc = await Imports.create({
-      userId,
-      linkedAccountId,
-      platform: linkedAccount.platform,
-      trigger,
-      status: "queued",
-      counters: { fetched: 0, inserted: 0, duplicates: 0, skipped: 0 },
-      startedAt: new Date(),
-    });
+    let importDoc;
+    try {
+      importDoc = await Imports.create({
+        userId,
+        linkedAccountId,
+        platform: linkedAccount.platform,
+        trigger,
+        status: "queued",
+        counters: { fetched: 0, inserted: 0, duplicates: 0, skipped: 0 },
+        startedAt: new Date(),
+      });
+    } catch (err: unknown) {
+      // If a concurrent request created an active run in the race window, return that active run
+      if ((err as { code?: number })?.code === 11000) {
+        const concurrentActive = await this.getActiveImport(linkedAccountId);
+        if (concurrentActive) return concurrentActive;
+      }
+      throw err;
+    }
 
     const job = await enqueueImportJob({
       importId: importDoc.id,
@@ -414,50 +436,88 @@ export const importService = {
           linkedAccountId: linkedAccountId.toString(),
           isCapped: true,
           counters: importDoc.counters,
+          platform,
         });
         return;
       }
 
-      // Step 3: Platform batch generator
-      const batchGenerator =
-        platform === "chess.com"
-          ? fetchChessComBatches(
-              linkedAccount.username,
-              userId,
-              linkedAccount.lastSyncedAt,
-            )
-          : fetchLichessBatches(
-              linkedAccount.username,
-              userId,
-              remainingCapacity,
-              linkedAccount.lastSyncedAt,
-            );
+      let newestGameAt: Date | null = null;
+      let lastProcessedArchiveUrl: string | null = null;
 
-      // Step 4: Upward batch processing loop
-      for await (const batch of batchGenerator) {
-        const result = await processBatch({
+      if (platform === "chess.com") {
+        const batchGenerator = fetchChessComBatches(
+          linkedAccount.username,
           userId,
-          batch,
-          planLimit,
-          counters,
-        });
+          linkedAccount.cursor?.lastArchiveUrl,
+        );
 
-        if (result.isCapped) {
-          isCapped = true;
+        for await (const { batch, archiveUrl } of batchGenerator) {
+          lastProcessedArchiveUrl = archiveUrl;
+
+          const result = await processBatch({
+            userId,
+            batch,
+            planLimit,
+            counters,
+          });
+
+          if (result.isCapped) {
+            isCapped = true;
+          }
+
+          importDoc.counters = { ...counters };
+          await importDoc.save();
+
+          importEvents.emit(IMPORT_EVENT_NAMES.PROGRESS, {
+            userId,
+            importId,
+            platform,
+            counters: { ...counters },
+          } as ImportProgressPayload);
+
+          if (isCapped) {
+            break;
+          }
         }
-
-        importDoc.counters = { ...counters };
-        await importDoc.save();
-
-        importEvents.emit(IMPORT_EVENT_NAMES.PROGRESS, {
+      } else {
+        const batchGenerator = fetchLichessBatches(
+          linkedAccount.username,
           userId,
-          importId,
-          platform,
-          counters: { ...counters },
-        } as ImportProgressPayload);
+          remainingCapacity,
+          linkedAccount.cursor?.lastGamePlayedAt,
+        );
 
-        if (isCapped) {
-          break;
+        for await (const batch of batchGenerator) {
+          for (const game of batch) {
+            if (!newestGameAt || game.playedAt > newestGameAt) {
+              newestGameAt = game.playedAt;
+            }
+          }
+
+          const result = await processBatch({
+            userId,
+            batch,
+            planLimit,
+            counters,
+          });
+
+          if (result.isCapped) {
+            isCapped = true;
+          }
+
+          importDoc.counters = { ...counters };
+          await importDoc.save();
+
+          importEvents.emit(IMPORT_EVENT_NAMES.PROGRESS, {
+            userId,
+            importId,
+            platform,
+            counters: { ...counters },
+          } as ImportProgressPayload);
+
+          if (isCapped) {
+            break;
+          }
         }
       }
 
@@ -467,6 +527,9 @@ export const importService = {
         linkedAccountId: linkedAccountId.toString(),
         isCapped,
         counters,
+        platform,
+        newestGameAt,
+        lastArchiveUrl: lastProcessedArchiveUrl,
       });
     } catch (err: unknown) {
       logger.error({ err, importId, userId, platform }, "Import run failed");

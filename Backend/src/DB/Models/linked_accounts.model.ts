@@ -33,6 +33,18 @@ const linkedAccountSchema = new mongoose.Schema(
       default: null,
     },
 
+    cursor: {
+      lastArchiveUrl: {
+        type: String,
+        default: null,
+        trim: true,
+      },
+      lastGamePlayedAt: {
+        type: Number,
+        default: null,
+      },
+    },
+
     syncStatus: {
       type: String,
       required: true,
