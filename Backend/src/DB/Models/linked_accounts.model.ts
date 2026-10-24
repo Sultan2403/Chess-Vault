@@ -1,4 +1,4 @@
-import { PlatformValues } from "@chess-vault/shared";
+import { PlatformValues, SYNC_STATUSES } from "@chess-vault/shared";
 import mongoose from "mongoose";
 
 const linkedAccountSchema = new mongoose.Schema(
@@ -31,6 +31,13 @@ const linkedAccountSchema = new mongoose.Schema(
     lastSyncedAt: {
       type: Date,
       default: null,
+    },
+
+    syncStatus: {
+      type: String,
+      required: true,
+      enum: SYNC_STATUSES,
+      default: "never_imported",
     },
   },
   {

@@ -14,6 +14,7 @@ import chessComApi from "../Api/chess_com.api";
 import lichessApi from "../Api/lichess.api";
 import Accounts from "../DB/Models/accounts.model";
 import LinkedAccounts from "../DB/Models/linked_accounts.model";
+import Games from "../DB/Models/games.model";
 
 
 const toAccount = (account: any): Account => {
@@ -44,15 +45,17 @@ const getLinkedAccounts = async (userId: string): Promise<LinkedAccount[]> => {
 export const getAccountBootstrap = async (
   userId: string,
 ): Promise<AccountBootstrap> => {
-  const [account, linkedAccounts] = await Promise.all([
+  const [account, linkedAccounts, gameExists] = await Promise.all([
     getAccount(userId),
     getLinkedAccounts(userId),
+    Games.exists({ userId }),
   ]);
 
   return {
     account: toAccount(account),
     linkedAccounts,
     needsOnboarding: linkedAccounts.length === 0,
+    hasGames: Boolean(gameExists),
   };
 };
 
