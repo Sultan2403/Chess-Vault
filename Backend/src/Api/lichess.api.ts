@@ -1,4 +1,4 @@
-import { MAX_GAMES_PER_USER, LichessSupportedPerfTypes } from "../Config/constants";
+import { LichessSupportedPerfTypes } from "../Config/constants";
 import { Lichess_User } from "../Types/games.types";
 import { lichess_api } from "./api.client";
 import { Readable } from "stream";
@@ -9,15 +9,21 @@ const lichessApi = {
       headers: { Accept: "application/json" },
     }),
 
-  getUserGames: (username: string) =>
+  getUserGames: (
+    username: string,
+    params: { max: number; since?: number },
+  ) =>
     lichess_api.get<any, Readable>(`/games/user/${username}`, {
       responseType: "stream",
       params: {
         pgnInJson: true,
         opening: true,
-        max: MAX_GAMES_PER_USER,
+        max: params.max,
+        since: params.since,
         lastFen: true,
         clocks: true,
+        moves: true,
+        tags: true,
         perfType: LichessSupportedPerfTypes.join(","),
       },
     }),
