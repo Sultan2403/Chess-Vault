@@ -92,23 +92,20 @@ matter more than the exact names.
 
 The long-lived memory of an account:
 
-- a **resume cursor** (where the next run continues: last game id, last game
-  date, or last finished archive month, depending on the platform)
-- **last synced at**
-- a **status** (e.g. never imported / healthy / needs attention)
+- **last synced at** (`lastSyncedAt?: Date`)
+- a **status** (e.g. `never_imported` | `healthy` | `needs_attention`)
 - later: whether background sync is enabled
 
-The cursor lives on the account, not on the run, so the next run of any
-trigger knows where to start.
+No complicated resume cursor needed for v1. Because upserts are idempotent, retrying or restarting runs from scratch is safe and eliminates state complexity.
 
 ### 4.2 Import run (Core)
 
 One document per import attempt, per linked account. History of what happened:
 
 - user, linked account, platform
-- **trigger**: onboarding, manual, scheduled
+- **trigger**: `onboarding` | `manual` | `scheduled`
 - **status** (see section 5)
-- counters: fetched, inserted, duplicates, skipped
+- counters: `fetched`, `inserted`, `duplicates`, `skipped`
 - error (code + message) when relevant, and a reason when partial
 - started at, finished at
 - reference to the queue job (for debugging only; never the source of truth)
@@ -118,14 +115,13 @@ One document per import attempt, per linked account. History of what happened:
 - **At most one active run per linked account. (Core)** Enforced by the
   database (not just application code) so two clicks cannot race. Starting an
   import while one is active returns the existing run.
-- **Runs are per linked account. (Core)** Cursors, failures, and limits are all
+- **Runs are per linked account. (Core)** Failures and limits are all
   per account. If the UI wants to show "your import" for two accounts, it
   groups runs for display only; there is no run that covers both platforms.
 - **Imports are idempotent. (Core)** Re-running is always safe (upsert with the
   unique index on user + platform + platform game id). This is what makes
-  retries, resumes, and incremental syncs cheap.
-- **The cursor advances only after a chunk is committed. (Core)** A crash
-  resumes from the last good point.
+  retries and incremental syncs completely crash-safe without cursor bookkeeping.
+- **Failed imports restart cleanly.** If an import fails midway, it records the failure. The next run re-fetches cleanly up to `lastSyncedAt` or from scratch if `lastSyncedAt` is undefined.
 
 ## 5. Run lifecycle
 
@@ -263,11 +259,10 @@ A checklist, not an implementation. Each needs a defined behavior and a test.
 - User deleted while a run is active (data purge must cancel runs)
 
 ## 11. Open questions
-
-1. Retry/backoff policy for failed runs; when does an account get flagged
-   "needs attention" (e.g. reconnect needed) instead of retrying forever?
-2. Scheduled sync: frequency per plan, jitter, pause/resume by the user.
-3. Lichess server API token: worth it for higher limits?
+ 
+ 1. Retry/backoff policy for failed runs; when does an account get flagged
+    "needs attention" (e.g. reconnect needed) instead of retrying forever?
+ 2. Scheduled sync: frequency per plan, jitter, pause/resume by the user.
 
 **Decided:**
 - ~~What exactly does the game cap count, and per user or per account?~~
@@ -278,6 +273,10 @@ A checklist, not an implementation. Each needs a defined behavior and a test.
   → No. Not in v1. Adds unnecessary complexity.
 - ~~Do we show import history in the UI at launch, or only store it?~~
   → Yes, import history is shown in the UI at launch.
+- ~~Resume cursor vs re-run from scratch?~~
+  → Dropped resume cursor entirely. Idempotent upserts mean failed runs restart cleanly without tracking granular cursor chunks.
+- ~~Lichess API Token?~~
+  → Dropped. Not needed for v1.
 
 ## 12. Lessons from the first implementation (do not carry over)
 
