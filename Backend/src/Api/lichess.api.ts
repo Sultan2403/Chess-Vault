@@ -11,15 +11,15 @@ const lichessApi = {
 
   getUserGames: (
     username: string,
-    params: { max: number; since?: number },
+    { max, since }: { max: number; since?: number },
   ) =>
     lichess_api.get<any, Readable>(`/games/user/${username}`, {
       responseType: "stream",
       params: {
         pgnInJson: true,
         opening: true,
-        max: params.max,
-        since: params.since,
+        max: max,
+        since: since,
         lastFen: true,
         clocks: true,
         moves: true,
