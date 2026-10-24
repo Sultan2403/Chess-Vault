@@ -39,12 +39,12 @@ export const lichessQueueEvents = new QueueEvents(
 
 /**
  * Enqueue an import job onto the platform-specific queue.
- * - Uses `jobId: `${data.linkedAccountId}:${data.importId}`` to ensure each distinct run gets a unique job.
+ * - Uses `jobId: `${data.linkedAccountId}-${data.importId}`` to ensure each distinct run gets a unique job.
  * - Removes old completed or failed jobs so Redis never gets clogged or blocks future runs.
  */
 export const enqueueImportJob = async (data: ImportJobData) => {
   const queue = IMPORT_QUEUES[data.platform];
-  const jobId = `${data.linkedAccountId}:${data.importId}`;
+  const jobId = `${data.linkedAccountId}-${data.importId}`;
 
   return queue.add(JOB_NAMES.IMPORT_RUN, data, {
     jobId,
