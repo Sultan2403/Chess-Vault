@@ -19,6 +19,7 @@ import lichessApi from "../Api/lichess.api";
 import { normalizeChessComGame, normalizeLichessGame } from "../Helpers";
 import { capCoordinator } from "../Utils/capCoordinator";
 import { logger } from "../Config/logger";
+import { enqueueImportJob } from "../Jobs/import.queue";
 import {
   Lichess_Game,
   NormalizedGame,
@@ -347,6 +348,16 @@ export const importService = {
       counters: { fetched: 0, inserted: 0, duplicates: 0, skipped: 0 },
       startedAt: new Date(),
     });
+
+    const job = await enqueueImportJob({
+      importId: importDoc.id,
+      userId,
+      linkedAccountId: linkedAccount.id,
+      platform: linkedAccount.platform,
+    });
+
+    importDoc.jobRef = job.id;
+    await importDoc.save();
 
     return importDoc;
   },

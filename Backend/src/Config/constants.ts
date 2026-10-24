@@ -7,11 +7,12 @@ export const CLERK_WEBHOOK_EVENTS = {
 } as const;
 
 export const QUEUE_NAMES = {
-  IMPORT: "import_queue",
+  IMPORT_CHESS_COM: "import_queue_chess.com",
+  IMPORT_LICHESS: "import_queue_lichess",
   PURGE_USER: "purge_user_queue",
 } as const;
 
 export const JOB_NAMES = {
-  IMPORT: "import_games",
+  IMPORT_RUN: "import_run",
   PURGE_USER: "purge_user_data",
 } as const;

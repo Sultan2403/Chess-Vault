@@ -6,7 +6,7 @@ import http from "http";
 import { logger } from "./Config/logger";
 import connectDB from "./DB/Connections/mongo";
 import { initSocket } from "./Sockets/socket";
-import { importWorker } from "./Jobs/import.worker"; // registers BullMQ workers on boot
+import { chessComWorker, lichessWorker } from "./Jobs/import.worker"; // registers BullMQ workers on boot
 import { purgeWorker } from "./Jobs/purge.worker";
 
 connectDB();
@@ -39,7 +39,11 @@ process.on("uncaughtException", (error) => {
 const shutdown = async (signal: string) => {
   logger.info({ signal }, "Shutting down server");
 
-  await Promise.all([importWorker.close(), purgeWorker.close()]);
+  await Promise.all([
+    chessComWorker.close(),
+    lichessWorker.close(),
+    purgeWorker.close(),
+  ]);
   logger.info("BullMQ workers closed");
 
   server.close(() => {

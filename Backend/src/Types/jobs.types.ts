@@ -1,10 +1,10 @@
 import { PlatformType } from "@chess-vault/shared";
 
 export type ImportJobData = {
+  importId: string;
   userId: string;
-  username: string;
+  linkedAccountId: string;
   platform: PlatformType;
-  folderIds: string[] | null;
 };
 
 export type PurgeUserJobData = {

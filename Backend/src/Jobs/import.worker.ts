@@ -1,39 +1,56 @@
-import { Worker } from "bullmq";
+import { Worker, Job } from "bullmq";
 import { BullMQRedis } from "../DB/Connections/redis";
-import { importGames } from "../Services/games.service";
-import { logger } from "../Config/logger";
 import type { ImportJobData } from "../Types/jobs.types";
-import type { ImportProgressPayload, ImportCompletePayload } from "@chess-vault/shared";
 import { QUEUE_NAMES } from "../Config/constants";
+import { importService } from "../Services/import.service";
+import { logger } from "../Config/logger";
 
-export const importWorker = new Worker<ImportJobData, ImportCompletePayload>(
-  QUEUE_NAMES.IMPORT,
-  async (job) => {
-    const { userId, username, platform, folderIds } = job.data;
+const processJob = async (job: Job<ImportJobData>) => {
+  logger.info(
+    {
+      jobId: job.id,
+      importId: job.data.importId,
+      platform: job.data.platform,
+      userId: job.data.userId,
+    },
+    "Processing import job",
+  );
 
-    const onProgress = async (payload: ImportProgressPayload) => {
-      await job.updateProgress(payload);
-    };
+  await importService.processImportRun(job.data.importId);
+};
 
-    const result = await importGames(
-      { userId, username, platform, folderIds },
-      onProgress,
-    );
-
-    // Return value is stored as job.returnvalue and forwarded by QueueEvents
-    return {
-      userId,
-      success: result.success,
-      message: result.message ?? (result.success ? "Import complete" : "Import failed"),
-    };
+// Dedicated worker for Chess.com (Concurrency 1 ensures rate-limit safe serial requests across all users)
+export const chessComWorker = new Worker<ImportJobData>(
+  QUEUE_NAMES.IMPORT_CHESS_COM,
+  processJob,
+  {
+    connection: BullMQRedis,
+    concurrency: 1,
   },
-  { connection: { BullMQRedis } },
 );
 
-importWorker.on("completed", (job) => {
-  logger.info({ jobId: job.id, userId: job.data.userId }, "Import job completed");
+chessComWorker.on("completed", (job) => {
+  logger.info({ jobId: job.id, importId: job.data.importId }, "Chess.com import job completed");
 });
 
-importWorker.on("failed", (job, err) => {
-  logger.error({ jobId: job?.id, userId: job?.data.userId, err }, "Import job failed");
+chessComWorker.on("failed", (job, err) => {
+  logger.error({ jobId: job?.id, importId: job?.data.importId, err }, "Chess.com import job failed");
+});
+
+// Dedicated worker for Lichess (Concurrency 1 ensures rate-limit safe serial requests across all users)
+export const lichessWorker = new Worker<ImportJobData>(
+  QUEUE_NAMES.IMPORT_LICHESS,
+  processJob,
+  {
+    connection: BullMQRedis,
+    concurrency: 1,
+  },
+);
+
+lichessWorker.on("completed", (job) => {
+  logger.info({ jobId: job.id, importId: job.data.importId }, "Lichess import job completed");
+});
+
+lichessWorker.on("failed", (job, err) => {
+  logger.error({ jobId: job?.id, importId: job?.data.importId, err }, "Lichess import job failed");
 });
