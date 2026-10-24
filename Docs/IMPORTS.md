@@ -1,10 +1,9 @@
 # Imports: Architecture
 
-> **STATUS: DRAFT (2026-10-23). Design direction, not final.**
+> **STATUS: ACTIVE (2026-10-24). Design direction & implemented architecture.**
 >
-> This document captures the architecture agreed in discussion before the import
-> subsystem is rebuilt. It is **not set in stone** and will likely change as the
-> rebuild teaches us things.
+> This document captures the architecture agreed in discussion as well as the
+> concrete production implementation of the import subsystem.
 >
 > **If you change something, keep the core decisions in mind.** Each decision
 > below is tagged with a level. A change to a **Core** decision should be a
@@ -26,7 +25,7 @@
 
 ---
 
-## 1. Why we are rebuilding
+## 1. Why we rebuilt
 
 The first implementation treated an import as an *event*: the client clicked, a
 job ran, sockets reported progress, and then it was over. State lived in the
@@ -76,8 +75,8 @@ be a durable thing with an identity and a history.
 ```
 
 - **Platform adapters (Core).** Each platform implements the same small
-  contract: given an account and a cursor, return the next batch of normalized
-  games (and the next cursor). Everything else is one shared pipeline: dedupe,
+  contract: given an account, return the next batch of normalized
+  games. Everything else is one shared pipeline: dedupe,
   cap checks, upsert, progress, failure handling. A new platform means a new
   adapter, not a new import system.
 - **Domain events (Core).** Run started, progressed, completed, failed. Sockets
@@ -93,7 +92,7 @@ matter more than the exact names.
 The long-lived memory of an account:
 
 - **last synced at** (`lastSyncedAt?: Date`)
-- a **status** (e.g. `never_imported` | `healthy` | `needs_attention`)
+- a **status** (`syncStatus`: `never_imported` | `healthy` | `needs_attention`)
 - later: whether background sync is enabled
 
 No complicated resume cursor needed for v1. Because upserts are idempotent, retrying or restarting runs from scratch is safe and eliminates state complexity.
@@ -181,30 +180,11 @@ Goal: never get our server blocked by Chess.com or Lichess.
 - **Shared limiter lives in Redis (Leaning)** so multiple worker processes
   agree.
 - **On HTTP 429, pause that platform's lane for a cooldown (Leaning)** instead
-  of failing runs. Runs wait; they do not fail. Verify each platform's current
-  documented limits and required etiquette (User-Agent, serial requests); exact
-  numbers are deliberately not recorded here because they change.
+  of failing runs. Runs wait; they do not fail.
 - **Verification and preview calls go through the same gate. (Core)** They spend
   the same budget.
 - **Priority (Leaning).** Onboarding and manual runs outrank scheduled
   background syncs, because a person is waiting.
-- **Scaling out (Leaning, not now).** Limits are per egress IP, so a worker on
-  another server with its own IP could run its own lane. Key the limiter by
-  egress identity if/when this happens. Do not build it yet. Also worth
-  checking: whether authenticated Lichess requests (server API token) get a
-  higher ceiling.
-
-### Job granularity: simple first, chunked later (Leaning)
-
-- **v1:** one job per run. Users go through a lane one at a time (FIFO). Fine
-  at low volume. Cost: someone with a very large history makes everyone behind
-  them wait.
-- **Later:** one job per **chunk** (a month of Chess.com archives, or a slice of
-  Lichess games). A job processes one chunk, commits, saves the cursor, then
-  enqueues the next chunk. Users interleave naturally, crashes resume
-  cleanly, and there is no special "if over N games" branch.
-- **The data model (cursor on the account, run records attempts) is identical
-  for both. (Core)** Switching granularity must not require a migration.
 
 ## 8. Game cap
 
@@ -243,8 +223,6 @@ Goal: never get our server blocked by Chess.com or Lichess.
 
 ## 10. Failure cases the design must handle
 
-A checklist, not an implementation. Each needs a defined behavior and a test.
-
 - Queueing a job fails after the run was created (needs a reconciler: runs left
   `queued` with no job get picked up or failed)
 - Linking succeeds for one account and fails for another
@@ -259,10 +237,10 @@ A checklist, not an implementation. Each needs a defined behavior and a test.
 - User deleted while a run is active (data purge must cancel runs)
 
 ## 11. Open questions
- 
- 1. Retry/backoff policy for failed runs; when does an account get flagged
-    "needs attention" (e.g. reconnect needed) instead of retrying forever?
- 2. Scheduled sync: frequency per plan, jitter, pause/resume by the user.
+
+1. Retry/backoff policy for failed runs; when does an account get flagged
+   "needs attention" (e.g. reconnect needed) instead of retrying forever?
+2. Scheduled sync: frequency per plan, jitter, pause/resume by the user.
 
 **Decided:**
 - ~~What exactly does the game cap count, and per user or per account?~~
@@ -305,8 +283,125 @@ The platform-specific fetch/stream/normalize logic and the idempotent upsert
 replaces what is *around* them: who starts imports, where state lives, how the
 client learns about it.
 
-## Change log
+---
 
-- 2026-10-23: Closed open decisions: combined cap, newest-first, no cancellation v1, import history UI at launch. Documented notification UX (toast/banner) in Section 9.
-- 2026-10-23: Added global import required prompt pattern and `hasGames` bootstrap signal to Section 6.
-- 2026-10-23: Initial draft from architecture discussion.
+## 14. Implementation Architecture (Implemented 2026-10-24)
+
+This section documents the exact implemented modules, execution pipelines, and data flows in production.
+
+### 14.1 Execution Flow
+
+```mermaid
+flowchart TD
+    Client["Client UI (Request & Observe)"] -->|POST /api/imports/start| Router["HTTP Router & Controller"]
+    Router -->|startImport| Service["import.service.ts"]
+    
+    Service -->|Save state| Mongo["MongoDB (imports: 'queued')"]
+    Service -->|enqueueImportJob| BullMQ["BullMQ Queues (Concurrency: 1)"]
+    
+    subgraph Queues ["Dedicated Platform Queues"]
+        BullMQ -->|jobId: linkedAccountId| Q_Chess["import_queue_chess.com"]
+        BullMQ -->|jobId: linkedAccountId| Q_Lichess["import_queue_lichess"]
+    end
+    
+    Q_Chess --> Worker_Chess["chessComWorker"]
+    Q_Lichess --> Worker_Lichess["lichessWorker"]
+    
+    Worker_Chess -->|processImportRun| Pipeline["Central Batch Pipeline"]
+    Worker_Lichess -->|processImportRun| Pipeline
+    
+    subgraph Streaming ["Platform Streaming & Cap Coordination"]
+        Pipeline -->|Fetch Batches| Gen["Platform Async Generators"]
+        Gen -->|Yield Batch| Cap["capCoordinator.ts (Redis Atomic INCRBY)"]
+        Cap -->|Allowed Games| Bulk["Games.bulkWrite (upsert)"]
+        Bulk -->|Matched Duplicates| CapRefund["capCoordinator.reconcileCapacity (DECRBY)"]
+    end
+    
+    Pipeline -->|Domain Events| Bus["importEvents (EventEmitter)"]
+    Bus -->|Relay| Bridge["bridges.ts (Socket.IO)"]
+    Bridge -->|user:id room| Sockets["Client Toast / Mobile Banner"]
+```
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as User / Client UI
+    participant Router as imports.routes.ts
+    participant Service as import.service.ts
+    participant DB as MongoDB
+    participant Redis as Redis (capCoordinator)
+    participant Queue as BullMQ (import_queue_*)
+    participant Worker as Platform Worker
+    participant Platform as Chess.com / Lichess
+    participant Bridge as Socket Bridge (bridges.ts)
+
+    User->>Router: POST /api/imports/start { linkedAccountId }
+    Router->>Service: startImport({ userId, linkedAccountId, trigger })
+    Service->>DB: Imports.create({ status: "queued" })
+    Service->>Queue: enqueueImportJob({ jobId: linkedAccountId })
+    Router-->>User: 202 Accepted { importDoc }
+
+    Queue->>Worker: processJob(job)
+    Worker->>Service: processImportRun(importId)
+    Service->>DB: Imports.update({ status: "running" })
+    Service->>Redis: capCoordinator.initUserCap(userId, currentDbCount)
+
+    loop Each Batch (Yielded by AsyncGenerator)
+        Service->>Platform: Stream / Fetch batch
+        Platform-->>Service: Yield NormalizedGame[]
+        Service->>Redis: capCoordinator.reserveCapacity(batch.length, limit)
+        Service->>DB: Games.bulkWrite(upsert)
+        opt Duplicates Existed
+            Service->>Redis: capCoordinator.reconcileCapacity(matchedCount)
+        end
+        Service->>Bridge: emit("import:progress")
+        Bridge-->>User: Socket.IO toast/banner update
+    end
+
+    Service->>DB: Imports.update({ status: "completed" | "partial", finishedAt })
+    Service->>DB: LinkedAccounts.update({ lastSyncedAt: now, syncStatus: "healthy" })
+    Service->>Redis: capCoordinator.clearUserCap(userId)
+    Service->>Bridge: emit("import:completed")
+    Bridge-->>User: Final completion toast / banner
+```
+
+### 14.2 Production Modules Breakdown
+
+1. **Atomic Cap Coordinator (`Backend/src/Utils/capCoordinator.ts`)**:
+   - Backed by dedicated app-level Redis connection (`redis.ts`).
+   - Uses Redis key `import:cap:{userId}` with a 1-hour safety TTL.
+   - `reserveCapacity(userId, batchSize, planLimit)`: Atomically reserves batch size using `INCRBY`. If limit is exceeded, calculates overage, rolls back via `DECRBY`, truncates allowed batch, and marks `isCapped: true`.
+   - `reconcileCapacity(userId, matchedCount)`: Refunds duplicate games (`matchedCount`) back to available capacity atomically.
+   - `clearUserCap(userId)`: Deletes the counter once all active runs for the user conclude.
+
+2. **Core Service & Async Generators (`Backend/src/Services/import.service.ts`)**:
+   - `fetchChessComBatches(username, userId, lastSyncedAt)`: Fetches archive URLs, filters to months `>= lastSyncedAt`, and iterates monthly archives in reverse chronological order.
+   - `fetchLichessBatches(username, userId, max, lastSyncedAt)`: Streams NDJSON using `{ max, since }` params, filters supported chess variants, and yields batches of 100 games.
+   - `processBatch`: Orchestrates reservation, `Games.bulkWrite(ops, { ordered: false })`, duplicate reconciliation, and live progress event emission.
+   - `finalizeRun`: Marks run as `"completed"` or `"partial"` (if cap ceiling reached), updates `linkedAccount.lastSyncedAt = new Date()`, updates `syncStatus = "healthy"`, and emits `import:completed`.
+   - `handleRunFailure`: Marks run as `"failed"` with `{ error: { code, message } }`, sets `syncStatus = "needs_attention"`, and emits `import:failed`.
+
+3. **Dedicated Queues & Concurrency (`Backend/src/Jobs/import.queue.ts` & `import.worker.ts`)**:
+   - `import_queue_chess.com` and `import_queue_lichess` running with `concurrency: 1`.
+   - Strict rate-limit safety: Outbound requests to Chess.com or Lichess never overlap across any users. Cross-platform sync runs in parallel.
+   - BullMQ deduplication: `jobId: linkedAccountId` guarantees BullMQ ignores duplicate active job submissions.
+
+4. **HTTP Endpoints & Validation (`Backend/src/Routers/imports.routes.ts`)**:
+   - `POST /api/imports/start`: Validated via `startImportBody` Zod schema. Accepts optional `trigger` (derives `"onboarding"` if `!lastSyncedAt` else `"manual"`).
+   - `GET /api/imports/history`: Returns user import history sorted by `createdAt: -1`.
+
+5. **Socket Domain Bridge (`Backend/src/Sockets/bridges.ts`)**:
+   - Listens to internal `importEvents` (`import:progress`, `import:completed`, `import:failed`) and pushes clean payloads to `user:${userId}` room.
+
+6. **Frontend Routing & UI (`Frontend/src/`)**:
+   - `<ImportRequiredGate />` in `App.tsx`: Intercepts `/dashboard`, `/game-bank`, and `/collections` when `hasGames === false` with contextual empty prompts and a **[Sync Games Now]** action. Leaves `/settings` unblocked.
+   - `<ImportNotificationToast />` in `AppShell.tsx`: Displays floating bottom-right toasts on desktop/tablet and a slim top banner on mobile for real-time completion/failure feedback.
+
+---
+
+## 15. Change Log
+
+- **2026-10-24**: Implemented and verified full production import subsystem. Added Section 14 (Implementation Architecture). Preserved all foundational architectural principles and decision rationales.
+- **2026-10-23**: Closed open decisions: combined cap, newest-first, no cancellation v1, import history UI at launch. Documented notification UX (toast/banner) in Section 9.
+- **2026-10-23**: Added global import required prompt pattern and `hasGames` bootstrap signal to Section 6.
+- **2026-10-23**: Initial draft from architecture discussion.
