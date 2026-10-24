@@ -96,7 +96,7 @@ import lichessApi from "./lichess.api";
 
 
 async function testLichessClocksFlag(){
-  console.log(await lichessApi.getUserGames("Sultan2403"))
+  console.log(await lichessApi.getUserGames("Sultan2403", { max: 10 }))
 }
 
 testLichessClocksFlag()

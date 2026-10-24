@@ -1,31 +1,42 @@
 import { Request, Response } from "express";
-import { getUserId, successResponse, internalError, badRequestResponse } from "../Utils";
+import { getUserId, successResponse, internalError, notFoundResponse } from "../Utils";
 import { importService } from "../Services/import.service";
 import Imports from "../DB/Models/imports.model";
+import LinkedAccounts from "../DB/Models/linked_accounts.model";
+import { StartImportInput } from "@chess-vault/shared";
 
 export const startImportController = async (req: Request, res: Response) => {
   const userId = getUserId(req)!;
-  const { linkedAccountId } = req.body;
-
-  if (!linkedAccountId) {
-    return badRequestResponse({
-      res,
-      message: "linkedAccountId is required",
-    });
-  }
+  const { linkedAccountId, trigger }: StartImportInput = req.body;
 
   try {
+    const linkedAccount = await LinkedAccounts.findOne({
+      _id: linkedAccountId,
+      userId,
+    });
+
+    if (!linkedAccount) {
+      return notFoundResponse({
+        res,
+        message: "Linked account not found",
+      });
+    }
+
+    // Determine trigger: explicit parameter takes priority; otherwise derive
+    const resolvedTrigger =
+      trigger || (linkedAccount.lastSyncedAt ? "manual" : "onboarding");
+
     const importDoc = await importService.startImport({
       userId,
       linkedAccountId,
-      trigger: "manual",
+      trigger: resolvedTrigger,
     });
 
     return successResponse({
       res,
       statusCode: 202,
       message: "Import queued successfully",
-      data: importDoc,
+      data: { import: importDoc.toJSON() },
     });
   } catch (error: any) {
     return internalError({
@@ -48,7 +59,7 @@ export const getImportHistoryController = async (req: Request, res: Response) =>
     return successResponse({
       res,
       message: "Import history retrieved successfully",
-      data: history,
+      data: { history },
     });
   } catch (error: any) {
     return internalError({
