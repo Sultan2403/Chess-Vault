@@ -7,6 +7,10 @@
 ## Up next
 
 - Import have been reworked to something better and more manageable. Seems pretty good ngl. I'm yet to test it tho. Architechture has been decided and documented in `Docs/IMPORTS.md`.
+- **Finalize bidirectional sync architecture (Future vs Past)**:
+  - Separate *forward sync* (importing newly played games since newest cursor) from *historical backfill* (crawling backward before the oldest imported game when capped accounts upgrade).
+  - Define explicit cursor tracking and background worker strategies for both directions across Chess.com and Lichess.
+  - Honestly we might need to revisit or product decision of newest first or sum.
 - Rework the UI to something that represents the app.
 - Decide on platform flow: Should stats and views across Dashboard and Game Bank always default to unified (Chess.com + Lichess), or provide an explicit account/platform switcher?
 - After imports we auto generate collections and all.

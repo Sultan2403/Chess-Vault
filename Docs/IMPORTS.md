@@ -242,6 +242,10 @@ Goal: never get our server blocked by Chess.com or Lichess.
 1. Retry/backoff policy for failed runs; when does an account get flagged
    "needs attention" (e.g. reconnect needed) instead of retrying forever?
 2. Scheduled sync: frequency per plan, jitter, pause/resume by the user.
+3. **Bidirectional sync architecture (Future vs Past)**:
+   - **Forward incremental sync (Future)**: Fetches newly played games since the newest cursor (`cursor.lastArchiveUrl` / `cursor.lastGamePlayedAt`).
+   - **Historical backfill (Past)**: When a capped user upgrades their plan or requests older games, how should the importer walk backward past the oldest game currently stored?
+   - Architecture needs dedicated design: separate forward cursors from historical backfill cursors, and decide whether backfill runs via on-demand manual triggers or a low-priority background queue worker.
 
 **Decided:**
 - ~~What exactly does the game cap count, and per user or per account?~~

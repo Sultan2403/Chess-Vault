@@ -452,7 +452,9 @@ export const importService = {
         );
 
         for await (const { batch, archiveUrl } of batchGenerator) {
-          lastProcessedArchiveUrl = archiveUrl;
+          if (!lastProcessedArchiveUrl) {
+            lastProcessedArchiveUrl = archiveUrl;
+          }
 
           const result = await processBatch({
             userId,
