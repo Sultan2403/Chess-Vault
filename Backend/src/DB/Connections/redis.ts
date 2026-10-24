@@ -2,7 +2,7 @@ import Redis from "ioredis";
 import env, { isProd } from "../../Config/env";
 import { logger } from "../../Config/logger";
 
-export const { BullMQRedis } = isProd
+export const BullMQRedis = isProd
   ? new Redis(env.REDIS_URL, { maxRetriesPerRequest: null })
   : new Redis({
       host: env.REDIS_URL,
@@ -17,11 +17,11 @@ export const redis = isProd
       port: env.REDIS_PORT,
     });
 
-{ BullMQRedis }.on("connect", () => {
+BullMQRedis.on("connect", () => {
   logger.info("BullMQ Redis client connection successful");
 });
 
-{ BullMQRedis }.on("error", (err) => {
+BullMQRedis.on("error", (err) => {
   logger.error({ err }, "BullMQ Redis client error");
 });
 
