@@ -2,7 +2,7 @@ import Redis from "ioredis";
 import env, { isProd } from "../../Config/env";
 import { logger } from "../../Config/logger";
 
-const redisClient = isProd
+export const BullMQRedis = isProd
   ? new Redis(env.REDIS_URL, { maxRetriesPerRequest: null })
   : new Redis({
       host: env.REDIS_URL,
@@ -10,12 +10,26 @@ const redisClient = isProd
       maxRetriesPerRequest: null, // Required by BullMQ
     });
 
-redisClient.on("connect", () => {
-  logger.info("Redis connection successful");
+export const redis = isProd
+  ? new Redis(env.REDIS_URL)
+  : new Redis({
+      host: env.REDIS_URL,
+      port: env.REDIS_PORT,
+    });
+
+BullMQRedis.on("connect", () => {
+  logger.info("BullMQ Redis client connection successful");
 });
 
-redisClient.on("error", (err) => {
-  logger.error({ err }, "Redis error");
+BullMQRedis.on("error", (err) => {
+  logger.error({ err }, "BullMQ Redis client error");
 });
 
-export default redisClient;
+redis.on("connect", () => {
+  logger.info("Redis client connection successful");
+});
+
+redis.on("error", (err) => {
+  logger.error({ err }, "Redis client error");
+});
+
