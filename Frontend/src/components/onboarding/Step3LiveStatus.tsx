@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, ArrowRight, RotateCcw } from "lucide-react";
-import socket, { connectSocket, disconnectSocket } from "../../sockets/socket";
+import socket from "../../sockets/socket";
 import { SOCKET_EVENTS } from "@chess-vault/shared";
 import type { Import } from "@chess-vault/shared";
 import type {
@@ -92,8 +92,6 @@ export function Step3LiveStatus({
 
   // Socket subscriptions
   useEffect(() => {
-    connectSocket();
-
     const handleProgress = (payload: ImportProgressType) => {
       setRuns((prev) => {
         const next = new Map(prev);
@@ -156,7 +154,6 @@ export function Step3LiveStatus({
       socket.off(SOCKET_EVENTS.IMPORT_PROGRESS, handleProgress);
       socket.off(SOCKET_EVENTS.IMPORT_COMPLETE, handleComplete);
       socket.off(SOCKET_EVENTS.IMPORT_FAILED, handleFailed);
-      disconnectSocket();
     };
   }, []);
 

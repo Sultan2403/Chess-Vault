@@ -13,7 +13,7 @@ const getSocketUrl = () => {
 };
 
 const socket = io(getSocketUrl(), {
-  autoConnect: false,
+  autoConnect: true,
   auth: async (cb) => {
     try {
       const token = await getToken();
@@ -22,18 +22,6 @@ const socket = io(getSocketUrl(), {
       cb({ token: null });
     }
   },
-});
-
-export const connectSocket = () => {
-  if (!socket.connected) {
-    socket.connect();
-  }
-};
-
-export const disconnectSocket = () => {
-  if (socket.connected) {
-    socket.disconnect();
-  }
-};
+})
 
 export default socket;

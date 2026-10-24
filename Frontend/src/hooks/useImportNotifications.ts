@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import socket, { connectSocket, disconnectSocket } from "../sockets/socket";
+import socket from "../sockets/socket";
 import { SOCKET_EVENTS } from "@chess-vault/shared";
 import type {
   ImportCompleteType,
@@ -25,8 +25,6 @@ export const useImportNotifications = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    connectSocket();
-
     const handleProgress = (payload: ImportProgressType) => {
       setImportProgress(payload);
     };
@@ -88,7 +86,6 @@ export const useImportNotifications = () => {
       socket.off(SOCKET_EVENTS.IMPORT_PROGRESS, handleProgress);
       socket.off(SOCKET_EVENTS.IMPORT_COMPLETE, handleComplete);
       socket.off(SOCKET_EVENTS.IMPORT_FAILED, handleFailed);
-      disconnectSocket();
     };
   }, [queryClient]);
 
