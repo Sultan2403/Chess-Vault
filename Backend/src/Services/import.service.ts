@@ -374,40 +374,6 @@ export const importService = {
 
     const { userId, linkedAccountId, platform } = importDoc;
 
-    const [account, linkedAccount] = await Promise.all([
-      Accounts.findOne({ userId }),
-      LinkedAccounts.findById(linkedAccountId),
-    ]);
-
-    if (!linkedAccount || !account) {
-      await handleRunFailure({
-        importDoc,
-        linkedAccountId: linkedAccountId.toString(),
-        error: { code: "ACCOUNT_NOT_FOUND", message: "Account or linked account missing" },
-      });
-      return;
-    }
-
-    // Step 1: Mark running
-    importDoc.status = "running";
-    await importDoc.save();
-
-    // Step 2: Determine cap & seed coordinator
-    const planLimit = account.plan.gameBankLimit;
-    const currentDbCount = await Games.countDocuments({ userId });
-    await capCoordinator.initUserCap(userId, currentDbCount);
-
-    const remainingCapacity = Math.max(0, planLimit - currentDbCount);
-    if (remainingCapacity <= 0) {
-      await finalizeRun({
-        importDoc,
-        linkedAccountId: linkedAccountId.toString(),
-        isCapped: true,
-        counters: importDoc.counters,
-      });
-      return;
-    }
-
     const counters: ImportCounters = {
       fetched: 0,
       inserted: 0,
@@ -418,6 +384,40 @@ export const importService = {
     let isCapped = false;
 
     try {
+      const [account, linkedAccount] = await Promise.all([
+        Accounts.findOne({ userId }),
+        LinkedAccounts.findById(linkedAccountId),
+      ]);
+
+      if (!linkedAccount || !account) {
+        await handleRunFailure({
+          importDoc,
+          linkedAccountId: linkedAccountId.toString(),
+          error: { code: "ACCOUNT_NOT_FOUND", message: "Account or linked account missing" },
+        });
+        return;
+      }
+
+      // Step 1: Mark running
+      importDoc.status = "running";
+      await importDoc.save();
+
+      // Step 2: Determine cap & seed coordinator
+      const planLimit = account.plan.gameBankLimit;
+      const currentDbCount = await Games.countDocuments({ userId });
+      await capCoordinator.initUserCap(userId, currentDbCount);
+
+      const remainingCapacity = Math.max(0, planLimit - currentDbCount);
+      if (remainingCapacity <= 0) {
+        await finalizeRun({
+          importDoc,
+          linkedAccountId: linkedAccountId.toString(),
+          isCapped: true,
+          counters: importDoc.counters,
+        });
+        return;
+      }
+
       // Step 3: Platform batch generator
       const batchGenerator =
         platform === "chess.com"
@@ -468,16 +468,18 @@ export const importService = {
         isCapped,
         counters,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error({ err, importId, userId, platform }, "Import run failed");
+
+      const error = {
+        code: (err as { code?: string })?.code || "IMPORT_ERROR",
+        message: err instanceof Error ? err.message : "An error occurred during game import",
+      };
 
       await handleRunFailure({
         importDoc,
         linkedAccountId: linkedAccountId.toString(),
-        error: {
-          code: err.code || "IMPORT_ERROR",
-          message: err.message || "An error occurred during game import",
-        },
+        error,
         counters,
       });
     } finally {
