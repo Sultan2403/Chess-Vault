@@ -12,6 +12,19 @@
   - Separate *forward sync* (importing newly played games since newest cursor) from *historical backfill* (crawling backward before the oldest imported game when capped accounts upgrade).
   - Define explicit cursor tracking and background worker strategies for both directions across Chess.com and Lichess.
   - Honestly we might need to revisit or product decision of newest first or sum.
+  - -Backfill idea (later)
+
+You only have more history than the vault holds if an import reached the cap.
+On the first import that hits the cap, set a hasMoreHistory flag on the linked account.
+The flag is a quick way to tell the user “you have more games on your account that aren’t imported yet”. The UI can show it without any extra checking.
+When a user upgrades to pro, or otherwise gets more room and has the flag set, run a backfill to fetch the older games.
+A backfill is a special case of the normal importer, with the same pipeline, going older instead of newer. It’s not a new system.
+Not now. This is a later task.
+
+Two small details from our discussion, so you don’t have to rediscover them:
+
+Run backfills in the same platform queue at lower priority, not in a separate queue, so the one-request-at-a-time rule per platform still holds.
+The boundary to go older than can be computed from your stored games (the oldest game you hold for that platform), so no extra cursor field is needed.
 - Rework the UI to something that represents the app.
 - Decide on platform flow: Should stats and views across Dashboard and Game Bank always default to unified (Chess.com + Lichess), or provide an explicit account/platform switcher?
 - After imports we auto generate collections and all.
