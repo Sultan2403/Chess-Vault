@@ -19,31 +19,6 @@ import {
   notFoundResponse,
   internalError,
 } from "../Utils";
-import { importQueue } from "../Jobs/import.queue";
-import { JOB_NAMES } from "../Config/constants";
-
-export const importGamesController = async (req: Request, res: Response) => {
-  const userId = getUserId(req)!;
-  const { folderIds, platform, username }: ImportGamesParams = req.body;
-
-  try {
-    const job = await importQueue.add(`${JOB_NAMES.IMPORT}_${platform}`, {
-      userId,
-      username,
-      platform,
-      folderIds: folderIds ?? null,
-    });
-
-    return successResponse({
-      res,
-      statusCode: 202,
-      message: "Import started",
-      data: { jobId: job.id },
-    });
-  } catch (error) {
-    return internalError({ res, error, message: "Failed to queue game import" });
-  }
-};
 
 export const searchGamesController = async (req: Request, res: Response) => {
   const userId = getUserId(req)!;

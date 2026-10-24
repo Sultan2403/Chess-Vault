@@ -2,7 +2,6 @@ import { Router } from "express";
 import validate from "express-zod-safe";
 import {
   getGameController,
-  importGamesController,
   searchGamesController,
   updateGameController,
   deleteGameController,
@@ -54,12 +53,6 @@ router.delete(
   "/:id",
   validate({ params: gameParams }),
   deleteGameController,
-);
-
-router.post(
-  "/import",
-  validate({ body: importGamesParams }),
-  importGamesController,
 );
 
 export default router;

@@ -208,7 +208,7 @@ async function processBatch({
     },
   }));
 
-  const writeResult = await Games.bulkWrite(ops, { ordered: false });
+  const writeResult = await Games.bulkWrite(ops as any, { ordered: false });
 
   counters.inserted += writeResult.upsertedCount;
   counters.duplicates += writeResult.matchedCount;
