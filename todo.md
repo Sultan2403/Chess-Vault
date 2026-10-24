@@ -71,6 +71,8 @@ The boundary to go older than can be computed from your stored games (the oldest
 
 - Currently frontend verify endpoint runs parallel verify requests which isnt efficient. a single endpoint that accepts an accounts array is much more scalable. 
 
+- Normalize player stats and shit before sending it to the frontend. 
+
 - Maybe add best moves and better moves and such to game viewer?
 
 - Btw we might need a way to find brilliant moves and all that stuff. Hm game review?
