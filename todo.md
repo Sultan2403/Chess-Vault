@@ -6,7 +6,7 @@
 
 ## Up next
 
-- Imports are... kinda done? So much is wrong and needs to be fixed. First... Damn idk I'm tired. The future me might have to tackle this on his own... Okay sockets don't relay, the import progress thingy closes automatically, and the code is genuinely bs I don't like it. Umm I had something else to complain about but I don't remeber.... Oh well. Don't take this part of the todo as a source of truth for what's next to do for imports tho cus a lot is geninely broken ugh. Oh well. It's 1am btw -_-
+- Import have been reworked to something better and more manageable. Seems pretty good ngl. I'm yet to test it tho. Architechture has been decided and documented in `Docs/IMPORTS.md`.
 - Rework the UI to something that represents the app.
 - Decide on platform flow: Should stats and views across Dashboard and Game Bank always default to unified (Chess.com + Lichess), or provide an explicit account/platform switcher?
 - After imports we auto generate collections and all.
@@ -17,7 +17,6 @@
 - Once it's time, make evrything in the app account oriented. For examples max-games should be per account from `Account.plan.gameBankLimit`. Similarly for analysis minutes and such.
 
 - Investigate game storage as some games get past the game cap.
-- Sync up socket.io implementation with the frontend and add explicit flows for importing games
 - ANALYTICSSSSSSS!!!! IT'S IMPORTANT BRO!!!
 - Remove `.optional()` in Game.opening as it and it's kids are all required. This is just a knock off of the type safety task below but just more precise lol.
 
