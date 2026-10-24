@@ -1,7 +1,7 @@
 export const PLANS_CONFIG = {
   free: {
     tier: "free",
-    gameBankLimit: 1000,
+    gameBankLimit: 5000,
     linkedAccountLimit: 2,
     aiEnabled: false,
     analyticsEnabled: false,
