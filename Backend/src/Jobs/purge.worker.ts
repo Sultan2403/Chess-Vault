@@ -12,11 +12,14 @@ export const purgeWorker = new Worker<PurgeUserJobData>(
     const { userId } = job.data;
     await purgeUserData({ userId });
   },
-  { connection: { BullMQRedis } },
+  { connection: BullMQRedis },
 );
 
 purgeWorker.on("completed", (job) => {
-  logger.info({ jobId: job.id, userId: job.data.userId }, "Purge job completed");
+  logger.info(
+    { jobId: job.id, userId: job.data.userId },
+    "Purge job completed",
+  );
 });
 
 purgeWorker.on("failed", (job, err) => {
@@ -35,7 +38,12 @@ purgeWorker.on("failed", (job, err) => {
     });
   } else {
     logger.error(
-      { jobId: job?.id, userId: job?.data.userId, err, attempt: job?.attemptsMade },
+      {
+        jobId: job?.id,
+        userId: job?.data.userId,
+        err,
+        attempt: job?.attemptsMade,
+      },
       "Purge job attempt failed — will retry",
     );
   }
