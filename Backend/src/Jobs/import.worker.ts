@@ -63,6 +63,7 @@ const handleWorkerJobFailure = async (
       importEvents.emit(IMPORT_EVENT_NAMES.FAILED, {
         userId,
         importId,
+        linkedAccountId: linkedAccountId.toString(),
         platform,
         error,
       } as ImportFailedPayload);

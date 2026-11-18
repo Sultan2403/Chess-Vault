@@ -22,6 +22,14 @@ export const useFolder = (id: string) => {
   });
 };
 
+export const useFolderSummary = (id: string) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.folders.summary(id),
+    queryFn: () => foldersApi.getFolderSummary(id),
+    enabled: Boolean(id),
+  });
+};
+
 export const useCreateFolder = () => {
   const queryClient = useQueryClient();
 

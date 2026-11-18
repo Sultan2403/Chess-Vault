@@ -272,6 +272,7 @@ async function finalizeRun({
   importEvents.emit(IMPORT_EVENT_NAMES.COMPLETED, {
     userId: importDoc.userId,
     importId: importDoc.id,
+    linkedAccountId: linkedAccountId.toString(),
     platform: importDoc.platform,
     status: finalStatus,
     counters,
@@ -315,6 +316,7 @@ async function handleRunFailure({
   importEvents.emit(IMPORT_EVENT_NAMES.FAILED, {
     userId: importDoc.userId,
     importId: importDoc.id,
+    linkedAccountId: linkedAccountId.toString(),
     platform: importDoc.platform,
     error,
   } as ImportFailedPayload);
@@ -481,6 +483,7 @@ export const importService = {
           importEvents.emit(IMPORT_EVENT_NAMES.PROGRESS, {
             userId,
             importId,
+            linkedAccountId: linkedAccountId.toString(),
             platform,
             counters: { ...counters },
             vaultUsage: {
@@ -527,6 +530,7 @@ export const importService = {
           importEvents.emit(IMPORT_EVENT_NAMES.PROGRESS, {
             userId,
             importId,
+            linkedAccountId: linkedAccountId.toString(),
             platform,
             counters: { ...counters },
             vaultUsage: {

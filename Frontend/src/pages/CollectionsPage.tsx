@@ -1,632 +1,209 @@
 import { useState, useMemo } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { motion } from "motion/react";
-
-import {
-  Search,
-  Plus,
-  ExternalLink,
-  ChevronLeft,
-  ChevronRight,
-  FolderKanban,
-  FolderPlus,
-} from "lucide-react";
+import { Plus, Search, FolderPlus, Compass } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
-import { MiniChessboard } from "../components/ui/MiniChessboard";
-import { TagChips } from "../components/ui/TagChips";
+import { Modal } from "../components/ui/Modal";
+import { CollectionCard } from "../components/collections/CollectionCard";
 import { useFolders, useCreateFolder } from "../hooks/useFolders";
-import { useGames } from "../hooks/useGames";
-import {
-  getPlayerPerspective,
-  parseOpeningDetails,
-  getGameDate,
-  getMoveCount,
-} from "../utils/game";
 
 export default function CollectionsPage() {
-  const navigate = useNavigate();
-
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSide, setSelectedSide] = useState<"all" | "white" | "black">(
-    "all",
-  );
-  const [sortBy, setSortBy] = useState<"chronological" | "elo">(
-    "chronological",
-  );
-  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
-  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [newFolderDesc, setNewFolderDesc] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
 
-  // Queries
   const {
     data: foldersData,
-    isLoading: isFoldersLoading,
-    isError: isFoldersError,
-    error: foldersError,
-    refetch: refetchFolders,
-  } = useFolders();
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useFolders({ limit: 50 });
+
   const createFolderMutation = useCreateFolder();
-
   const folders = foldersData?.folders ?? [];
-  const activeFolder =
-    folders.find((f) => f.id === selectedFolderId) ?? folders[0] ?? null;
 
-  // Query games belonging to active folder
-  const {
-    data: gamesData,
-    isLoading: isGamesLoading,
-    isError: isGamesError,
-    error: gamesError,
-    refetch: refetchGames,
-  } = useGames({
-    folderIds: activeFolder ? [activeFolder.id] : undefined,
-    page: currentPage,
-    limit: 10,
-    search: searchQuery.trim() || undefined,
-  });
+  const filteredFolders = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return folders;
+    return folders.filter(
+      (f) =>
+        f.name.toLowerCase().includes(q) ||
+        (f.description && f.description.toLowerCase().includes(q)),
+    );
+  }, [folders, searchQuery]);
 
-  const games = gamesData?.games ?? [];
-  const totalGames = gamesData?.pagination?.total ?? 0;
-  const totalPages = gamesData?.pagination?.totalPages ?? 1;
-
-  // Filter and sort games
-  const filteredGames = useMemo(() => {
-    return games
-      .filter((g) => {
-        const perspective = getPlayerPerspective(
-          g
-        );
-        if (selectedSide === "white" && perspective.playerColor !== "white")
-          return false;
-        if (selectedSide === "black" && perspective.playerColor !== "black")
-          return false;
-        return true;
-      })
-      .sort((a, b) => {
-        if (sortBy === "elo") {
-          return b.whitePlayer.rating - a.whitePlayer.rating;
-        }
-        return new Date(b.playedAt).getTime() - new Date(a.playedAt).getTime();
-      });
-  }, [games, selectedSide, sortBy]);
-
-  // Folder Metrics
-  const folderMetrics = useMemo(() => {
-    if (games.length === 0) {
-      return { wins: 0, draws: 0, losses: 0, avgRating: 0, annotated: 0 };
-    }
-    let wins = 0;
-    let draws = 0;
-    let losses = 0;
-    let totalRating = 0;
-    let annotated = 0;
-
-    games.forEach((g) => {
-      if (g.userResult === "win") wins++;
-      else if (g.userResult === "draw") draws++;
-      else losses++;
-
-      totalRating += (g.whitePlayer.rating + g.blackPlayer.rating) / 2;
-      if (g.notes || g.tags) annotated++;
-    });
-
-    return {
-      wins,
-      draws,
-      losses,
-      avgRating: Math.round(totalRating / games.length),
-      annotated,
-    };
-  }, [games]);
-
-  // Handle Create Folder
-  const handleCreateFolderSubmit = async (e: React.FormEvent) => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFolderName.trim()) return;
+
     try {
-      const result = await createFolderMutation.mutateAsync({
+      await createFolderMutation.mutateAsync({
         name: newFolderName.trim(),
         description: newFolderDesc.trim() || undefined,
       });
-      setSelectedFolderId(result.folder.id);
       setNewFolderName("");
       setNewFolderDesc("");
-      setIsCreatingFolder(false);
+      setIsCreateModalOpen(false);
     } catch {
-      alert("Failed to create folder. Please try again.");
+      alert("Failed to create collection. Please try again.");
     }
   };
 
   return (
     <div className="mx-auto max-w-content px-6 py-10 font-body space-y-8">
-      {/* FOLDER / ANTHOLOGY HEADER */}
-      <section className="flex flex-col md:flex-row md:items-start justify-between gap-6 border-b border-vault-border-base pb-8">
+      {/* HEADER SECTION */}
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-vault-border-base pb-8">
         <div>
-          <span className="font-mono text-[11px] uppercase tracking-widest text-vault-bronze">
-            Curated Folder Registry • Repertoire &amp; Monograph Anthologies
-          </span>
+          <div className="flex items-center gap-2 font-mono text-xs text-vault-bronze uppercase tracking-widest">
+            <Compass size={14} />
+            <span>Personal Chess History • Anthologies</span>
+          </div>
           <h1 className="mt-2 font-display text-4xl sm:text-5xl font-normal text-vault-text-primary tracking-tight">
-            {activeFolder ? activeFolder.name : "Folders & Collections"}
+            Collections
           </h1>
           <p className="mt-2 max-w-2xl text-xs sm:text-sm text-vault-text-secondary leading-relaxed font-sans">
-            {activeFolder?.description ||
-              "Organize your competitive matches, training monographs, and repertoires into timeless curated folders."}
+            Personal albums of your chess journey. Each collection brings together matches
+            you have chosen to keep together, ready to be revisited.
           </p>
-
-          {/* Folder Switcher Pills */}
-          {folders.length > 0 && (
-            <div className="mt-4 flex flex-wrap items-center gap-2 font-mono text-xs">
-              <span className="text-vault-text-muted text-[10px] uppercase">
-                Active Folder:
-              </span>
-              {folders.map((f) => (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedFolderId(f.id);
-                    setCurrentPage(1);
-                  }}
-                  className={`rounded-xs px-2.5 py-1 text-[11px] transition-colors cursor-pointer ${
-                    activeFolder?.id === f.id
-                      ? "bg-vault-bronze text-vault-surface font-semibold"
-                      : "border border-vault-border-base bg-vault-surface-layer-1 text-vault-text-secondary hover:text-vault-text-primary"
-                  }`}
-                >
-                  📁 {f.name}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 font-mono text-xs">
-          <button
-            type="button"
-            onClick={() => setIsCreatingFolder(true)}
-            className="flex items-center gap-1.5 rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-2 text-vault-text-secondary hover:border-vault-border-interactive hover:text-vault-text-primary transition-colors cursor-pointer"
-          >
-            <Plus size={13} />
-            <span>NEW FOLDER</span>
-          </button>
+        <div className="flex items-center gap-3">
           <Button
             variant="solid-bronze"
-            onClick={() => navigate("/game-bank")}
-            className="px-4 py-2 font-mono text-xs uppercase"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 font-mono text-xs uppercase"
           >
-            <Plus size={13} /> DEPOSIT GAME
+            <Plus size={14} />
+            <span>New Album</span>
           </Button>
         </div>
       </section>
 
-      {/* Modal: Create Folder */}
-      {isCreatingFolder && (
-        <div className="rounded-vault border border-vault-border-interactive bg-vault-surface-layer-2 p-6 font-mono text-xs">
-          <div className="flex items-center justify-between border-b border-vault-border-base pb-3">
-            <span className="font-bold text-vault-text-primary">
-              Create New Folder
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsCreatingFolder(false)}
-              className="text-vault-text-muted hover:text-vault-text-primary"
-            >
-              ✕
-            </button>
-          </div>
-          <form onSubmit={handleCreateFolderSubmit} className="mt-4 space-y-3">
-            <div>
-              <label className="text-[10px] uppercase text-vault-text-muted block mb-1">
-                Folder Name
-              </label>
-              <input
-                type="text"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                placeholder="e.g. Tournament Matches 2025, Najdorf Defense Lab"
-                className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-2 text-vault-text-primary outline-none focus:border-vault-bronze"
-                required
-              />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase text-vault-text-muted block mb-1">
-                Description (Optional)
-              </label>
-              <input
-                type="text"
-                value={newFolderDesc}
-                onChange={(e) => setNewFolderDesc(e.target.value)}
-                placeholder="e.g. Classical FIDE tournament matches and post-mortem analysis"
-                className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-2 text-vault-text-primary outline-none focus:border-vault-bronze"
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setIsCreatingFolder(false)}
-                className="px-3 py-1.5 text-xs"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="solid-bronze"
-                disabled={createFolderMutation.isPending}
-                className="px-4 py-1.5 text-xs"
-              >
-                {createFolderMutation.isPending ? "Creating..." : "Save Folder"}
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* 5-METRIC STRIP */}
-      <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 font-mono">
-        <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-4">
-          <span className="text-[9px] uppercase tracking-wider text-vault-text-muted block">
-            Preserved Matches
-          </span>
-          <span className="mt-1 font-display text-2xl font-bold text-vault-text-primary">
-            {isGamesLoading ? "..." : totalGames}{" "}
-            <span className="font-mono text-xs font-normal text-vault-text-muted">
-              entries
-            </span>
-          </span>
-        </div>
-
-        <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-4">
-          <span className="text-[9px] uppercase tracking-wider text-vault-text-muted block">
-            Score Distribution
-          </span>
-          <span className="mt-1 font-display text-2xl font-bold text-vault-text-primary">
-            {folderMetrics.wins}{" "}
-            <span className="font-mono text-xs text-vault-win">W</span> /{" "}
-            {folderMetrics.draws}{" "}
-            <span className="font-mono text-xs text-vault-draw">D</span> /{" "}
-            {folderMetrics.losses}{" "}
-            <span className="font-mono text-xs text-vault-loss">L</span>
-          </span>
-        </div>
-
-        <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-4">
-          <span className="text-[9px] uppercase tracking-wider text-vault-text-muted block">
-            Average Rating
-          </span>
-          <span className="mt-1 font-display text-2xl font-bold text-vault-text-primary">
-            {folderMetrics.avgRating > 0 ? folderMetrics.avgRating : "---"}
-          </span>
-        </div>
-
-        <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-4">
-          <span className="text-[9px] uppercase tracking-wider text-vault-text-muted block">
-            Annotated Studies
-          </span>
-          <span className="mt-1 font-display text-2xl font-bold text-vault-text-primary">
-            {folderMetrics.annotated}{" "}
-            <span className="font-mono text-xs text-vault-text-muted">
-              with notes
-            </span>
-          </span>
-        </div>
-
-        <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-4">
-          <span className="text-[9px] uppercase tracking-wider text-vault-text-muted block">
-            Ledger Synchronized
-          </span>
-          <div className="mt-1.5 flex items-center gap-1.5 text-xs text-vault-win">
-            <span className="h-1.5 w-1.5 rounded-full bg-vault-win" />
-            <span>Live Index</span>
-          </div>
-        </div>
-      </section>
-
-      {/* SEARCH & FILTER TOOLBAR */}
-      <section className="flex flex-wrap items-center justify-between gap-4 border-y border-vault-border-base py-3 font-mono text-xs">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[280px]">
+      {/* SEARCH AND FILTERS */}
+      <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="relative w-full sm:max-w-md">
           <Search
-            size={13}
+            size={14}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-vault-text-muted"
           />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Filter by opponent, opening, tournament or note..."
-            className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 py-1.5 pl-8 pr-3 text-xs text-vault-text-primary outline-none focus:border-vault-bronze placeholder:text-vault-text-muted"
+            placeholder="Search albums by title or note..."
+            className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 pl-9 pr-3 py-2 font-mono text-xs text-vault-text-primary placeholder:text-vault-text-muted outline-none focus:border-vault-bronze transition-colors"
           />
         </div>
 
-        {/* Sort & Side Tabs */}
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-vault-text-muted uppercase text-[10px]">
-              SORT BY:
-            </span>
-            {(["chronological", "elo"] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setSortBy(s)}
-                className={`capitalize transition-colors cursor-pointer ${
-                  sortBy === s
-                    ? "text-vault-bronze font-semibold underline underline-offset-4"
-                    : "text-vault-text-secondary hover:text-vault-text-primary"
-                }`}
-              >
-                {s === "chronological" ? "Chronological" : "Elo Rating"}
-              </button>
-            ))}
-          </div>
-
-          {/* Side Tabs */}
-          <div className="flex items-center rounded-xs border border-vault-border-base bg-vault-surface-layer-1 p-0.5">
-            {(["all", "white", "black"] as const).map((side) => (
-              <button
-                key={side}
-                type="button"
-                onClick={() => setSelectedSide(side)}
-                className={`rounded-xs px-2.5 py-1 text-[11px] capitalize transition-colors cursor-pointer ${
-                  selectedSide === side
-                    ? "bg-vault-surface-layer-2 text-vault-text-primary font-semibold shadow-xs"
-                    : "text-vault-text-muted hover:text-vault-text-primary"
-                }`}
-              >
-                {side === "all"
-                  ? "All Sides"
-                  : side === "white"
-                    ? "♙ White"
-                    : "♟ Black"}
-              </button>
-            ))}
-          </div>
+        <div className="font-mono text-xs text-vault-text-muted">
+          Showing {filteredFolders.length} {filteredFolders.length === 1 ? "album" : "albums"}
         </div>
       </section>
 
-      {/* ERROR NOTIFICATION */}
-      {(isFoldersError || isGamesError) && (
+      {/* ERROR STATE */}
+      {isError && (
         <ErrorBanner
-          error={foldersError || gamesError}
-          onRetry={() => {
-            if (isFoldersError) refetchFolders();
-            if (isGamesError) refetchGames();
-          }}
+          message={error?.message || "Failed to load collections"}
+          onRetry={refetch}
         />
       )}
 
-      {/* MATCH LEDGER ROWS */}
-      {isFoldersLoading || isGamesLoading ? (
-        <div className="space-y-4">
+      {/* ALBUMS GRID */}
+      {isLoading ? (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-6 h-48 animate-pulse"
+              className="h-64 rounded-vault border border-vault-border-base bg-vault-surface-layer-1 animate-pulse"
             />
           ))}
         </div>
-      ) : folders.length === 0 ? (
-        <div className="rounded-vault border border-dashed border-vault-border-interactive bg-vault-surface-layer-1 p-12 text-center space-y-4">
-          <FolderKanban size={32} className="text-vault-bronze mx-auto" />
-          <h3 className="font-display text-lg font-bold text-vault-text-primary">
-            No Folders Created Yet
-          </h3>
-          <p className="text-xs text-vault-text-secondary max-w-md mx-auto">
-            Curate your personal opening repertoires, tournament histories, and
-            classical games into custom folders.
-          </p>
-          <Button
-            variant="solid-bronze"
-            onClick={() => setIsCreatingFolder(true)}
-            className="text-xs font-mono uppercase px-4 py-2"
-          >
-            <FolderPlus size={13} className="mr-1.5" /> Create Your First Folder
-          </Button>
-        </div>
-      ) : filteredGames.length === 0 ? (
-        <div className="rounded-vault border border-dashed border-vault-border-interactive bg-vault-surface-layer-1 p-12 text-center space-y-4">
-          <FolderKanban size={32} className="text-vault-bronze mx-auto" />
-          <h3 className="font-display text-lg font-bold text-vault-text-primary">
-            Folder is Empty
-          </h3>
-          <p className="text-xs text-vault-text-secondary max-w-md mx-auto">
-            No games found in &ldquo;{activeFolder?.name}&rdquo;. Navigate to
-            the Game Bank to add games to this folder.
-          </p>
-          <Button
-            variant="solid-bronze"
-            onClick={() => navigate("/game-bank")}
-            className="text-xs font-mono uppercase px-4 py-2"
-          >
-            Browse Game Bank
-          </Button>
+      ) : filteredFolders.length > 0 ? (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredFolders.map((folder) => (
+            <CollectionCard key={folder.id} folder={folder} />
+          ))}
         </div>
       ) : (
-        <motion.section
-          key={activeFolder?.id ?? "all"}
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: { staggerChildren: 0.05 },
-            },
-          }}
-          className="space-y-6"
-        >
-          {filteredGames.map((game) => {
-            const perspective = getPlayerPerspective(
-              game
-            );
-            const { opening, variation, eco } = parseOpeningDetails(game);
-            const resultBadgeClasses =
-              game.userResult === "win"
-                ? "bg-vault-win/15 text-vault-win border-vault-win/30"
-                : game.userResult === "loss"
-                  ? "bg-vault-loss/15 text-vault-loss border-vault-loss/30"
-                  : "bg-vault-draw/15 text-vault-draw border-vault-draw/30";
-
-            const resultBadgeText =
-              game.userResult === "win"
-                ? "Win"
-                : game.userResult === "loss"
-                  ? "Loss"
-                  : "Draw";
-
-            return (
-              <motion.article
-                key={game.id}
-                variants={{
-                  hidden: { opacity: 0, y: 8 },
-                  visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
-                }}
-                className="rounded-vault border border-vault-border-base bg-vault-surface-layer-1 p-6 grid gap-6 md:grid-cols-[130px_1fr_200px] items-start hover:border-vault-border-interactive transition-all font-mono text-xs"
-              >
-                {/* LEFT: Mini Chessboard */}
-                <div>
-                  <MiniChessboard
-                    fen={game.finalFen}
-                    orientation={perspective.playerColor}
-                    badgeLabel={resultBadgeText}
-                  />
-                  <div className="mt-2 text-center text-[10px] text-vault-text-muted uppercase">
-                    <span>Side: {perspective.playerColor}</span>
-                  </div>
-                </div>
-
-                {/* CENTER: Match Info, Notes, Tags */}
-                <div className="space-y-3 min-w-0">
-                  <div className="flex items-center justify-between border-b border-vault-border-base pb-2 text-vault-text-muted text-[11px]">
-                    <span>{game.platform.toUpperCase()} ENCOUNTER</span>
-                    <span className="text-vault-bronze">★</span>
-                  </div>
-
-                  {/* Players */}
-                  <div className="space-y-1">
-                    <div className="flex items-baseline gap-2">
-                      <span className="h-2 w-2 rounded-full bg-vault-text-primary" />
-                      <span className="text-sm font-bold text-vault-text-primary">
-                        {game.whitePlayer.username}
-                      </span>
-                      <span className="ml-auto font-semibold text-vault-text-primary">
-                        {game.whitePlayer.rating}
-                      </span>
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="h-2 w-2 rounded-full bg-vault-border-interactive" />
-                      <span className="text-sm font-bold text-vault-text-primary">
-                        {game.blackPlayer.username}
-                      </span>
-                      <span className="ml-auto font-semibold text-vault-text-primary">
-                        {game.blackPlayer.rating}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Match Details */}
-                  <p className="text-[11px] text-vault-text-muted">
-                    {opening || game.title || "Archived Game"}{" "}
-                    {eco ? `• ECO ${eco}` : ""} • {getMoveCount(game)} Moves •{" "}
-                    {game.time.timeClass} • {getGameDate(game, "MMM dd, yyyy")}
-                  </p>
-
-                  {/* Monograph Note Callout Box */}
-                  {game.notes && (
-                    <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-2 p-3 text-xs">
-                      <div className="text-[10px] uppercase text-vault-bronze tracking-wider font-semibold mb-1">
-                        Monograph Note
-                      </div>
-                      <p className="font-sans text-xs italic text-vault-text-secondary leading-relaxed">
-                        &ldquo;{game.notes}&rdquo;
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Result Badge & Variation */}
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    <span
-                      className={`rounded-xs border px-2 py-0.5 font-bold ${resultBadgeClasses}`}
-                    >
-                      {resultBadgeText}
-                    </span>
-                    {variation && (
-                      <span className="rounded-xs border border-vault-border-base bg-vault-surface-layer-2 px-2 py-0.5 text-[10px] text-vault-text-muted uppercase">
-                        {variation}
-                      </span>
-                    )}
-                    <TagChips tags={game.tags} />
-                  </div>
-                </div>
-
-                {/* RIGHT: Actions */}
-                <div className="rounded-vault border border-vault-border-base bg-vault-surface-layer-2 p-3 space-y-3">
-                  <span className="text-[10px] uppercase tracking-wider text-vault-text-muted block border-b border-vault-border-base pb-1.5">
-                    Archival Tools
-                  </span>
-
-                  <div className="pt-2 space-y-1.5">
-                    <NavLink to={`/game/${game.id}`} className="block">
-                      <Button
-                        variant="secondary"
-                        className="w-full text-[10px] py-1.5"
-                      >
-                        Launch Replay Suite{" "}
-                        <ExternalLink size={10} className="ml-1" />
-                      </Button>
-                    </NavLink>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(game.pgn);
-                        alert("PGN copied!");
-                      }}
-                      className="w-full rounded-xs border border-vault-border-base py-1 text-[10px] text-vault-text-muted hover:text-vault-text-primary text-center cursor-pointer"
-                    >
-                      Copy PGN
-                    </button>
-                  </div>
-                </div>
-              </motion.article>
-            );
-          })}
-        </motion.section>
+        <div className="flex flex-col items-center justify-center rounded-vault border border-dashed border-vault-border-base bg-vault-surface-layer-1/50 py-16 px-6 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-vault-surface-layer-2 text-vault-bronze mb-4">
+            <FolderPlus size={24} />
+          </div>
+          <h3 className="font-display text-xl font-normal text-vault-text-primary">
+            {searchQuery ? "No matching albums" : "No collections yet"}
+          </h3>
+          <p className="mt-1 max-w-sm text-xs text-vault-text-secondary leading-relaxed font-sans">
+            {searchQuery
+              ? "Try adjusting your search query to find your collection."
+              : "Begin grouping matches into meaningful albums—tournament runs, opening laboratories, or memorable battles."}
+          </p>
+          {!searchQuery && (
+            <Button
+              variant="solid-bronze"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="mt-5 flex items-center gap-1.5 px-4 py-2 font-mono text-xs uppercase"
+            >
+              <Plus size={13} />
+              <span>Create First Album</span>
+            </Button>
+          )}
+        </div>
       )}
 
-      {/* FOLDER PAGINATION */}
-      <section className="flex flex-wrap items-center justify-between gap-4 border-t border-vault-border-base pt-6 font-mono text-xs text-vault-text-muted">
-        <span>
-          Displaying entries in &ldquo;{activeFolder?.name ?? "Folder"}&rdquo;
-        </span>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage <= 1}
-            className="flex items-center gap-1 rounded-xs border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-secondary hover:text-vault-text-primary disabled:opacity-30 cursor-pointer"
-          >
-            <ChevronLeft size={13} /> Prev
-          </button>
-          <span className="px-2 font-bold text-vault-text-primary">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            type="button"
-            onClick={() =>
-              setCurrentPage(Math.min(totalPages, currentPage + 1))
-            }
-            disabled={currentPage >= totalPages}
-            className="flex items-center gap-1 rounded-xs border border-vault-border-base bg-vault-surface-layer-1 px-3 py-1.5 text-vault-text-secondary hover:text-vault-text-primary disabled:opacity-30 cursor-pointer"
-          >
-            Next <ChevronRight size={13} />
-          </button>
-        </div>
-      </section>
+      {/* MODAL: CREATE COLLECTION */}
+      <Modal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title="Create New Album"
+        description="Organize your competitive matches and training studies into a personal collection."
+      >
+        <form onSubmit={handleCreateSubmit} className="space-y-4 font-mono text-xs">
+          <div>
+            <label className="block text-[10px] uppercase text-vault-text-muted mb-1">
+              Album Name
+            </label>
+            <input
+              type="text"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              placeholder="e.g. 2025 Classical Championships, Sicilian Lab"
+              required
+              className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-2 text-vault-text-primary outline-none focus:border-vault-bronze"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] uppercase text-vault-text-muted mb-1">
+              Description (Optional)
+            </label>
+            <textarea
+              rows={3}
+              value={newFolderDesc}
+              onChange={(e) => setNewFolderDesc(e.target.value)}
+              placeholder="Add personal notes or context about this group of games..."
+              className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 px-3 py-2 text-vault-text-primary outline-none focus:border-vault-bronze font-sans text-xs"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setIsCreateModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="solid-bronze"
+              disabled={createFolderMutation.isPending || !newFolderName.trim()}
+            >
+              {createFolderMutation.isPending ? "Creating..." : "Create Album"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

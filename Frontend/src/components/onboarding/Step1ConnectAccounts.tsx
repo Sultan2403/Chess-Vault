@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Plus, Trash2, ArrowRight } from "lucide-react";
 import type { PlatformType } from "@chess-vault/shared";
 import { Platforms } from "@chess-vault/shared";
-import { useVerifyLinkedAccount } from "../../hooks/useAccount";
+import { accountApi } from "../../apis";
 import { Spinner } from "../ui/Spinner";
 
 export interface AccountDraft {
@@ -28,8 +28,7 @@ export function Step1ConnectAccounts({
   );
   const [errors, setErrors] = useState<Record<number, string>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
-
-  const verifyMutation = useVerifyLinkedAccount();
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const handleAddRow = () => {
     if (rows.length >= maxAccounts) return;
@@ -92,10 +91,11 @@ export function Step1ConnectAccounts({
     }
 
     // 3. Verify accounts against platform APIs
+    setIsVerifying(true);
     try {
-      const verificationResults = await Promise.all(
+      const verificationResults = await Promise.allSettled(
         rows.map((row) =>
-          verifyMutation.mutateAsync({
+          accountApi.verifyLinkedAccount({
             platform: row.platform,
             username: row.username.trim(),
           })
@@ -103,10 +103,23 @@ export function Step1ConnectAccounts({
       );
 
       let hasVerificationFailure = false;
+      const verifiedRows: AccountDraft[] = [];
+
       verificationResults.forEach((res, idx) => {
-        if (!res.success) {
-          newErrors[idx] = res.message || "Player not found on platform";
+        if (res.status === "rejected") {
+          newErrors[idx] = "Failed to verify account";
           hasVerificationFailure = true;
+        } else {
+          const val = res.value;
+          if (!val.success) {
+            newErrors[idx] = val.message || "Player not found on platform";
+            hasVerificationFailure = true;
+          } else {
+            verifiedRows[idx] = {
+              platform: rows[idx].platform,
+              username: val.username || rows[idx].username.trim(),
+            };
+          }
         }
       });
 
@@ -115,16 +128,13 @@ export function Step1ConnectAccounts({
         return;
       }
 
-      onContinue(
-        rows.map((r, i) => ({
-          platform: r.platform,
-          username: verificationResults[i].username || r.username.trim(),
-        }))
-      );
+      onContinue(verifiedRows);
     } catch (err: unknown) {
       setGeneralError(
         err instanceof Error ? err.message : "Unable to verify accounts right now. Please try again."
       );
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -205,10 +215,10 @@ export function Step1ConnectAccounts({
           <button
             type="button"
             onClick={validateAndProceed}
-            disabled={verifyMutation.isPending}
+            disabled={isVerifying}
             className="flex items-center gap-2 bg-vault-bronze hover:bg-vault-bronze-hover text-white text-sm font-medium px-5 py-2 rounded-md transition-colors disabled:opacity-50"
           >
-            {verifyMutation.isPending ? (
+            {isVerifying ? (
               <>
                 <Spinner className="w-4 h-4 text-white" />
                 <span>Verifying...</span>

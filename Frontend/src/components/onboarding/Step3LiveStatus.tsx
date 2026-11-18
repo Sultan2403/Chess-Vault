@@ -2,20 +2,20 @@ import { useEffect, useRef, useState } from "react";
 import { AlertCircle, ArrowRight, RotateCcw } from "lucide-react";
 import socket from "../../sockets/socket";
 import { SOCKET_EVENTS } from "@chess-vault/shared";
-import type { Import } from "@chess-vault/shared";
+import type { Import, LinkedAccount } from "@chess-vault/shared";
 import type {
   ImportProgressType,
   ImportCompleteType,
   ImportFailedType,
 } from "../../types/socket";
-import { useImportHistory } from "../../hooks/useImports";
-import { useStartImport } from "../../hooks/useImports";
+import { useImportHistory, useStartImport } from "../../hooks/useImports";
 import { Spinner } from "../ui/Spinner";
 
-interface ImportRunState {
+export interface ImportRunState {
   importId: string;
-  linkedAccountId?: string;
+  linkedAccountId: string;
   platform: string;
+  username?: string;
   status: "queued" | "running" | "completed" | "partial" | "failed";
   counters: {
     fetched: number;
@@ -24,12 +24,15 @@ interface ImportRunState {
     skipped: number;
   };
   vaultUsage?: { current: number; limit: number };
-  error?: { code: string; message: string };
+  error?: { code?: string; message: string };
 }
 
-interface Step3LiveStatusProps {
-  linkedAccountIds: string[];
-  onComplete: (summary: { platform: string; inserted: number }[]) => void;
+export interface Step3LiveStatusProps {
+  linkedAccounts: LinkedAccount[];
+  onComplete: (
+    summary: { platform: string; inserted: number }[],
+    failed: { platform: string; error?: { code?: string; message: string } }[]
+  ) => void;
   onSkip: () => void;
 }
 
@@ -54,13 +57,26 @@ function StatusBadge({ status }: { status: ImportRunState["status"] }) {
 }
 
 export function Step3LiveStatus({
-  linkedAccountIds,
+  linkedAccounts,
   onComplete,
   onSkip,
 }: Step3LiveStatusProps) {
-  const [runs, setRuns] = useState<Map<string, ImportRunState>>(new Map());
-  const hasCompletedRef = useRef(false);
+  const [runs, setRuns] = useState<Map<string, ImportRunState>>(() => {
+    const initial = new Map<string, ImportRunState>();
+    for (const acc of linkedAccounts) {
+      initial.set(acc.id, {
+        importId: "",
+        linkedAccountId: acc.id,
+        platform: acc.platform,
+        username: acc.username,
+        status: "queued",
+        counters: { fetched: 0, inserted: 0, duplicates: 0, skipped: 0 },
+      });
+    }
+    return initial;
+  });
 
+  const hasCompletedRef = useRef(false);
   const retryMutation = useStartImport();
 
   // Hydrate from active imports on mount
@@ -68,38 +84,62 @@ export function Step3LiveStatus({
 
   useEffect(() => {
     if (!historyData?.history) return;
-    const activeImports = historyData.history.filter((imp: Import) =>
-      linkedAccountIds.includes(imp.linkedAccountId)
+    const accountIds = new Set(linkedAccounts.map((a) => a.id));
+    const activeImports = historyData.history.filter(
+      (imp: Import) =>
+        accountIds.has(imp.linkedAccountId) &&
+        (imp.status === "queued" || imp.status === "running")
     );
     if (activeImports.length === 0) return;
 
     setRuns((prev) => {
       const next = new Map(prev);
       for (const imp of activeImports) {
-        if (!next.has(imp.id)) {
-          next.set(imp.id, {
-            importId: imp.id,
-            linkedAccountId: imp.linkedAccountId,
-            platform: imp.platform,
-            status: imp.status as ImportRunState["status"],
-            counters: imp.counters ?? { fetched: 0, inserted: 0, duplicates: 0, skipped: 0 },
-          });
-        }
+        const existing = next.get(imp.linkedAccountId);
+        next.set(imp.linkedAccountId, {
+          ...existing,
+          importId: imp.id,
+          linkedAccountId: imp.linkedAccountId,
+          platform: imp.platform,
+          username: existing?.username,
+          status: imp.status as ImportRunState["status"],
+          counters: imp.counters ?? { fetched: 0, inserted: 0, duplicates: 0, skipped: 0 },
+        });
       }
       return next;
     });
-  }, [historyData]);
+  }, [historyData, linkedAccounts]);
 
   // Socket subscriptions
   useEffect(() => {
+    const resolveAccountId = (
+      payloadLinkedAccountId: string | undefined,
+      payloadImportId: string,
+      currentMap: Map<string, ImportRunState>
+    ): string => {
+      if (payloadLinkedAccountId && currentMap.has(payloadLinkedAccountId)) {
+        return payloadLinkedAccountId;
+      }
+      if (payloadLinkedAccountId) return payloadLinkedAccountId;
+      // Fallback matching by importId or single account
+      for (const [accId, state] of currentMap.entries()) {
+        if (state.importId === payloadImportId) return accId;
+      }
+      if (linkedAccounts.length === 1) return linkedAccounts[0].id;
+      return payloadImportId;
+    };
+
     const handleProgress = (payload: ImportProgressType) => {
       setRuns((prev) => {
         const next = new Map(prev);
-        const existing = next.get(payload.importId);
-        next.set(payload.importId, {
+        const accountId = resolveAccountId(payload.linkedAccountId, payload.importId, prev);
+        const existing = next.get(accountId);
+        next.set(accountId, {
           ...existing,
           importId: payload.importId,
+          linkedAccountId: accountId,
           platform: payload.platform,
+          username: existing?.username,
           status: "running",
           counters: payload.counters,
           vaultUsage: payload.vaultUsage,
@@ -112,11 +152,14 @@ export function Step3LiveStatus({
     const handleComplete = (payload: ImportCompleteType) => {
       setRuns((prev) => {
         const next = new Map(prev);
-        const existing = next.get(payload.importId);
-        next.set(payload.importId, {
+        const accountId = resolveAccountId(payload.linkedAccountId, payload.importId, prev);
+        const existing = next.get(accountId);
+        next.set(accountId, {
           ...existing,
           importId: payload.importId,
+          linkedAccountId: accountId,
           platform: payload.platform,
+          username: existing?.username,
           status: payload.status,
           counters: payload.counters,
           vaultUsage: existing?.vaultUsage,
@@ -128,11 +171,14 @@ export function Step3LiveStatus({
     const handleFailed = (payload: ImportFailedType) => {
       setRuns((prev) => {
         const next = new Map(prev);
-        const existing = next.get(payload.importId);
-        next.set(payload.importId, {
+        const accountId = resolveAccountId(payload.linkedAccountId, payload.importId, prev);
+        const existing = next.get(accountId);
+        next.set(accountId, {
           ...existing,
           importId: payload.importId,
+          linkedAccountId: accountId,
           platform: payload.platform,
+          username: existing?.username,
           status: "failed",
           counters: existing?.counters ?? {
             fetched: 0,
@@ -155,7 +201,7 @@ export function Step3LiveStatus({
       socket.off(SOCKET_EVENTS.IMPORT_COMPLETE, handleComplete);
       socket.off(SOCKET_EVENTS.IMPORT_FAILED, handleFailed);
     };
-  }, []);
+  }, [linkedAccounts]);
 
   // Check if all runs are terminal and fire onComplete
   useEffect(() => {
@@ -163,52 +209,73 @@ export function Step3LiveStatus({
 
     const allRuns = Array.from(runs.values());
     const terminalStatuses = new Set<ImportRunState["status"]>(["completed", "partial", "failed"]);
-    const allTerminal = allRuns.every((r) => terminalStatuses.has(r.status));
+    const allTerminal =
+      allRuns.length >= linkedAccounts.length &&
+      allRuns.every((r) => terminalStatuses.has(r.status));
 
     if (allTerminal) {
-      const hasAnySuccess = allRuns.some(
+      const successfulRuns = allRuns.filter(
         (r) => r.status === "completed" || r.status === "partial"
       );
-      if (hasAnySuccess) {
+      const failedRuns = allRuns.filter((r) => r.status === "failed");
+
+      if (successfulRuns.length > 0) {
         hasCompletedRef.current = true;
-        const summary = allRuns.map((r) => ({
+        const summary = successfulRuns.map((r) => ({
           platform: r.platform,
           inserted: r.counters.inserted,
         }));
-        onComplete(summary);
+        const failed = failedRuns.map((r) => ({
+          platform: r.platform,
+          error: r.error,
+        }));
+        onComplete(summary, failed);
       }
     }
-  }, [runs, onComplete]);
+  }, [runs, onComplete, linkedAccounts.length]);
 
   const allRuns = Array.from(runs.values());
   const hasFailures = allRuns.some((r) => r.status === "failed");
   const allFailed = allRuns.length > 0 && allRuns.every((r) => r.status === "failed");
 
   const handleRetry = async (run: ImportRunState) => {
-    const linkedAccountId = run.linkedAccountId ?? linkedAccountIds[0];
+    const linkedAccountId = run.linkedAccountId;
     if (!linkedAccountId) return;
+
+    // Reset status to queued immediately for responsive UI
+    setRuns((prev) => {
+      const next = new Map(prev);
+      const existing = next.get(linkedAccountId);
+      if (existing) {
+        next.set(linkedAccountId, {
+          ...existing,
+          status: "queued",
+          error: undefined,
+        });
+      }
+      return next;
+    });
+
     try {
       await retryMutation.mutateAsync({ linkedAccountId });
-    } catch {
-      // error handled by mutation
+    } catch (err: unknown) {
+      setRuns((prev) => {
+        const next = new Map(prev);
+        const existing = next.get(linkedAccountId);
+        if (existing) {
+          next.set(linkedAccountId, {
+            ...existing,
+            status: "failed",
+            error: {
+              code: "RETRY_FAILED",
+              message: err instanceof Error ? err.message : "Failed to restart import",
+            },
+          });
+        }
+        return next;
+      });
     }
   };
-
-  if (runs.size === 0) {
-    return (
-      <div className="w-full max-w-xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-display font-medium text-vault-text-primary">
-            Import in progress
-          </h1>
-        </div>
-        <div className="bg-vault-surface-layer-1 border border-vault-border-base rounded-md p-10 flex flex-col items-center gap-3 text-vault-text-muted">
-          <Spinner className="w-6 h-6 text-vault-bronze" />
-          <span className="text-xs font-mono">Waiting for import to begin...</span>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full max-w-xl mx-auto space-y-6">
@@ -223,20 +290,27 @@ export function Step3LiveStatus({
 
       <div className="space-y-4">
         {allRuns.map((run) => {
-          const { importId, platform, status, counters, vaultUsage, error } = run;
+          const { linkedAccountId, platform, username, status, counters, vaultUsage, error } = run;
           const usagePct = vaultUsage
             ? Math.min(100, Math.round((vaultUsage.current / vaultUsage.limit) * 100))
             : null;
 
           return (
             <div
-              key={importId}
+              key={linkedAccountId}
               className="bg-vault-surface-layer-1 border border-vault-border-base rounded-md p-5 space-y-4"
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-vault-text-primary">
-                  {platformLabel(platform)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-vault-text-primary">
+                    {platformLabel(platform)}
+                  </span>
+                  {username && (
+                    <span className="text-xs font-mono text-vault-text-muted">
+                      ({username})
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   <StatusBadge status={status} />
                   {(status === "running" || status === "queued") && (

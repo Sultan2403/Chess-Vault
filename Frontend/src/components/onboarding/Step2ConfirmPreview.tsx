@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ArrowLeft, Check, AlertCircle } from "lucide-react";
 import { useStatsPreview, useConnectLinkedAccounts } from "../../hooks/useAccount";
 import { Spinner } from "../ui/Spinner";
@@ -17,8 +17,11 @@ export function Step2ConfirmPreview({
 }: Step2ConfirmPreviewProps) {
   const previewMutation = useStatsPreview();
   const connectMutation = useConnectLinkedAccounts();
+  const hasFiredRef = useRef(false);
 
   useEffect(() => {
+    if (hasFiredRef.current) return;
+    hasFiredRef.current = true;
     previewMutation.mutate({ accounts });
   }, []);
 

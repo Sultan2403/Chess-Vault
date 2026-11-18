@@ -38,6 +38,7 @@ export type Import = {
 export type ImportProgressPayload = {
   userId: string;
   importId: string;
+  linkedAccountId: string;
   platform: PlatformType;
   counters: ImportCounters;
   vaultUsage?: {
@@ -52,6 +53,7 @@ export type ImportProgressPayload = {
 export type ImportCompletePayload = {
   userId: string;
   importId: string;
+  linkedAccountId: string;
   platform: PlatformType;
   status: "completed" | "partial";
   counters: ImportCounters;
@@ -64,6 +66,7 @@ export type ImportCompletePayload = {
 export type ImportFailedPayload = {
   userId: string;
   importId: string;
+  linkedAccountId: string;
   platform: PlatformType;
   error: ImportError;
 };

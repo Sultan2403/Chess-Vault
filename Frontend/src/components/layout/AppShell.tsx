@@ -21,8 +21,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const connectedCount = accountData?.linkedAccounts?.length ?? 0;
   const connectedLabel =
     connectedCount > 0
-      ? `Connected: ${accountData?.linkedAccounts.map((a) => a.platform === "chess.com" ? "Chess.com" : "Lichess").join(" & ")}`
-      : "Connected: Chess.com & Lichess";
+      ? `Connected: ${accountData?.linkedAccounts.map((a) => (a.platform === "chess.com" ? "Chess.com" : "Lichess")).join(" & ")}`
+      : "";
 
   return (
     <div className="min-h-screen bg-vault-background text-vault-on-background flex flex-col font-body selection:bg-vault-primary/20 selection:text-vault-primary">
@@ -67,10 +67,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           {/* Right Utilities */}
           <div className="flex items-center gap-4 text-xs font-mono">
             {/* Sync Badge */}
-            <div className="hidden sm:flex items-center gap-2 rounded-xs border border-vault-border-base bg-vault-surface-layer-1/80 px-2.5 py-1 text-[11px] text-vault-text-secondary">
-              <Radio size={12} className="text-vault-win animate-pulse" />
-              <span>{connectedLabel}</span>
-            </div>
+            {connectedCount > 0 && (
+              <div className="hidden sm:flex items-center gap-2 rounded-xs border border-vault-border-base bg-vault-surface-layer-1/80 px-2.5 py-1 text-[11px] text-vault-text-secondary">
+                <Radio size={12} className="text-vault-win animate-pulse" />
+                <span>{connectedLabel}</span>
+              </div>
+            )}
 
             {/* Quick Theme Toggle */}
             <ThemeToggle />
@@ -131,4 +133,3 @@ export function AppShell({ children }: { children: ReactNode }) {
     </div>
   );
 }
-

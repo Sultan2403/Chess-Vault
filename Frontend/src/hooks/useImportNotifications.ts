@@ -30,6 +30,7 @@ export const useImportNotifications = () => {
     };
 
     const handleComplete = (payload: ImportCompleteType) => {
+      setImportProgress(null);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.account.bootstrap() });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.games.lists() });
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.imports.all });
@@ -59,6 +60,7 @@ export const useImportNotifications = () => {
     };
 
     const handleFailed = (payload: ImportFailedType) => {
+      setImportProgress(null);
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.imports.all });
 
       const platformLabel =

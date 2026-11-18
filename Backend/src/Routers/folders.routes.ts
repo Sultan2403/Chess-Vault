@@ -4,6 +4,7 @@ import {
   createFolderController,
   deleteFolderController,
   getFolderController,
+  getFolderSummaryController,
   listFoldersController,
   updateFolderController,
 } from "../Controllers/folders.controller";
@@ -19,6 +20,11 @@ const router = Router();
 router.get("/", validate({ query: listFoldersQuery }) as any, listFoldersController);
 router.post("/", validate({ body: createFolderBody }), createFolderController);
 router.get("/:id", validate({ params: folderParams }), getFolderController);
+router.get(
+  "/:id/summary",
+  validate({ params: folderParams }),
+  getFolderSummaryController,
+);
 router.patch(
   "/:id",
   validate({ params: folderParams, body: updateFolderBody }),

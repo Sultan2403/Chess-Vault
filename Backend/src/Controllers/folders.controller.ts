@@ -3,6 +3,7 @@ import {
   createFolder,
   deleteFolder,
   getFolderById,
+  getFolderSummary,
   getUserFolders,
   updateFolder,
 } from "../Services/folders.service";
@@ -56,6 +57,25 @@ export const getFolderController = async (req: Request, res: Response) => {
     return successResponse({ res, data: { folder } });
   } catch (error) {
     return internalError({ res, error, message: "Failed to retrieve folder" });
+  }
+};
+
+export const getFolderSummaryController = async (req: Request, res: Response) => {
+  const userId = getUserId(req)!;
+  const id = String(req.params.id);
+
+  try {
+    const summary = await getFolderSummary(id, userId);
+    if (!summary) {
+      return notFoundResponse({ res, message: "Folder not found" });
+    }
+    return successResponse({ res, data: { summary } });
+  } catch (error) {
+    return internalError({
+      res,
+      error,
+      message: "Failed to retrieve collection summary",
+    });
   }
 };
 

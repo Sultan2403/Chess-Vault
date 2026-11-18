@@ -1,5 +1,7 @@
 import type {
   Folder,
+  FolderItem,
+  CollectionSummary,
   CreateFolderInput,
   UpdateFolderInput,
   ListFoldersQuery,
@@ -14,7 +16,7 @@ export type UpdateFolderPayload = UpdateFolderInput;
 
 export interface ListFoldersResponse {
   success: boolean;
-  folders: Folder[];
+  folders: FolderItem[];
   total: number;
   page: number;
   limit: number;
@@ -24,6 +26,11 @@ export interface ListFoldersResponse {
 export interface FolderResponse {
   success: boolean;
   folder: Folder;
+}
+
+export interface FolderSummaryResponse {
+  success: boolean;
+  summary: CollectionSummary;
 }
 
 export interface DeleteFolderResponse {
@@ -36,6 +43,9 @@ const foldersApi = {
 
   getFolder: (id: string): Promise<FolderResponse> =>
     api.get(`/folders/${id}`),
+
+  getFolderSummary: (id: string): Promise<FolderSummaryResponse> =>
+    api.get(`/folders/${id}/summary`),
 
   createFolder: (data: CreateFolderPayload): Promise<FolderResponse> =>
     api.post("/folders", data),

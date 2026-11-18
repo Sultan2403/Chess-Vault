@@ -13,6 +13,7 @@ export const QUERY_KEYS = {
       [...QUERY_KEYS.folders.lists(), params ?? {}] as const,
     details: () => [...QUERY_KEYS.folders.all, "detail"] as const,
     detail: (id: string) => [...QUERY_KEYS.folders.details(), id] as const,
+    summary: (id: string) => [...QUERY_KEYS.folders.details(), id, "summary"] as const,
   },
   games: {
     all: ["games"] as const,

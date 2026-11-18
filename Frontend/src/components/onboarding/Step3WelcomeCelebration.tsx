@@ -3,20 +3,26 @@ import { useCompleteOnboarding } from "../../hooks/useAccount";
 import { Spinner } from "../ui/Spinner";
 import { useNavigate } from "react-router-dom";
 
-interface ImportSummaryItem {
+export interface ImportSummaryItem {
   platform: string;
   inserted: number;
 }
 
+export interface ImportFailedItem {
+  platform: string;
+  error?: { code?: string; message: string };
+}
+
 interface Step3WelcomeCelebrationProps {
   summary: ImportSummaryItem[];
+  failed?: ImportFailedItem[];
 }
 
 function platformLabel(platform: string): string {
   return platform === "chess.com" ? "Chess.com" : "Lichess";
 }
 
-export function Step3WelcomeCelebration({ summary }: Step3WelcomeCelebrationProps) {
+export function Step3WelcomeCelebration({ summary, failed }: Step3WelcomeCelebrationProps) {
   const navigate = useNavigate();
   const completeOnboarding = useCompleteOnboarding();
 
@@ -68,7 +74,36 @@ export function Step3WelcomeCelebration({ summary }: Step3WelcomeCelebrationProp
           ))}
         </div>
 
-        {totalInserted === 0 && (
+        {failed && failed.length > 0 && (
+          <div className="space-y-2 pt-2">
+            <p className="text-xs font-mono text-vault-loss uppercase tracking-wide">
+              Failed to import
+            </p>
+            <div className="space-y-2">
+              {failed.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between bg-vault-loss/10 border border-vault-loss/30 rounded-md px-4 py-3 text-xs"
+                >
+                  <div className="flex flex-col">
+                    <span className="font-medium text-vault-text-primary">
+                      {platformLabel(item.platform)}
+                    </span>
+                    <span className="text-[11px] text-vault-loss mt-0.5">
+                      {item.error?.message || "Import encountered an error"}
+                    </span>
+                  </div>
+                  <span className="font-mono text-vault-loss font-semibold">Failed</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-vault-text-muted leading-relaxed">
+              You can still enter your vault with the games imported so far. You can sync failed accounts again from Settings.
+            </p>
+          </div>
+        )}
+
+        {totalInserted === 0 && (!failed || failed.length === 0) && (
           <p className="text-xs text-vault-text-muted leading-relaxed">
             No new games were added — your vault may already be up to date, or no games
             were found on the connected accounts.
