@@ -7,7 +7,7 @@ import {
   TerminationValues,
   TimeClasses,
 } from "../constants/index.js";
-import { isValidMongoId } from "../utils/index.js";
+import { isValidMongoId, toArrayOrUndefined } from "../utils/index.js";
 
 export const importGamesParams = z.object({
   folderIds: z
@@ -153,16 +153,19 @@ export const GameSchema = z.object({
 });
 
 export const searchGamesQuery = z.object({
-  folderIds: z
-    .array(
-      z
-        .string()
-        .trim()
-        .min(1)
-        .refine(isValidMongoId, { message: "Invalid folder id" }),
-    )
-    .nullable()
-    .optional(),
+  folderIds: z.preprocess(
+    toArrayOrUndefined,
+    z
+      .array(
+        z
+          .string()
+          .trim()
+          .min(1)
+          .refine(isValidMongoId, { message: "Invalid folder id" }),
+      )
+      .nullable()
+      .optional(),
+  ),
 
   search: z.string().trim().max(100).optional(),
 

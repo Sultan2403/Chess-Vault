@@ -1,5 +1,5 @@
 import type { SearchGamesParams } from "../apis/api.games";
-import type { ListFoldersParams } from "../apis/api.folders";
+import type { ListFoldersParams, ListFolderGamesParams } from "../apis/api.folders";
 
 export const QUERY_KEYS = {
   account: {
@@ -14,6 +14,8 @@ export const QUERY_KEYS = {
     details: () => [...QUERY_KEYS.folders.all, "detail"] as const,
     detail: (id: string) => [...QUERY_KEYS.folders.details(), id] as const,
     summary: (id: string) => [...QUERY_KEYS.folders.details(), id, "summary"] as const,
+    games: (id: string, params?: ListFolderGamesParams) =>
+      [...QUERY_KEYS.folders.details(), id, "games", params ?? {}] as const,
   },
   games: {
     all: ["games"] as const,

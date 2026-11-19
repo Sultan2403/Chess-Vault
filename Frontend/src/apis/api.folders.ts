@@ -5,10 +5,13 @@ import type {
   CreateFolderInput,
   UpdateFolderInput,
   ListFoldersQuery,
+  ListFolderGamesQuery,
+  PaginatedFolderGames,
 } from "@chess-vault/shared";
 import api from "./api.client";
 
 export type ListFoldersParams = ListFoldersQuery;
+export type ListFolderGamesParams = ListFolderGamesQuery;
 
 export type CreateFolderPayload = Omit<CreateFolderInput, "userId">;
 
@@ -21,6 +24,10 @@ export interface ListFoldersResponse {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface FolderGamesResponse extends PaginatedFolderGames {
+  success: boolean;
 }
 
 export interface FolderResponse {
@@ -46,6 +53,11 @@ const foldersApi = {
 
   getFolderSummary: (id: string): Promise<FolderSummaryResponse> =>
     api.get(`/folders/${id}/summary`),
+
+  getFolderGames: (
+    id: string,
+    params?: ListFolderGamesParams,
+  ): Promise<FolderGamesResponse> => api.get(`/folders/${id}/games`, { params }),
 
   createFolder: (data: CreateFolderPayload): Promise<FolderResponse> =>
     api.post("/folders", data),

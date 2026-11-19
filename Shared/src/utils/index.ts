@@ -15,6 +15,19 @@ export const parsePositiveInt = (value: unknown, fallback: number) => {
   return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
 };
 
+export const toArrayOrUndefined = (val: unknown): string[] | undefined => {
+  if (val === undefined || val === null || val === "") return undefined;
+  if (Array.isArray(val)) {
+    return val.map((item) => String(item).trim()).filter(Boolean);
+  }
+  if (typeof val === "string") {
+    return val.includes(",")
+      ? val.split(",").map((s) => s.trim()).filter(Boolean)
+      : [val.trim()];
+  }
+  return [String(val).trim()];
+};
+
 import { GameMovesCount } from "../types/games.types.js";
 
 /**

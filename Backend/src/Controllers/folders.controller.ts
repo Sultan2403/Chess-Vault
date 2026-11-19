@@ -3,6 +3,7 @@ import {
   createFolder,
   deleteFolder,
   getFolderById,
+  getFolderGames,
   getFolderSummary,
   getUserFolders,
   updateFolder,
@@ -75,6 +76,25 @@ export const getFolderSummaryController = async (req: Request, res: Response) =>
       res,
       error,
       message: "Failed to retrieve collection summary",
+    });
+  }
+};
+
+export const getFolderGamesController = async (req: Request, res: Response) => {
+  const userId = getUserId(req)!;
+  const id = String(req.params.id);
+
+  try {
+    const result = await getFolderGames(id, userId, req.query as any);
+    if (!result) {
+      return notFoundResponse({ res, message: "Folder not found" });
+    }
+    return successResponse({ res, data: result });
+  } catch (error) {
+    return internalError({
+      res,
+      error,
+      message: "Failed to retrieve games for collection",
     });
   }
 };

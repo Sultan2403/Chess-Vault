@@ -4,6 +4,7 @@ import {
   createFolderController,
   deleteFolderController,
   getFolderController,
+  getFolderGamesController,
   getFolderSummaryController,
   listFoldersController,
   updateFolderController,
@@ -13,6 +14,7 @@ import {
   updateFolderBody,
   folderParams,
   listFoldersQuery,
+  listFolderGamesQuery,
 } from "../Schemas/folder.schema";
 
 const router = Router();
@@ -24,6 +26,11 @@ router.get(
   "/:id/summary",
   validate({ params: folderParams }),
   getFolderSummaryController,
+);
+router.get(
+  "/:id/games",
+  validate({ params: folderParams, query: listFolderGamesQuery }) as any,
+  getFolderGamesController,
 );
 router.patch(
   "/:id",

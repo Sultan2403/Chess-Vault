@@ -4,6 +4,7 @@ import {
   updateFolderBody,
   folderParams,
   listFoldersQuery,
+  listFolderGamesQuery,
 } from "../schemas/folder.schema.js";
 import type { Game } from "./games.types.js";
 
@@ -15,6 +16,15 @@ export type UpdateFolderInput = z.infer<typeof updateFolderBody>;
 
 export type FolderParams = z.infer<typeof folderParams>;
 export type ListFoldersQuery = z.infer<typeof listFoldersQuery>;
+export type ListFolderGamesQuery = z.infer<typeof listFolderGamesQuery>;
+
+export type PaginatedFolderGames = {
+  games: Game[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
 
 export type Folder = {
   id: string;

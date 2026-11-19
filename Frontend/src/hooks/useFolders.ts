@@ -3,6 +3,7 @@ import { foldersApi } from "../apis";
 import type {
   CreateFolderPayload,
   ListFoldersParams,
+  ListFolderGamesParams,
   UpdateFolderPayload,
 } from "../apis/api.folders";
 import { QUERY_KEYS } from "../constants/queryKeys";
@@ -26,6 +27,17 @@ export const useFolderSummary = (id: string) => {
   return useQuery({
     queryKey: QUERY_KEYS.folders.summary(id),
     queryFn: () => foldersApi.getFolderSummary(id),
+    enabled: Boolean(id),
+  });
+};
+
+export const useFolderGames = (
+  id: string,
+  params?: ListFolderGamesParams,
+) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.folders.games(id, params),
+    queryFn: () => foldersApi.getFolderGames(id, params),
     enabled: Boolean(id),
   });
 };

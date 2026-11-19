@@ -10,6 +10,8 @@ import {
   CollectionSummary,
   CollectionDiscovery,
   Game,
+  ListFolderGamesQuery,
+  PaginatedFolderGames,
 } from "../Types/folder.types";
 
 function mapLeanToGame(doc: any): Game {
@@ -131,6 +133,54 @@ export const getFolderById = async (id: string, userId: string) => {
   if (!folder) return null;
   const { _id, __v, ...rest } = folder;
   return { id: _id.toString(), ...rest };
+};
+
+export const getFolderGames = async (
+  folderId: string,
+  userId: string,
+  query: ListFolderGamesQuery,
+): Promise<PaginatedFolderGames | null> => {
+  const folder = await getFolderById(folderId, userId);
+  if (!folder) return null;
+
+  const page = Math.max(1, query.page ?? 1);
+  const limit = Math.max(1, Math.min(100, query.limit ?? 12));
+  const skip = (page - 1) * limit;
+
+  const folderObjectId = new mongoose.Types.ObjectId(folderId);
+  const matchFilter: Record<string, any> = {
+    userId,
+    folderIds: folderObjectId,
+    ...(query.userPlayedAs && { userPlayedAs: query.userPlayedAs }),
+    ...(query.search && {
+      $or: [
+        { title: { $regex: query.search, $options: "i" } },
+        { "whitePlayer.username": { $regex: query.search, $options: "i" } },
+        { "blackPlayer.username": { $regex: query.search, $options: "i" } },
+        { notes: { $regex: query.search, $options: "i" } },
+        { tags: { $regex: query.search, $options: "i" } },
+        { "opening.name": { $regex: query.search, $options: "i" } },
+        { "opening.variation": { $regex: query.search, $options: "i" } },
+      ],
+    }),
+  };
+
+  const [gamesRaw, total] = await Promise.all([
+    Games.find(matchFilter)
+      .sort({ playedAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Games.countDocuments(matchFilter),
+  ]);
+
+  return {
+    games: gamesRaw.map(mapLeanToGame),
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit) || 1,
+  };
 };
 
 export const getFolderSummary = async (

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useParams, useNavigate, NavLink } from "react-router-dom";
 import { motion } from "motion/react";
 import {
@@ -18,11 +18,12 @@ import { Modal } from "../components/ui/Modal";
 import { CollectionDiscoveriesShowcase } from "../components/collections/CollectionDiscoveriesShowcase";
 import {
   useFolder,
+  useFolderGames,
   useFolderSummary,
   useUpdateFolder,
   useDeleteFolder,
 } from "../hooks/useFolders";
-import { useGames, useUpdateGame } from "../hooks/useGames";
+import { useUpdateGame } from "../hooks/useGames";
 import {
   getPlayerPerspective,
   parseOpeningDetails,
@@ -61,11 +62,11 @@ export default function CollectionDetailPage() {
     data: gamesData,
     isLoading: isGamesLoading,
     refetch: refetchGames,
-  } = useGames({
-    folderIds: [folderId],
+  } = useFolderGames(folderId, {
     page: currentPage,
     limit: 12,
     search: searchQuery.trim() || undefined,
+    userPlayedAs: selectedSide === "all" ? undefined : selectedSide,
   });
 
   const updateFolderMutation = useUpdateFolder();
@@ -75,18 +76,12 @@ export default function CollectionDetailPage() {
   const folder = folderData?.folder;
   const summary = summaryData?.summary;
   const games = gamesData?.games ?? [];
-  const totalGames = gamesData?.pagination?.total ?? summary?.gameCount ?? 0;
-  const totalPages = gamesData?.pagination?.totalPages ?? 1;
+  const albumTotalGames = summary?.gameCount ?? gamesData?.total ?? 0;
+  const matchingGamesCount = gamesData?.total ?? albumTotalGames;
+  const totalPages = gamesData?.totalPages ?? 1;
 
-  // Filter games locally by player color
-  const filteredGames = useMemo(() => {
-    return games.filter((g) => {
-      const perspective = getPlayerPerspective(g);
-      if (selectedSide === "white" && perspective.playerColor !== "white") return false;
-      if (selectedSide === "black" && perspective.playerColor !== "black") return false;
-      return true;
-    });
-  }, [games, selectedSide]);
+  // Games already filtered server-side
+  const filteredGames = games;
 
   // Remove game from this collection
   const handleRemoveGameFromFolder = async (gameId: string, currentFolderIds: string[] | null) => {
@@ -208,7 +203,7 @@ export default function CollectionDetailPage() {
             </span>
             <span>•</span>
             <span className="text-vault-text-muted">
-              {totalGames} {totalGames === 1 ? "game" : "games"} preserved
+              {albumTotalGames} {albumTotalGames === 1 ? "game" : "games"} preserved
             </span>
           </div>
 
@@ -248,7 +243,9 @@ export default function CollectionDetailPage() {
               Games in this Album
             </h2>
             <span className="font-mono text-xs text-vault-text-muted">
-              Showing {filteredGames.length} of {totalGames} matches
+              {searchQuery.trim() || selectedSide !== "all"
+                ? `Showing ${matchingGamesCount} matching of ${albumTotalGames} matches`
+                : `Showing ${filteredGames.length} of ${albumTotalGames} matches`}
             </span>
           </div>
 
