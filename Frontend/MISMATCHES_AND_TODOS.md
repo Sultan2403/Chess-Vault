@@ -7,6 +7,8 @@ Strictly conforming to `AGENTS.md`, we do not invent unverified backend APIs or 
 
 ---
 
+First, this doc is kinda stale. second I'm writing this just to trigger a redeploy of the frontend. so yh both agents and humans should resurface this later thank you.
+
 ## Screen-by-Screen Mismatch Analysis
 
 ### 1. Landing Page (`/` — Screenshot 1)
