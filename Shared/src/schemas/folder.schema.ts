@@ -22,8 +22,8 @@ export const listFoldersQuery = z.object({
 });
 
 export const listFolderGamesQuery = z.object({
-  page: z.preprocess(toNumberOrUndefined, z.number().int().positive().default(1)),
-  limit: z.preprocess(toNumberOrUndefined, z.number().int().min(1).max(100).default(12)),
+  page: z.preprocess(toNumberOrUndefined, z.number().int().positive().default(1)).optional(),
+  limit: z.preprocess(toNumberOrUndefined, z.number().int().min(1).max(100).default(12)).optional(),
   search: z.string().trim().max(100).optional(),
   userPlayedAs: z.enum(PlayerColors).optional(),
 });

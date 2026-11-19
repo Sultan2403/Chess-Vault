@@ -1,7 +1,13 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { foldersApi } from "../apis";
 import type {
   CreateFolderPayload,
+  FolderGamesResponse,
   ListFoldersParams,
   ListFolderGamesParams,
   UpdateFolderPayload,
@@ -38,6 +44,26 @@ export const useFolderGames = (
   return useQuery({
     queryKey: QUERY_KEYS.folders.games(id, params),
     queryFn: () => foldersApi.getFolderGames(id, params),
+    enabled: Boolean(id),
+  });
+};
+
+export const useInfiniteFolderGames = (
+  id: string,
+  params?: Omit<ListFolderGamesParams, "page">,
+) => {
+  return useInfiniteQuery<FolderGamesResponse, unknown>({
+    queryKey: [...QUERY_KEYS.folders.games(id), "infinite", params ?? {}],
+    queryFn: ({ pageParam = 1 }) =>
+      foldersApi.getFolderGames(id, {
+        ...params,
+        page: pageParam as number,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { page, totalPages } = lastPage;
+      return page < totalPages ? page + 1 : undefined;
+    },
     enabled: Boolean(id),
   });
 };

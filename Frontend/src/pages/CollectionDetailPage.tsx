@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate, NavLink } from "react-router-dom";
 import { motion } from "motion/react";
 import {
@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Layers,
   FolderMinus,
+  Loader2,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
@@ -18,11 +19,12 @@ import { Modal } from "../components/ui/Modal";
 import { CollectionDiscoveriesShowcase } from "../components/collections/CollectionDiscoveriesShowcase";
 import {
   useFolder,
-  useFolderGames,
   useFolderSummary,
+  useInfiniteFolderGames,
   useUpdateFolder,
   useDeleteFolder,
 } from "../hooks/useFolders";
+import { useIntersectionObserver } from "../hooks/useIntersectionObserver";
 import { useUpdateGame } from "../hooks/useGames";
 import {
   getPlayerPerspective,
@@ -38,8 +40,16 @@ export default function CollectionDetailPage() {
 
   // UI state
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const [selectedSide, setSelectedSide] = useState<"all" | "white" | "black">("all");
-  const [currentPage, setCurrentPage] = useState(1);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editName, setEditName] = useState("");
@@ -62,12 +72,26 @@ export default function CollectionDetailPage() {
     data: gamesData,
     isLoading: isGamesLoading,
     refetch: refetchGames,
-  } = useFolderGames(folderId, {
-    page: currentPage,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteFolderGames(folderId, {
     limit: 12,
-    search: searchQuery.trim() || undefined,
+    search: debouncedSearch || undefined,
     userPlayedAs: selectedSide === "all" ? undefined : selectedSide,
   });
+
+  const sentinelRef = useIntersectionObserver(
+    () => {
+      if (hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    },
+    {
+      enabled: Boolean(hasNextPage && !isFetchingNextPage),
+      rootMargin: "800px",
+    },
+  );
 
   const updateFolderMutation = useUpdateFolder();
   const deleteFolderMutation = useDeleteFolder();
@@ -75,10 +99,13 @@ export default function CollectionDetailPage() {
 
   const folder = folderData?.folder;
   const summary = summaryData?.summary;
-  const games = gamesData?.games ?? [];
-  const albumTotalGames = summary?.gameCount ?? gamesData?.total ?? 0;
-  const matchingGamesCount = gamesData?.total ?? albumTotalGames;
-  const totalPages = gamesData?.totalPages ?? 1;
+  const games = useMemo(
+    () => gamesData?.pages.flatMap((page) => page.games) ?? [],
+    [gamesData],
+  );
+  const firstPage = gamesData?.pages[0];
+  const albumTotalGames = summary?.gameCount ?? firstPage?.total ?? 0;
+  const matchingGamesCount = firstPage?.total ?? albumTotalGames;
 
   // Games already filtered server-side
   const filteredGames = games;
@@ -277,10 +304,7 @@ export default function CollectionDetailPage() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search opponent or opening..."
                 className="w-full rounded-vault border border-vault-border-base bg-vault-surface-layer-1 pl-8 pr-2.5 py-1.5 font-mono text-xs text-vault-text-primary outline-none focus:border-vault-bronze placeholder:text-vault-text-muted"
               />
@@ -435,28 +459,19 @@ export default function CollectionDetailPage() {
           </div>
         )}
 
-        {/* PAGINATION */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 pt-4 font-mono text-xs">
-            <Button
-              variant="secondary"
-              disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              className="px-3 py-1"
-            >
-              Previous
-            </Button>
-            <span className="text-vault-text-muted px-2">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="secondary"
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              className="px-3 py-1"
-            >
-              Next
-            </Button>
+        {/* INFINITE SCROLL SENTINEL & LOADING */}
+        {games.length > 0 && (
+          <div ref={sentinelRef} className="py-6 flex flex-col items-center justify-center">
+            {isFetchingNextPage ? (
+              <div className="flex items-center gap-2 font-mono text-xs text-vault-text-muted">
+                <Loader2 size={15} className="animate-spin text-vault-bronze" />
+                <span>Loading more matches...</span>
+              </div>
+            ) : !hasNextPage ? (
+              <div className="font-mono text-[11px] text-vault-text-muted uppercase tracking-wider">
+                • End of album records •
+              </div>
+            ) : null}
           </div>
         )}
       </section>
