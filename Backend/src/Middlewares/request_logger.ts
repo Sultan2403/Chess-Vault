@@ -22,4 +22,7 @@ export const requestLogger = pinoHttp({
       statusCode: res.statusCode,
     }),
   },
+  autoLogging: {
+    ignore: (req) => req.url === "/health",
+  },
 });
