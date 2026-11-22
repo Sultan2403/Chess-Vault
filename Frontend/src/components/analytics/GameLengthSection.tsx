@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Swords, Zap, ArrowUpRight } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import type { AnalyticsGameLength, AnalyticsMoveBucket } from "@chess-vault/shared";
 
 interface GameLengthSectionProps {
@@ -9,6 +10,7 @@ interface GameLengthSectionProps {
 
 export function GameLengthSection({ gameLength, moveBuckets }: GameLengthSectionProps) {
   const { meanMoves, medianMoves, quickestWin, longestGame } = gameLength;
+  const shouldReduceMotion = useReducedMotion();
 
   // Find max count to scale histogram heights
   const maxCount = Math.max(...moveBuckets.map((b) => b.count), 1);
@@ -121,7 +123,7 @@ export function GameLengthSection({ gameLength, moveBuckets }: GameLengthSection
         </div>
 
         <div className="grid grid-cols-5 gap-2 sm:gap-4 items-end h-40 pt-6 pb-2 px-2 rounded-md bg-vault-surface-container-lowest/60 border border-vault-border-base/40">
-          {moveBuckets.map((b) => {
+          {moveBuckets.map((b, idx) => {
             const heightPct = Math.max(12, Math.round((b.count / maxCount) * 100));
             // Highlight highest frequency bucket
             const isPeak = b.count === maxCount && b.count > 0;
@@ -134,9 +136,15 @@ export function GameLengthSection({ gameLength, moveBuckets }: GameLengthSection
                 </span>
 
                 {/* Bar */}
-                <div
-                  style={{ height: `${heightPct}%` }}
-                  className={`w-full max-w-[64px] rounded-t transition-all ${
+                <motion.div
+                  initial={shouldReduceMotion ? false : { height: 0 }}
+                  animate={{ height: `${heightPct}%` }}
+                  transition={{
+                    duration: 0.5,
+                    delay: shouldReduceMotion ? 0 : idx * 0.08,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  className={`w-full max-w-[64px] rounded-t transition-colors ${
                     isPeak
                       ? "bg-vault-primary hover:brightness-110 shadow-xs"
                       : "bg-vault-surface-layer-2 hover:bg-vault-surface-layer-2/80"

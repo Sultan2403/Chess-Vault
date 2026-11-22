@@ -1,8 +1,10 @@
 import { Trophy, Clock, History } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import type { AnalyticsData } from "@chess-vault/shared";
 
 export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
   const { overview, archiveSpan, byTimeClass, streaks } = data;
+  const shouldReduceMotion = useReducedMotion();
 
   // Primary Cadence: highest total games
   const primaryCadence = byTimeClass.length > 0 ? byTimeClass[0] : null;
@@ -16,10 +18,35 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
       })
     : "—";
 
+  const cardVariants = {
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 12 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.36, ease: [0.22, 1, 0.36, 1] as const },
+    },
+  };
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: { staggerChildren: shouldReduceMotion ? 0 : 0.08 },
+        },
+      }}
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+    >
       {/* 1. OVERALL RECORD */}
-      <div className="flex flex-col justify-between rounded-lg border border-vault-border-base bg-vault-surface-layer-1 p-5">
+      <motion.div
+        variants={cardVariants}
+        whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+        transition={{ duration: 0.15 }}
+        className="flex flex-col justify-between rounded-lg border border-vault-border-base hover:border-vault-border-interactive bg-vault-surface-layer-1 p-5 transition-colors"
+      >
         <div>
           <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-vault-text-muted">
             <span>Overall Record</span>
@@ -39,19 +66,25 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
 
           {/* Segmented W/D/L Bar */}
           <div className="flex h-2 w-full overflow-hidden rounded-full bg-vault-surface-layer-2 mt-3">
-            <div
-              style={{ width: `${overview.winPct}%` }}
-              className="bg-emerald-500 h-full transition-all"
+            <motion.div
+              initial={shouldReduceMotion ? false : { width: 0 }}
+              animate={{ width: `${overview.winPct}%` }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="bg-emerald-500 h-full"
               title={`Wins: ${overview.wins} (${overview.winPct}%)`}
             />
-            <div
-              style={{ width: `${overview.drawPct}%` }}
-              className="bg-neutral-500 h-full transition-all"
+            <motion.div
+              initial={shouldReduceMotion ? false : { width: 0 }}
+              animate={{ width: `${overview.drawPct}%` }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+              className="bg-neutral-500 h-full"
               title={`Draws: ${overview.draws} (${overview.drawPct}%)`}
             />
-            <div
-              style={{ width: `${overview.lossPct}%` }}
-              className="bg-rose-500 h-full transition-all"
+            <motion.div
+              initial={shouldReduceMotion ? false : { width: 0 }}
+              animate={{ width: `${overview.lossPct}%` }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+              className="bg-rose-500 h-full"
               title={`Losses: ${overview.losses} (${overview.lossPct}%)`}
             />
           </div>
@@ -65,13 +98,18 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
         </div>
 
         <div className="flex items-center justify-between border-t border-vault-border-base/40 pt-3 mt-4 font-mono text-[11px] text-vault-text-muted">
-          <span>PRACTICAL OUTCOME INDEX: <strong className="text-vault-text-primary">{overview.practicalOutcomeIndex}%</strong></span>
-          <span>STREAK: <strong className="text-vault-text-primary">{streaks.longestWinStreak}</strong></span>
+          <span>PRACTICAL OUTCOME: <strong className="text-vault-text-primary">{overview.practicalOutcomeIndex}%</strong></span>
+          <span>STREAK: <strong className="text-vault-text-primary">+{streaks.longestWinStreak}W</strong></span>
         </div>
-      </div>
+      </motion.div>
 
       {/* 2. PRIMARY CADENCE */}
-      <div className="flex flex-col justify-between rounded-lg border border-vault-border-base bg-vault-surface-layer-1 p-5">
+      <motion.div
+        variants={cardVariants}
+        whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+        transition={{ duration: 0.15 }}
+        className="flex flex-col justify-between rounded-lg border border-vault-border-base hover:border-vault-border-interactive bg-vault-surface-layer-1 p-5 transition-colors"
+      >
         <div>
           <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-vault-text-muted">
             <span>Primary Cadence</span>
@@ -97,13 +135,18 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
             {primaryCadence ? `${primaryCadence.winPct}% WR` : "—"}
           </span>
         </div>
-      </div>
+      </motion.div>
 
-      {/* 3. BEST STREAK */}
-      <div className="flex flex-col justify-between rounded-lg border border-vault-border-base bg-vault-surface-layer-1 p-5">
+      {/* 3. STREAK PERFORMANCE */}
+      <motion.div
+        variants={cardVariants}
+        whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+        transition={{ duration: 0.15 }}
+        className="flex flex-col justify-between rounded-lg border border-vault-border-base hover:border-vault-border-interactive bg-vault-surface-layer-1 p-5 transition-colors"
+      >
         <div>
           <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-vault-text-muted">
-            <span>Best Streak</span>
+            <span>Streak Performance</span>
             <Trophy size={14} className="text-vault-primary" />
           </div>
 
@@ -111,16 +154,22 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
             <span className="font-display text-3xl md:text-4xl font-medium text-vault-text-primary">
               {streaks.longestWinStreak}
             </span>
-            <span className="font-mono text-xs text-vault-text-muted">Wins in a row</span>
+            <span className="font-mono text-xs text-vault-text-muted">Peak win run</span>
           </div>
 
-          <p className="font-mono text-xs text-vault-text-secondary mt-1">
-            Peak consecutive mainline victories
-          </p>
+          <div className="flex items-center gap-2 font-mono text-xs text-vault-text-secondary mt-1">
+            <span>Max Slump:</span>
+            <span className="font-semibold text-rose-400">
+              {streaks.longestLossStreak} {streaks.longestLossStreak === 1 ? "Loss" : "Losses"}
+            </span>
+            {streaks.longestDrawStreak > 1 && (
+              <span className="text-vault-text-muted">· {streaks.longestDrawStreak}D</span>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center justify-between border-t border-vault-border-base/40 pt-3 mt-4 font-mono text-[11px] text-vault-text-muted">
-          <span>CURRENT STREAK:</span>
+          <span>CURRENT RUN:</span>
           <span
             className={`font-semibold ${
               streaks.currentStreak.type === "win"
@@ -130,13 +179,22 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
                   : "text-vault-text-primary"
             }`}
           >
-            {streaks.currentStreak.type === "win" ? `+${streaks.currentStreak.count} Wins` : `${streaks.currentStreak.count} ${streaks.currentStreak.type}`}
+            {streaks.currentStreak.type === "win"
+              ? `+${streaks.currentStreak.count} Wins`
+              : streaks.currentStreak.type === "loss"
+                ? `-${streaks.currentStreak.count} Losses`
+                : `${streaks.currentStreak.count} ${streaks.currentStreak.type}`}
           </span>
         </div>
-      </div>
+      </motion.div>
 
       {/* 4. ARCHIVE SPAN */}
-      <div className="flex flex-col justify-between rounded-lg border border-vault-border-base bg-vault-surface-layer-1 p-5">
+      <motion.div
+        variants={cardVariants}
+        whileHover={shouldReduceMotion ? undefined : { y: -2 }}
+        transition={{ duration: 0.15 }}
+        className="flex flex-col justify-between rounded-lg border border-vault-border-base hover:border-vault-border-interactive bg-vault-surface-layer-1 p-5 transition-colors"
+      >
         <div>
           <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-vault-text-muted">
             <span>Archive Span</span>
@@ -158,7 +216,7 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
           <span>FIRST LOG:</span>
           <span className="text-vault-text-primary font-medium">{firstLogFormatted}</span>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

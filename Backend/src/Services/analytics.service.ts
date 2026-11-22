@@ -692,8 +692,8 @@ export const getAnalyticsData = async (
   const vulnerableOpening = eligibleVulnerable.length > 0 ? eligibleVulnerable[0] : null;
 
   const openings = {
-    asWhite: openingsAsWhite.slice(0, 10),
-    asBlack: openingsAsBlack.slice(0, 10),
+    asWhite: openingsAsWhite.slice(0, 20),
+    asBlack: openingsAsBlack.slice(0, 20),
     signatureWeapon,
     vulnerableOpening,
   };

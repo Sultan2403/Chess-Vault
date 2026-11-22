@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { useAnalytics } from "../hooks/useAnalytics";
 import { AnalyticsHeader } from "../components/analytics/AnalyticsHeader";
@@ -48,22 +49,45 @@ export default function AnalyticsPage() {
     return found ? found.total : 0;
   }, [data?.byPlatform]);
 
+  const shouldReduceMotion = useReducedMotion();
+
+  const sectionVariants = {
+    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 16 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
+    },
+  };
+
   return (
     <div className="mx-auto max-w-content w-full px-4 sm:px-6 py-8 flex flex-col gap-8">
       {isLoading && <AnalyticsSkeleton />}
 
-        {isError && (
-          <ErrorBanner
-            error={error}
-            onRetry={() => {
-              void refetch();
-            }}
-          />
-        )}
+      {isError && (
+        <ErrorBanner
+          error={error}
+          onRetry={() => {
+            void refetch();
+          }}
+        />
+      )}
 
-        {data && !isLoading && (
-          <>
-            {/* 1. Header & Filters */}
+      {data && !isLoading && (
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: shouldReduceMotion ? 0 : 0.08 },
+            },
+          }}
+          className="flex flex-col gap-8"
+        >
+          {/* 1. Header & Filters */}
+          <motion.section variants={sectionVariants}>
             <AnalyticsHeader
               totalGames={data.overview.totalGames}
               formattedSpan={data.archiveSpan.formattedSpan}
@@ -76,41 +100,58 @@ export default function AnalyticsPage() {
               selectedRange={selectedRange}
               onSelectRange={setSelectedRange}
             />
+          </motion.section>
 
-            {/* 2. Headline 4 KPI Cards */}
+          {/* 2. Headline 4 KPI Cards */}
+          <motion.section variants={sectionVariants}>
             <AnalyticsKpiCards data={data} />
+          </motion.section>
 
-            {/* 3. Activity & Game Volume Area Chart */}
+          {/* 3. Activity & Game Volume Area Chart */}
+          <motion.section variants={sectionVariants}>
             <ActivityVolumeChart
               trends={data.activityTrends}
               optimalWindow={data.optimalWindow}
             />
+          </motion.section>
 
-            {/* 4. Color & Cadence Performance (2-Column) */}
+          {/* 4. Color & Cadence Performance (2-Column) */}
+          <motion.section variants={sectionVariants}>
             <ColorAndCadenceSection
               overview={data.overview}
               byTimeClass={data.byTimeClass}
             />
+          </motion.section>
 
-            {/* 5. Game Length & Move Duration Histogram */}
+          {/* 5. Game Length & Move Duration Histogram */}
+          <motion.section variants={sectionVariants}>
             <GameLengthSection
               gameLength={data.gameLength}
               moveBuckets={data.moveBuckets}
             />
+          </motion.section>
 
-            {/* 6. Opening Repertoire Distribution (As White / As Black) */}
+          {/* 6. Opening Repertoire Distribution (As White / As Black) */}
+          <motion.section variants={sectionVariants}>
             <OpeningRepertoireSection openings={data.openings} />
+          </motion.section>
 
-            {/* 7. Frequent Opponents & Rivalries */}
+          {/* 7. Frequent Opponents & Rivalries */}
+          <motion.section variants={sectionVariants}>
             <RivalriesSection opponents={data.opponents} />
+          </motion.section>
 
-            {/* 8. Active Elo Ratings & Rating Brackets */}
+          {/* 8. Active Elo Ratings & Rating Brackets */}
+          <motion.section variants={sectionVariants}>
             <RatingsAndBracketsSection ratingBrackets={data.ratingBrackets} />
+          </motion.section>
 
-            {/* 9. Vault Intelligence Inferences / Insights Link */}
+          {/* 9. Vault Intelligence Inferences / Insights Link */}
+          <motion.section variants={sectionVariants}>
             <ArchivalInferencesSection />
-          </>
-        )}
-      </div>
-    );
-  }
+          </motion.section>
+        </motion.div>
+      )}
+    </div>
+  );
+}

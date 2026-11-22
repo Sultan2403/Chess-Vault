@@ -1,4 +1,5 @@
 import { Trophy, BarChart2 } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useAccountBootstrap } from "../../hooks/useAccount";
 import type { AnalyticsRatingBracket } from "@chess-vault/shared";
 
@@ -11,6 +12,7 @@ export function RatingsAndBracketsSection({
 }: RatingsAndBracketsSectionProps) {
   const { data: accountData } = useAccountBootstrap();
   const linkedAccounts = accountData?.linkedAccounts ?? [];
+  const shouldReduceMotion = useReducedMotion();
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -108,9 +110,15 @@ export function RatingsAndBracketsSection({
 
                   {/* Horizontal Bar */}
                   <div className="h-2 w-full overflow-hidden rounded bg-vault-surface-layer-2">
-                    <div
-                      style={{ width: `${bracket.winPct}%` }}
-                      className={`h-full rounded transition-all ${
+                    <motion.div
+                      initial={shouldReduceMotion ? false : { width: 0 }}
+                      animate={{ width: `${bracket.winPct}%` }}
+                      transition={{
+                        duration: 0.6,
+                        delay: shouldReduceMotion ? 0 : 0.1,
+                        ease: [0.22, 1, 0.36, 1],
+                      }}
+                      className={`h-full rounded ${
                         bracket.winPct >= 50 ? "bg-emerald-500" : "bg-vault-primary"
                       }`}
                     />
