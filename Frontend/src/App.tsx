@@ -20,8 +20,8 @@ import { ThemeProvider } from "./contexts";
 
 function App() {
   return (
-    <ThemeProvider>
-      <ErrorBoundary>
+    <ErrorBoundary>
+      <ThemeProvider>
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -46,8 +46,8 @@ function App() {
           <Analytics />
           <SpeedInsights />
         </BrowserRouter>
-      </ErrorBoundary>
-    </ThemeProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
