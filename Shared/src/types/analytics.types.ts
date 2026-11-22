@@ -173,12 +173,20 @@ export type AnalyticsOptimalWindow = {
   winPct: number;
 };
 
+export type AnalyticsRatingPoint = {
+  period: string; // "YYYY-MM"
+  avgRating: number;
+  gamesPlayed: number;
+};
+
 export type AnalyticsStreaks = {
   currentStreak: {
     count: number;
     type: "win" | "loss" | "draw" | "none";
   };
   longestWinStreak: number;
+  longestLossStreak: number;
+  longestDrawStreak: number;
 };
 
 export type AnalyticsData = {
@@ -200,5 +208,6 @@ export type AnalyticsData = {
   ratingBrackets: AnalyticsRatingBracket[];
   optimalWindow: AnalyticsOptimalWindow | null;
   activityTrends: AnalyticsActivityTrend[];
+  ratingProgression: AnalyticsRatingPoint[];
   streaks: AnalyticsStreaks;
 };

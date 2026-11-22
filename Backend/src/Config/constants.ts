@@ -16,3 +16,22 @@ export const JOB_NAMES = {
   IMPORT_RUN: "import_run",
   PURGE_USER: "purge_user_data",
 } as const;
+
+export const CACHE_TTL = {
+  ANALYTICS_24H: 86400,
+  DASHBOARD_24H: 86400,
+} as const;
+
+export const CACHE_KEYS = {
+  analytics: (
+    userId: string,
+    platform: string = "all",
+    timeClass: string = "all",
+    from: string = "",
+    to: string = "",
+  ) => `analytics:${userId}:${platform}:${timeClass}:${from}:${to}`,
+  analyticsPattern: (userId: string) => `analytics:${userId}:*`,
+  dashboard: (userId: string, platform: string = "all") =>
+    `dashboard:${userId}:${platform}`,
+  dashboardPattern: (userId: string) => `dashboard:${userId}:*`,
+} as const;

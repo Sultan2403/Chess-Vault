@@ -1,5 +1,7 @@
 import Games from "../DB/Models/games.model";
 import Folders from "../DB/Models/folders.model";
+import { redis } from "../DB/Connections/redis";
+import { CACHE_KEYS, CACHE_TTL } from "../Config/constants";
 import {
   DashboardData,
   DashboardRediscoverItem,
@@ -23,6 +25,16 @@ export const getDashboardData = async (
   platform?: PlatformType | "all",
 ): Promise<DashboardData> => {
   const queryPlatform = platform && platform !== "all" ? platform : undefined;
+  const cacheKey = CACHE_KEYS.dashboard(userId, queryPlatform || "all");
+
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached) as DashboardData;
+    }
+  } catch {
+    // Graceful fallback to database if Redis is unavailable
+  }
 
   const baseMatch: Record<string, any> = { userId };
   if (queryPlatform) {
@@ -380,11 +392,24 @@ export const getDashboardData = async (
     });
   }
 
-  return {
+  const result: DashboardData = {
     platform: queryPlatform || "all",
     metrics,
     rediscover,
     recentGames,
     tendencies,
   };
+
+  try {
+    await redis.set(
+      cacheKey,
+      JSON.stringify(result),
+      "EX",
+      CACHE_TTL.DASHBOARD_24H,
+    );
+  } catch {
+    // Ignore Redis write errors
+  }
+
+  return result;
 };

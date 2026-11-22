@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { Spinner } from "../components/ui/Spinner";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { useAnalytics } from "../hooks/useAnalytics";
 import { AnalyticsHeader } from "../components/analytics/AnalyticsHeader";
@@ -11,6 +10,7 @@ import { OpeningRepertoireSection } from "../components/analytics/OpeningReperto
 import { RivalriesSection } from "../components/analytics/RivalriesSection";
 import { RatingsAndBracketsSection } from "../components/analytics/RatingsAndBracketsSection";
 import { ArchivalInferencesSection } from "../components/analytics/ArchivalInferencesSection";
+import { AnalyticsSkeleton } from "../components/analytics/AnalyticsSkeleton";
 import type { PlatformType, TimeClassType } from "@chess-vault/shared";
 
 export default function AnalyticsPage() {
@@ -50,11 +50,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="mx-auto max-w-content w-full px-4 sm:px-6 py-8 flex flex-col gap-8">
-      {isLoading && (
-        <div className="grid min-h-[50vh] place-items-center">
-          <Spinner />
-        </div>
-      )}
+      {isLoading && <AnalyticsSkeleton />}
 
         {isError && (
           <ErrorBanner

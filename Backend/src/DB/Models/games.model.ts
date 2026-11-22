@@ -266,6 +266,14 @@ gameSchema.index({
   isRated: 1,
 });
 
+// Compound analytics & filtered listing query
+gameSchema.index({
+  userId: 1,
+  platform: 1,
+  "time.timeClass": 1,
+  playedAt: -1,
+});
+
 // Opening search
 gameSchema.index({ userId: 1, "opening.name": 1 });
 gameSchema.index({ userId: 1, "opening.variation": 1 });

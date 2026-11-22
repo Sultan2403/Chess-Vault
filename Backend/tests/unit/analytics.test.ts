@@ -2,6 +2,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import Games from "../../src/DB/Models/games.model";
 import { getAnalyticsData } from "../../src/Services/analytics.service";
 
+vi.mock("../../src/DB/Connections/redis", () => ({
+  redis: {
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue("OK"),
+    on: vi.fn(),
+  },
+  BullMQRedis: {
+    on: vi.fn(),
+  },
+}));
+
 describe("Analytics Service Unit Tests", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -22,6 +33,8 @@ describe("Analytics Service Unit Tests", () => {
         quickestWin: [],
         longestGame: [],
         ratingBrackets: [],
+        ratingProgression: [],
+        streakGames: [],
         optimalWindow: [],
         activityTrends: [],
         milestoneVictory: [],
@@ -29,11 +42,6 @@ describe("Analytics Service Unit Tests", () => {
     ];
 
     vi.spyOn(Games, "aggregate").mockResolvedValue(mockFacetResult as any);
-    vi.spyOn(Games, "find").mockReturnValue({
-      sort: vi.fn().mockReturnValue({
-        lean: vi.fn().mockResolvedValue([]),
-      }),
-    } as any);
 
     const result = await getAnalyticsData("user_test_123");
 
@@ -57,10 +65,14 @@ describe("Analytics Service Unit Tests", () => {
     expect(result.moveBuckets).toHaveLength(5);
     expect(result.gameLength.quickestWin).toBeNull();
     expect(result.gameLength.longestGame).toBeNull();
+    expect(result.gameLength.medianMoves).toBe(0);
     expect(result.ratingBrackets).toHaveLength(4);
+    expect(result.ratingProgression).toEqual([]);
     expect(result.optimalWindow).toBeNull();
     expect(result.streaks.currentStreak.count).toBe(0);
     expect(result.streaks.longestWinStreak).toBe(0);
+    expect(result.streaks.longestLossStreak).toBe(0);
+    expect(result.streaks.longestDrawStreak).toBe(0);
   });
 
   it("should correctly aggregate overview, openings, opponents, terminations, and streaks", async () => {
@@ -81,6 +93,7 @@ describe("Analytics Service Unit Tests", () => {
             blackLosses: 2,
             blackDraws: 1,
             avgMoves: 34.6,
+            medianMoves: [34],
             ratedTotal: 8,
             ratedWins: 5,
           },
@@ -102,8 +115,8 @@ describe("Analytics Service Unit Tests", () => {
         byOpening: [
           {
             _id: { name: "Sicilian Defense", eco: "B20", color: "black" },
-            total: 4,
-            wins: 4,
+            total: 5,
+            wins: 5,
             losses: 0,
             draws: 0,
           },
@@ -116,9 +129,9 @@ describe("Analytics Service Unit Tests", () => {
           },
           {
             _id: { name: "French Defense", eco: "C00", color: "black" },
-            total: 3,
+            total: 5,
             wins: 0,
-            losses: 3,
+            losses: 5,
             draws: 0,
           },
         ],
@@ -171,10 +184,22 @@ describe("Analytics Service Unit Tests", () => {
           },
         ],
         ratingBrackets: [
-          { _id: 0, count: 2, wins: 2 },
-          { _id: 1900, count: 3, wins: 2 },
-          { _id: 2100, count: 3, wins: 1 },
-          { _id: 2301, count: 2, wins: 1 },
+          { oppRating: 1800, userResult: "win" },
+          { oppRating: 2000, userResult: "win" },
+          { oppRating: 2200, userResult: "loss" },
+          { oppRating: 2400, userResult: "win" },
+        ],
+        ratingProgression: [
+          { _id: { year: 2026, month: 1 }, avgRating: 1850.4, gamesPlayed: 4 },
+          { _id: { year: 2026, month: 2 }, avgRating: 1910.1, gamesPlayed: 6 },
+        ],
+        streakGames: [
+          { userResult: "win" },
+          { userResult: "win" },
+          { userResult: "win" },
+          { userResult: "loss" },
+          { userResult: "win" },
+          { userResult: "win" },
         ],
         optimalWindow: [
           {
@@ -212,21 +237,7 @@ describe("Analytics Service Unit Tests", () => {
       },
     ];
 
-    const mockStreakGames = [
-      { userResult: "win", playedAt: new Date("2026-01-01") },
-      { userResult: "win", playedAt: new Date("2026-01-02") },
-      { userResult: "win", playedAt: new Date("2026-01-03") },
-      { userResult: "loss", playedAt: new Date("2026-01-04") },
-      { userResult: "win", playedAt: new Date("2026-01-05") },
-      { userResult: "win", playedAt: new Date("2026-01-06") },
-    ];
-
     vi.spyOn(Games, "aggregate").mockResolvedValue(mockFacetResult as any);
-    vi.spyOn(Games, "find").mockReturnValue({
-      sort: vi.fn().mockReturnValue({
-        lean: vi.fn().mockResolvedValue(mockStreakGames),
-      }),
-    } as any);
 
     const result = await getAnalyticsData("user_test_123");
 
@@ -276,10 +287,16 @@ describe("Analytics Service Unit Tests", () => {
     // Game length highlights
     expect(result.gameLength.quickestWin?.movesCount).toBe(7);
     expect(result.gameLength.longestGame?.movesCount).toBe(109);
+    expect(result.gameLength.medianMoves).toBe(34);
 
     // Rating brackets
     expect(result.ratingBrackets).toHaveLength(4);
-    expect(result.ratingBrackets[0].bracket).toBe("> 2300");
+
+    // Rating progression
+    expect(result.ratingProgression).toEqual([
+      { period: "2026-01", avgRating: 1850, gamesPlayed: 4 },
+      { period: "2026-02", avgRating: 1910, gamesPlayed: 6 },
+    ]);
 
     // Optimal window
     expect(result.optimalWindow?.dayOfWeek).toBe("Sunday");
@@ -293,6 +310,8 @@ describe("Analytics Service Unit Tests", () => {
 
     // Streaks
     expect(result.streaks.longestWinStreak).toBe(3);
+    expect(result.streaks.longestLossStreak).toBe(1);
+    expect(result.streaks.longestDrawStreak).toBe(0);
     expect(result.streaks.currentStreak).toEqual({ count: 2, type: "win" });
   });
 
@@ -303,12 +322,6 @@ describe("Analytics Service Unit Tests", () => {
       capturedMatch = pipeline[0].$match;
       return Promise.resolve([{}]);
     }) as any);
-
-    vi.spyOn(Games, "find").mockReturnValue({
-      sort: vi.fn().mockReturnValue({
-        lean: vi.fn().mockResolvedValue([]),
-      }),
-    } as any);
 
     await getAnalyticsData("user_test_123", {
       platform: "chess.com",

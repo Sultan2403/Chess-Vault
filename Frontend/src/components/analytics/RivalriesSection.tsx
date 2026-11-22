@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ChevronDown, ChevronUp } from "lucide-react";
 import type { AnalyticsOpponents } from "@chess-vault/shared";
 
 interface RivalriesSectionProps {
@@ -8,6 +9,9 @@ interface RivalriesSectionProps {
 
 export function RivalriesSection({ opponents }: RivalriesSectionProps) {
   const { topRivals } = opponents;
+  const [showAll, setShowAll] = useState(false);
+
+  const displayedRivals = showAll ? topRivals : topRivals.slice(0, 5);
 
   return (
     <div className="rounded-lg border border-vault-border-base bg-vault-surface-layer-1 p-6 flex flex-col gap-6">
@@ -31,80 +35,95 @@ export function RivalriesSection({ opponents }: RivalriesSectionProps) {
           No repeat rivalries recorded yet.
         </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {topRivals.slice(0, 4).map((rival) => {
-            const drawPct = safePct(rival.draws, rival.total);
-            const lossPct = safePct(rival.losses, rival.total);
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {displayedRivals.map((rival) => {
+              const drawPct = safePct(rival.draws, rival.total);
+              const lossPct = safePct(rival.losses, rival.total);
 
-            const lastBattleDate = rival.lastPlayedAt
-              ? new Date(rival.lastPlayedAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })
-              : "—";
+              const lastBattleDate = rival.lastPlayedAt
+                ? new Date(rival.lastPlayedAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })
+                : "—";
 
-            return (
-              <div
-                key={rival.username}
-                className="rounded-lg border border-vault-border-base bg-vault-surface-container-lowest/80 p-4 flex flex-col justify-between group hover:border-vault-border-interactive transition-colors"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <h4 className="font-display text-base font-medium text-vault-text-primary truncate">
-                        {rival.username}
-                      </h4>
-                      <div className="font-mono text-[11px] text-vault-text-muted capitalize">
-                        {rival.platform || "Chess.com"} · {rival.rating ? `Elo ${rival.rating}` : "Rated"}
+              return (
+                <div
+                  key={rival.username}
+                  className="rounded-lg border border-vault-border-base bg-vault-surface-container-lowest/80 p-4 flex flex-col justify-between group hover:border-vault-border-interactive transition-colors"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h4 className="font-display text-base font-medium text-vault-text-primary truncate">
+                          {rival.username}
+                        </h4>
+                        <div className="font-mono text-[11px] text-vault-text-muted capitalize">
+                          {rival.platform || "Chess.com"} · {rival.rating ? `Elo ${rival.rating}` : "Rated"}
+                        </div>
+                      </div>
+
+                      <span
+                        className={`font-mono text-[11px] font-bold px-1.5 py-0.5 rounded uppercase ${
+                          rival.winPct >= 50
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                        }`}
+                      >
+                        {rival.winPct}%
+                      </span>
+                    </div>
+
+                    {/* Encounters & H2H record */}
+                    <div className="mt-4">
+                      <div className="flex items-baseline justify-between font-mono text-xs">
+                        <span className="text-vault-text-muted">
+                          {rival.total} encounters
+                        </span>
+                        <span className="font-semibold text-vault-text-primary">
+                          {rival.wins}W - {rival.draws}D - {rival.losses}L
+                        </span>
+                      </div>
+
+                      {/* Mini segmented bar */}
+                      <div className="flex h-1.5 w-full overflow-hidden rounded bg-vault-surface-layer-2 mt-2">
+                        <div style={{ width: `${rival.winPct}%` }} className="bg-emerald-500 h-full" />
+                        <div style={{ width: `${drawPct}%` }} className="bg-neutral-500 h-full" />
+                        <div style={{ width: `${lossPct}%` }} className="bg-rose-500 h-full" />
                       </div>
                     </div>
+                  </div>
 
-                    <span
-                      className={`font-mono text-[11px] font-bold px-1.5 py-0.5 rounded uppercase ${
-                        rival.winPct >= 50
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                      }`}
+                  <div className="border-t border-vault-border-base/40 pt-3 mt-4 flex items-center justify-between font-mono text-[11px] text-vault-text-muted">
+                    <span>LAST: {lastBattleDate}</span>
+                    <Link
+                      to={`/game-bank?search=${encodeURIComponent(rival.username)}`}
+                      className="inline-flex items-center gap-0.5 text-vault-text-secondary hover:text-vault-primary transition-colors"
                     >
-                      {rival.winPct}%
-                    </span>
-                  </div>
-
-                  {/* Encounters & H2H record */}
-                  <div className="mt-4">
-                    <div className="flex items-baseline justify-between font-mono text-xs">
-                      <span className="text-vault-text-muted">
-                        {rival.total} encounters
-                      </span>
-                      <span className="font-semibold text-vault-text-primary">
-                        {rival.wins} W - {rival.draws} D - {rival.losses} L
-                      </span>
-                    </div>
-
-                    {/* Mini segmented bar */}
-                    <div className="flex h-1.5 w-full overflow-hidden rounded bg-vault-surface-layer-2 mt-2">
-                      <div style={{ width: `${rival.winPct}%` }} className="bg-emerald-500 h-full" />
-                      <div style={{ width: `${drawPct}%` }} className="bg-neutral-500 h-full" />
-                      <div style={{ width: `${lossPct}%` }} className="bg-rose-500 h-full" />
-                    </div>
+                      <span>Games</span>
+                      <ArrowUpRight size={11} />
+                    </Link>
                   </div>
                 </div>
+              );
+            })}
+          </div>
 
-                <div className="border-t border-vault-border-base/40 pt-3 mt-4 flex items-center justify-between font-mono text-[11px] text-vault-text-muted">
-                  <span>LAST: {lastBattleDate}</span>
-                  <Link
-                    to={`/game-bank?search=${encodeURIComponent(rival.username)}`}
-                    className="inline-flex items-center gap-0.5 text-vault-text-secondary hover:text-vault-primary transition-colors"
-                  >
-                    <span>Games</span>
-                    <ArrowUpRight size={11} />
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+          {topRivals.length > 5 && (
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={() => setShowAll(!showAll)}
+                className="inline-flex items-center gap-1.5 font-mono text-xs text-vault-text-secondary hover:text-vault-text-primary px-3 py-1.5 rounded border border-vault-border-base bg-vault-surface-layer-2/60 hover:bg-vault-surface-layer-2 transition-colors cursor-pointer"
+              >
+                <span>{showAll ? "Show Top 5" : `See All ${topRivals.length} Opponents`}</span>
+                {showAll ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

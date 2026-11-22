@@ -11,8 +11,8 @@ export const analyticsQuerySchema = z.object({
     .enum([...TimeClasses, "all"])
     .optional()
     .default("all"),
-  from: z.string().optional(),
-  to: z.string().optional(),
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
 });
 
 export type AnalyticsQuery = z.infer<typeof analyticsQuerySchema>;

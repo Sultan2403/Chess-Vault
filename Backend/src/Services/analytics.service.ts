@@ -1,4 +1,6 @@
 import Games from "../DB/Models/games.model";
+import { redis } from "../DB/Connections/redis";
+import { CACHE_KEYS, CACHE_TTL } from "../Config/constants";
 import {
   AnalyticsActivityTrend,
   AnalyticsArchiveSpan,
@@ -12,6 +14,8 @@ import {
   AnalyticsPlatformStat,
   AnalyticsQuery,
   AnalyticsRatingBracket,
+  AnalyticsRatingPoint,
+  AnalyticsStreaks,
   AnalyticsTerminationStat,
   AnalyticsTimeClassStat,
   PlatformType,
@@ -57,6 +61,22 @@ export const getAnalyticsData = async (
   query: Partial<AnalyticsQuery> = {},
 ): Promise<AnalyticsData> => {
   const { platform = "all", timeClass = "all", from, to } = query;
+  const cacheKey = CACHE_KEYS.analytics(
+    userId,
+    platform,
+    timeClass,
+    from ?? "",
+    to ?? "",
+  );
+
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached) as AnalyticsData;
+    }
+  } catch {
+    // Graceful fallback to database query if Redis is unavailable
+  }
 
   const matchQuery: Record<string, any> = { userId };
 
@@ -78,17 +98,16 @@ export const getAnalyticsData = async (
     }
   }
 
-  const [facetResults, streakGames] = await Promise.all([
-    Games.aggregate([
-      { $match: matchQuery },
-      {
-        $facet: {
-          overview: [
-            {
-              $group: {
-                _id: null,
-                totalGames: { $sum: 1 },
-                wins: { $sum: { $cond: [{ $eq: ["$userResult", "win"] }, 1, 0] } },
+  const facetResults = await Games.aggregate([
+    { $match: matchQuery },
+    {
+      $facet: {
+        overview: [
+          {
+            $group: {
+              _id: null,
+              totalGames: { $sum: 1 },
+              wins: { $sum: { $cond: [{ $eq: ["$userResult", "win"] }, 1, 0] } },
                 losses: { $sum: { $cond: [{ $eq: ["$userResult", "loss"] }, 1, 0] } },
                 draws: { $sum: { $cond: [{ $eq: ["$userResult", "draw"] }, 1, 0] } },
                 whiteTotal: { $sum: { $cond: [{ $eq: ["$userPlayedAs", "white"] }, 1, 0] } },
@@ -178,6 +197,13 @@ export const getAnalyticsData = async (
                   },
                 },
                 avgMoves: { $avg: "$moves.count" },
+                medianMoves: {
+                  $percentile: {
+                    input: "$moves.count",
+                    p: [0.5],
+                    method: "approximate",
+                  },
+                },
                 ratedTotal: { $sum: { $cond: ["$isRated", 1, 0] } },
                 ratedWins: {
                   $sum: {
@@ -250,7 +276,7 @@ export const getAnalyticsData = async (
               },
             },
             { $sort: { total: -1 } },
-            { $limit: 40 },
+            { $limit: 100 },
           ],
 
           topOpponents: [
@@ -410,7 +436,9 @@ export const getAnalyticsData = async (
 
           ratingBrackets: [
             {
-              $addFields: {
+              $project: {
+                _id: 0,
+                userResult: 1,
                 oppRating: {
                   $cond: [
                     { $eq: ["$userPlayedAs", "white"] },
@@ -421,16 +449,46 @@ export const getAnalyticsData = async (
               },
             },
             {
-              $bucket: {
-                groupBy: "$oppRating",
-                boundaries: [0, 1900, 2100, 2301, 4000],
-                default: "other",
-                output: {
-                  count: { $sum: 1 },
-                  wins: { $sum: { $cond: [{ $eq: ["$userResult", "win"] }, 1, 0] } },
-                },
+              $match: {
+                oppRating: { $exists: true, $gt: 0 },
               },
             },
+          ],
+
+          ratingProgression: [
+            {
+              $project: {
+                userRating: {
+                  $cond: [
+                    { $eq: ["$userPlayedAs", "white"] },
+                    "$whitePlayer.rating",
+                    "$blackPlayer.rating",
+                  ],
+                },
+                playedAt: 1,
+              },
+            },
+            {
+              $match: {
+                userRating: { $exists: true, $gt: 0 },
+              },
+            },
+            {
+              $group: {
+                _id: {
+                  year: { $year: "$playedAt" },
+                  month: { $month: "$playedAt" },
+                },
+                avgRating: { $avg: "$userRating" },
+                gamesPlayed: { $sum: 1 },
+              },
+            },
+            { $sort: { "_id.year": 1, "_id.month": 1 } },
+          ],
+
+          streakGames: [
+            { $sort: { playedAt: 1 } },
+            { $project: { _id: 0, userResult: 1 } },
           ],
 
           optimalWindow: [
@@ -504,13 +562,7 @@ export const getAnalyticsData = async (
           ],
         },
       },
-    ]),
-
-    // Lightweight chronological projection for streak analysis
-    Games.find(matchQuery, { userResult: 1, playedAt: 1 })
-      .sort({ playedAt: 1 })
-      .lean(),
-  ]);
+    ]);
 
   const raw = facetResults[0] || {};
 
@@ -625,14 +677,17 @@ export const getAnalyticsData = async (
     }
   }
 
+  const signatureThreshold = Math.max(5, Math.round(totalGames * 0.25));
+  const vulnerableThreshold = Math.max(5, Math.round(totalGames * 0.1));
+
   const allOpenings = [...openingsAsWhite, ...openingsAsBlack];
   const eligibleSignature = allOpenings
-    .filter((o) => o.total >= 3)
+    .filter((o) => o.total >= signatureThreshold)
     .sort((a, b) => b.winPct - a.winPct || b.total - a.total);
   const signatureWeapon = eligibleSignature.length > 0 ? eligibleSignature[0] : null;
 
   const eligibleVulnerable = allOpenings
-    .filter((o) => o.total >= 3 && o.winPct < 50)
+    .filter((o) => o.total >= vulnerableThreshold && o.winPct < 50)
     .sort((a, b) => a.winPct - b.winPct || b.total - a.total);
   const vulnerableOpening = eligibleVulnerable.length > 0 ? eligibleVulnerable[0] : null;
 
@@ -646,7 +701,6 @@ export const getAnalyticsData = async (
   // 6. Opponents breakdown
   const totalUnique = raw.uniqueOpponents?.[0]?.count || 0;
   const topRivals: AnalyticsOpponentStat[] = (raw.topOpponents || [])
-    .slice(0, 5)
     .map((o: any) => ({
       username: o.username || o._id,
       rating: o.rating,
@@ -798,56 +852,119 @@ export const getAnalyticsData = async (
       }
     : null;
 
+  const medianMoves =
+    Array.isArray(ov.medianMoves) && ov.medianMoves.length > 0
+      ? Math.round(ov.medianMoves[0])
+      : typeof ov.medianMoves === "number"
+      ? Math.round(ov.medianMoves)
+      : ov.avgMoves
+      ? Math.round(ov.avgMoves)
+      : 0;
+
   const gameLength: AnalyticsGameLength = {
     meanMoves: overview.avgMoves,
-    medianMoves: overview.avgMoves > 0 ? Math.max(1, overview.avgMoves - 2) : 0,
+    medianMoves,
     quickestWin,
     longestGame,
   };
 
-  // 10. Rating brackets
-  const rBucketMap: Record<number | string, { count: number; wins: number }> = {};
-  for (const rb of raw.ratingBrackets || []) {
-    rBucketMap[rb._id] = { count: rb.count, wins: rb.wins };
+  // 10. Rating brackets (dynamic quartiles)
+  const rawBrackets = (raw.ratingBrackets || []) as {
+    oppRating: number;
+    userResult: "win" | "loss" | "draw";
+  }[];
+  const ratings = rawBrackets
+    .map((b) => b.oppRating)
+    .filter((r) => typeof r === "number" && r > 0);
+
+  let ratingBrackets: AnalyticsRatingBracket[] = [];
+
+  if (ratings.length === 0) {
+    ratingBrackets = [
+      { bracket: "> 2300", label: "> 2300 Elo", total: 0, wins: 0, winPct: 0 },
+      { bracket: "2100 - 2300", label: "2100 - 2300 Elo", total: 0, wins: 0, winPct: 0 },
+      { bracket: "1900 - 2100", label: "1900 - 2100 Elo", total: 0, wins: 0, winPct: 0 },
+      { bracket: "< 1900", label: "< 1900 Elo", total: 0, wins: 0, winPct: 0 },
+    ];
+  } else {
+    const minRating = Math.min(...ratings);
+    const maxRating = Math.max(...ratings);
+
+    if (maxRating - minRating < 40) {
+      const count = rawBrackets.length;
+      const wins = rawBrackets.filter((b) => b.userResult === "win").length;
+      ratingBrackets = [
+        {
+          bracket: `${minRating} - ${maxRating}`,
+          label: `${minRating} - ${maxRating} Elo`,
+          total: count,
+          wins,
+          winPct: safePct(wins, count),
+        },
+      ];
+    } else {
+      const step = (maxRating - minRating) / 4;
+      const q1 = Math.round(minRating + step);
+      const q2 = Math.round(minRating + step * 2);
+      const q3 = Math.round(minRating + step * 3);
+
+      const b4 = { count: 0, wins: 0 };
+      const b3 = { count: 0, wins: 0 };
+      const b2 = { count: 0, wins: 0 };
+      const b1 = { count: 0, wins: 0 };
+
+      for (const item of rawBrackets) {
+        const isWin = item.userResult === "win";
+        if (item.oppRating > q3) {
+          b4.count += 1;
+          if (isWin) b4.wins += 1;
+        } else if (item.oppRating > q2) {
+          b3.count += 1;
+          if (isWin) b3.wins += 1;
+        } else if (item.oppRating > q1) {
+          b2.count += 1;
+          if (isWin) b2.wins += 1;
+        } else {
+          b1.count += 1;
+          if (isWin) b1.wins += 1;
+        }
+      }
+
+      ratingBrackets = [
+        {
+          bracket: `> ${q3}`,
+          label: `> ${q3} Elo`,
+          total: b4.count,
+          wins: b4.wins,
+          winPct: safePct(b4.wins, b4.count),
+        },
+        {
+          bracket: `${q2} - ${q3}`,
+          label: `${q2} - ${q3} Elo`,
+          total: b3.count,
+          wins: b3.wins,
+          winPct: safePct(b3.wins, b3.count),
+        },
+        {
+          bracket: `${q1} - ${q2}`,
+          label: `${q1} - ${q2} Elo`,
+          total: b2.count,
+          wins: b2.wins,
+          winPct: safePct(b2.wins, b2.count),
+        },
+        {
+          bracket: `< ${q1}`,
+          label: `< ${q1} Elo`,
+          total: b1.count,
+          wins: b1.wins,
+          winPct: safePct(b1.wins, b1.count),
+        },
+      ];
+    }
   }
 
-  const bUnder1900 = rBucketMap[0] || { count: 0, wins: 0 };
-  const b1900_2100 = rBucketMap[1900] || { count: 0, wins: 0 };
-  const b2100_2300 = rBucketMap[2100] || { count: 0, wins: 0 };
-  const bOver2300 = rBucketMap[2301] || { count: 0, wins: 0 };
-
-  const ratingBrackets: AnalyticsRatingBracket[] = [
-    {
-      bracket: "> 2300",
-      label: "> 2300 Elo",
-      total: bOver2300.count,
-      wins: bOver2300.wins,
-      winPct: safePct(bOver2300.wins, bOver2300.count),
-    },
-    {
-      bracket: "2100 - 2300",
-      label: "2100 - 2300 Elo",
-      total: b2100_2300.count,
-      wins: b2100_2300.wins,
-      winPct: safePct(b2100_2300.wins, b2100_2300.count),
-    },
-    {
-      bracket: "1900 - 2100",
-      label: "1900 - 2100 Elo",
-      total: b1900_2100.count,
-      wins: b1900_2100.wins,
-      winPct: safePct(b1900_2100.wins, b1900_2100.count),
-    },
-    {
-      bracket: "< 1900",
-      label: "< 1900 Elo",
-      total: bUnder1900.count,
-      wins: bUnder1900.wins,
-      winPct: safePct(bUnder1900.wins, bUnder1900.count),
-    },
-  ];
-
   // 11. Optimal Window
+  const windowThreshold = Math.max(3, Math.round(totalGames * 0.05));
   let optimalWindow: AnalyticsOptimalWindow | null = null;
   const eligibleWindows = (raw.optimalWindow || [])
     .map((w: any) => ({
@@ -856,7 +973,7 @@ export const getAnalyticsData = async (
       gamesCount: w.total,
       winPct: safePct(w.wins, w.total),
     }))
-    .filter((w: any) => w.gamesCount >= 3)
+    .filter((w: any) => w.gamesCount >= windowThreshold)
     .sort((a: any, b: any) => b.winPct - a.winPct || b.gamesCount - a.gamesCount);
 
   if (eligibleWindows.length > 0) {
@@ -877,22 +994,50 @@ export const getAnalyticsData = async (
     };
   });
 
-  // 13. Streaks
+  // 13. Rating progression
+  const ratingProgression: AnalyticsRatingPoint[] = (raw.ratingProgression || []).map((rp: any) => {
+    const yearStr = String(rp._id.year);
+    const monthStr = String(rp._id.month).padStart(2, "0");
+    return {
+      period: `${yearStr}-${monthStr}`,
+      avgRating: Math.round(rp.avgRating),
+      gamesPlayed: rp.gamesPlayed,
+    };
+  });
+
+  // 14. Streaks
   let longestWinStreak = 0;
   let runningWinStreak = 0;
+  let longestLossStreak = 0;
+  let runningLossStreak = 0;
+  let longestDrawStreak = 0;
+  let runningDrawStreak = 0;
   let currentStreakCount = 0;
   let currentStreakType: "win" | "loss" | "draw" | "none" = "none";
 
-  for (const g of streakGames) {
+  for (const g of raw.streakGames || []) {
     const res = g.userResult;
     if (res === "win") {
       runningWinStreak += 1;
-      if (runningWinStreak > longestWinStreak) {
-        longestWinStreak = runningWinStreak;
-      }
+      runningLossStreak = 0;
+      runningDrawStreak = 0;
+    } else if (res === "loss") {
+      runningLossStreak += 1;
+      runningWinStreak = 0;
+      runningDrawStreak = 0;
+    } else if (res === "draw") {
+      runningDrawStreak += 1;
+      runningWinStreak = 0;
+      runningLossStreak = 0;
     } else {
       runningWinStreak = 0;
+      runningLossStreak = 0;
+      runningDrawStreak = 0;
     }
+
+    if (runningWinStreak > longestWinStreak) longestWinStreak = runningWinStreak;
+    if (runningLossStreak > longestLossStreak) longestLossStreak = runningLossStreak;
+    if (runningDrawStreak > longestDrawStreak) longestDrawStreak = runningDrawStreak;
 
     if (currentStreakType === "none" || currentStreakType === res) {
       currentStreakType = res as "win" | "loss" | "draw";
@@ -903,15 +1048,17 @@ export const getAnalyticsData = async (
     }
   }
 
-  const streaks = {
+  const streaks: AnalyticsStreaks = {
     currentStreak: {
       count: currentStreakCount,
       type: currentStreakType,
     },
     longestWinStreak,
+    longestLossStreak,
+    longestDrawStreak,
   };
 
-  return {
+  const result: AnalyticsData = {
     query: {
       platform: (platform as PlatformType) || "all",
       timeClass: (timeClass as TimeClassType) || "all",
@@ -930,6 +1077,20 @@ export const getAnalyticsData = async (
     ratingBrackets,
     optimalWindow,
     activityTrends,
+    ratingProgression,
     streaks,
   };
+
+  try {
+    await redis.set(
+      cacheKey,
+      JSON.stringify(result),
+      "EX",
+      CACHE_TTL.ANALYTICS_24H,
+    );
+  } catch {
+    // Ignore Redis write errors
+  }
+
+  return result;
 };

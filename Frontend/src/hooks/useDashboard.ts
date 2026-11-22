@@ -7,6 +7,7 @@ export const useDashboard = (platform?: PlatformType | "all") => {
   return useQuery<DashboardResponse>({
     queryKey: QUERY_KEYS.dashboard.data(platform),
     queryFn: () => dashboardApi.getDashboardData(platform),
-    staleTime: 30_000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 };
