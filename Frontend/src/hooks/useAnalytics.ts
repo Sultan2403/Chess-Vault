@@ -7,7 +7,5 @@ export const useAnalytics = (query: Partial<AnalyticsQuery> = {}) => {
   return useQuery<AnalyticsResponse>({
     queryKey: QUERY_KEYS.analytics.data(query),
     queryFn: () => analyticsApi.getAnalyticsData(query),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
   });
 };
