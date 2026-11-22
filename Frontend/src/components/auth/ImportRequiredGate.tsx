@@ -25,6 +25,11 @@ const ROUTE_CONTEXTS: Record<string, { title: string; description: string }> = {
     description:
       "No collections can be displayed right now. Import your games to begin organizing them into custom vaults.",
   },
+  "/analytics": {
+    title: "No analytics to calculate",
+    description:
+      "You haven't imported your games yet. Sync your games to unlock performance trends, opening repertoire insights, and archival telemetry.",
+  },
 };
 
 export function ImportRequiredGate() {

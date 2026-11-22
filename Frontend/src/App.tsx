@@ -7,6 +7,7 @@ import DashboardPage from "./pages/DashboardPage";
 import GameBankPage from "./pages/GameBankPage";
 import CollectionsPage from "./pages/CollectionsPage";
 import CollectionDetailPage from "./pages/CollectionDetailPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 import SettingsPage from "./pages/SettingsPage";
 import GameViewer from "./pages/GameViewer";
 import OnboardingPage from "./pages/OnboardingPage";
@@ -36,6 +37,7 @@ function App() {
                 <Route path="/game-bank" element={<GameBankPage />} />
                 <Route path="/collections" element={<CollectionsPage />} />
                 <Route path="/collections/:id" element={<CollectionDetailPage />} />
+                <Route path="/analytics" element={<AnalyticsPage />} />
                 <Route path="/game/:id" element={<GameViewer />} />
               </Route>
             </Route>

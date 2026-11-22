@@ -11,6 +11,7 @@ describe("Analytics Service Unit Tests", () => {
     const mockFacetResult = [
       {
         overview: [],
+        archiveDates: [],
         byPlatform: [],
         byTimeClass: [],
         byOpening: [],
@@ -18,6 +19,10 @@ describe("Analytics Service Unit Tests", () => {
         uniqueOpponents: [],
         terminations: [],
         moveBuckets: [],
+        quickestWin: [],
+        longestGame: [],
+        ratingBrackets: [],
+        optimalWindow: [],
         activityTrends: [],
         milestoneVictory: [],
       },
@@ -36,8 +41,10 @@ describe("Analytics Service Unit Tests", () => {
     expect(result.overview.winPct).toBe(0);
     expect(result.overview.lossPct).toBe(0);
     expect(result.overview.drawPct).toBe(0);
+    expect(result.overview.practicalOutcomeIndex).toBe(0);
     expect(result.overview.white.winPct).toBe(0);
     expect(result.overview.black.winPct).toBe(0);
+    expect(result.archiveSpan.formattedSpan).toBe("0m");
     expect(result.byPlatform).toEqual([]);
     expect(result.byTimeClass).toEqual([]);
     expect(result.openings.asWhite).toEqual([]);
@@ -47,7 +54,11 @@ describe("Analytics Service Unit Tests", () => {
     expect(result.opponents.totalUnique).toBe(0);
     expect(result.opponents.topRivals).toEqual([]);
     expect(result.opponents.milestoneVictory).toBeNull();
-    expect(result.moveBuckets).toHaveLength(3);
+    expect(result.moveBuckets).toHaveLength(5);
+    expect(result.gameLength.quickestWin).toBeNull();
+    expect(result.gameLength.longestGame).toBeNull();
+    expect(result.ratingBrackets).toHaveLength(4);
+    expect(result.optimalWindow).toBeNull();
     expect(result.streaks.currentStreak.count).toBe(0);
     expect(result.streaks.longestWinStreak).toBe(0);
   });
@@ -72,6 +83,12 @@ describe("Analytics Service Unit Tests", () => {
             avgMoves: 34.6,
             ratedTotal: 8,
             ratedWins: 5,
+          },
+        ],
+        archiveDates: [
+          {
+            firstGameAt: new Date("2023-01-01T00:00:00Z"),
+            lastGameAt: new Date("2026-05-01T00:00:00Z"),
           },
         ],
         byPlatform: [
@@ -109,6 +126,8 @@ describe("Analytics Service Unit Tests", () => {
           {
             _id: "hikaru",
             username: "Hikaru",
+            rating: 2820,
+            platform: "chess.com",
             total: 3,
             wins: 2,
             losses: 1,
@@ -124,8 +143,45 @@ describe("Analytics Service Unit Tests", () => {
         ],
         moveBuckets: [
           { _id: 0, count: 2, wins: 2 },
-          { _id: 21, count: 6, wins: 3 },
+          { _id: 21, count: 4, wins: 2 },
           { _id: 41, count: 2, wins: 1 },
+          { _id: 61, count: 1, wins: 1 },
+          { _id: 81, count: 1, wins: 0 },
+        ],
+        quickestWin: [
+          {
+            _id: "65f1a2b3c4d5e6f7a8b9c0d1",
+            movesCount: 7,
+            plies: 14,
+            termination: "resignation",
+            playedAt: new Date("2026-02-15T12:00:00Z"),
+            opponentUsername: "Hikaru",
+            opponentRating: 2820,
+          },
+        ],
+        longestGame: [
+          {
+            _id: "65f1a2b3c4d5e6f7a8b9c0d2",
+            movesCount: 109,
+            plies: 217,
+            termination: "checkmate",
+            playedAt: new Date("2026-02-16T12:00:00Z"),
+            opponentUsername: "Magnus",
+            opponentRating: 2850,
+          },
+        ],
+        ratingBrackets: [
+          { _id: 0, count: 2, wins: 2 },
+          { _id: 1900, count: 3, wins: 2 },
+          { _id: 2100, count: 3, wins: 1 },
+          { _id: 2301, count: 2, wins: 1 },
+        ],
+        optimalWindow: [
+          {
+            _id: { dayOfWeek: 1, hourSlot: "Evening (6pm-11pm)" },
+            total: 4,
+            wins: 3,
+          },
         ],
         activityTrends: [
           {
@@ -180,10 +236,14 @@ describe("Analytics Service Unit Tests", () => {
     expect(result.overview.winPct).toBe(60);
     expect(result.overview.lossPct).toBe(30);
     expect(result.overview.drawPct).toBe(10);
+    expect(result.overview.practicalOutcomeIndex).toBe(65);
     expect(result.overview.avgMoves).toBe(35);
     expect(result.overview.white.winPct).toBe(80);
     expect(result.overview.black.winPct).toBe(40);
     expect(result.overview.rated.winPct).toBe(62.5);
+
+    // Archive span
+    expect(result.archiveSpan.formattedSpan).toBe("3y 4m");
 
     // Platform & Time Class
     expect(result.byPlatform).toHaveLength(2);
@@ -208,10 +268,22 @@ describe("Analytics Service Unit Tests", () => {
     expect(result.terminations.winWays.resignation).toBe(3);
     expect(result.terminations.lossWays.timeout).toBe(2);
 
-    // Move buckets
+    // Move buckets (5 buckets)
+    expect(result.moveBuckets).toHaveLength(5);
     expect(result.moveBuckets[0].count).toBe(2);
-    expect(result.moveBuckets[1].count).toBe(6);
-    expect(result.moveBuckets[2].count).toBe(2);
+    expect(result.moveBuckets[1].count).toBe(4);
+
+    // Game length highlights
+    expect(result.gameLength.quickestWin?.movesCount).toBe(7);
+    expect(result.gameLength.longestGame?.movesCount).toBe(109);
+
+    // Rating brackets
+    expect(result.ratingBrackets).toHaveLength(4);
+    expect(result.ratingBrackets[0].bracket).toBe("> 2300");
+
+    // Optimal window
+    expect(result.optimalWindow?.dayOfWeek).toBe("Sunday");
+    expect(result.optimalWindow?.timeSlot).toBe("Evening (6pm-11pm)");
 
     // Activity trends
     expect(result.activityTrends).toEqual([

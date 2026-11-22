@@ -11,6 +11,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/game-bank", label: "Game Bank" },
   { to: "/collections", label: "Collections" },
+  { to: "/analytics", label: "Analytics" },
   { to: "/settings", label: "Settings" },
 ];
 

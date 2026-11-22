@@ -31,6 +31,10 @@ export const QUERY_KEYS = {
     all: ["dashboard"] as const,
     data: (platform?: string) => [...QUERY_KEYS.dashboard.all, platform ?? "all"] as const,
   },
+  analytics: {
+    all: ["analytics"] as const,
+    data: (query?: Record<string, any>) => [...QUERY_KEYS.analytics.all, query ?? {}] as const,
+  },
   imports: {
     all: ["imports"] as const,
     history: (status?: string) => [...QUERY_KEYS.imports.all, "history", status ?? "all"] as const,

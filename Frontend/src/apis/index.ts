@@ -14,3 +14,6 @@ export { default as dashboardApi } from "./api.dashboard";
 
 export * from "./api.imports";
 export { default as importsApi } from "./api.imports";
+
+export * from "./api.analytics";
+export { default as analyticsApi } from "./api.analytics";

@@ -10,6 +10,7 @@ export type AnalyticsOverview = {
   lossPct: number;
   drawPct: number;
   avgMoves: number;
+  practicalOutcomeIndex: number; // winPct + (drawPct / 2)
   white: {
     total: number;
     wins: number;
@@ -47,6 +48,7 @@ export type AnalyticsTimeClassStat = {
   losses: number;
   draws: number;
   winPct: number;
+  volumePct: number;
 };
 
 export type AnalyticsOpeningStat = {
@@ -74,6 +76,9 @@ export type AnalyticsOpponentStat = {
   losses: number;
   draws: number;
   winPct: number;
+  platform?: PlatformType;
+  rating?: number;
+  lastPlayedAt?: Date | string;
 };
 
 export type AnalyticsOpponents = {
@@ -113,11 +118,43 @@ export type AnalyticsTerminations = {
 };
 
 export type AnalyticsMoveBucket = {
-  bucket: "fast" | "medium" | "long";
+  bucket: string;
   label: string;
   count: number;
   wins: number;
   winPct: number;
+  percentage: number;
+};
+
+export type AnalyticsGameHighlight = {
+  gameId: string;
+  opponentUsername: string;
+  opponentRating?: number;
+  movesCount: number;
+  plies: number;
+  termination: string;
+  playedAt: Date | string;
+};
+
+export type AnalyticsGameLength = {
+  meanMoves: number;
+  medianMoves: number;
+  quickestWin: AnalyticsGameHighlight | null;
+  longestGame: AnalyticsGameHighlight | null;
+};
+
+export type AnalyticsRatingBracket = {
+  bracket: string;
+  label: string;
+  total: number;
+  wins: number;
+  winPct: number;
+};
+
+export type AnalyticsArchiveSpan = {
+  firstGameAt: string | null;
+  lastGameAt: string | null;
+  formattedSpan: string;
 };
 
 export type AnalyticsActivityTrend = {
@@ -126,6 +163,13 @@ export type AnalyticsActivityTrend = {
   wins: number;
   losses: number;
   draws: number;
+  winPct: number;
+};
+
+export type AnalyticsOptimalWindow = {
+  dayOfWeek: string;
+  timeSlot: string;
+  gamesCount: number;
   winPct: number;
 };
 
@@ -145,12 +189,16 @@ export type AnalyticsData = {
     to?: string;
   };
   overview: AnalyticsOverview;
+  archiveSpan: AnalyticsArchiveSpan;
   byPlatform: AnalyticsPlatformStat[];
   byTimeClass: AnalyticsTimeClassStat[];
   openings: AnalyticsOpenings;
   opponents: AnalyticsOpponents;
   terminations: AnalyticsTerminations;
   moveBuckets: AnalyticsMoveBucket[];
+  gameLength: AnalyticsGameLength;
+  ratingBrackets: AnalyticsRatingBracket[];
+  optimalWindow: AnalyticsOptimalWindow | null;
   activityTrends: AnalyticsActivityTrend[];
   streaks: AnalyticsStreaks;
 };
