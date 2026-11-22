@@ -3,3 +3,4 @@ export * from "./games.types.js";
 export * from "./accounts.types.js";
 export * from "./import.types.js";
 export * from "./dashboard.types.js";
+export * from "./analytics.types.js";

@@ -4,6 +4,7 @@ import foldersRouter from "./folders.routes";
 import accountsRouter from "./accounts.routes";
 import dashboardRouter from "./dashboard.routes";
 import importsRouter from "./imports.routes";
+import analyticsRouter from "./analytics.routes";
 import requireAuth from "../Middlewares/Auth/users.auth";
 
 const router = Router();
@@ -11,6 +12,7 @@ const router = Router();
 router.use(requireAuth);
 
 router.use("/dashboard", dashboardRouter);
+router.use("/analytics", analyticsRouter);
 router.use("/games", gamesRouter);
 router.use("/folders", foldersRouter);
 router.use("/account", accountsRouter);

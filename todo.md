@@ -59,7 +59,7 @@ The boundary to go older than can be computed from your stored games (the oldest
 - DB migration for termination fielddddd. It's gonna be messy tho oh well. Especially for lichess games. Current implementation plan can go like: for chess.com map out the termination header to our termination values map. lichess doesn't quite have the same thing and it's gonna be messy so we might just delete all lichess games provided they all belong to me. Orrr we could do an annoying manual import for games one by one and then delete the old ones. I think the latter is better but it's gonna be annoying.
 
 - Add final tests where necessary
-- Add a `GET /analytics` endpoint that returns personal chess statistics such as:
+- [x] Add a `GET /analytics` endpoint that returns personal chess statistics such as:
   - Platform distribution
   - Result distribution
   - Time-class distribution

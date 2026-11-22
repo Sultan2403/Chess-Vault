@@ -4,3 +4,4 @@ export * from "./games.schema.js";
 export * from "./accounts.schema.js";
 export * from "./dashboard.schema.js";
 export * from "./imports.schema.js";
+export * from "./analytics.schema.js";
