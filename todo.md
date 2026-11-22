@@ -97,6 +97,7 @@ The boundary to go older than can be computed from your stored games (the oldest
 
 - Remove inappropriate `.optional()` usages where the field should not accept `undefined`; use the established default/null behavior instead
 - Audit related types and schemas for unintended `undefined` values and keep optionality intentional
+- Consider adding centralized filter types (e.g. `PlatformFilter = PlatformType | "all"`, `TimeClassFilter = TimeClassType | "all"`) in `@chess-vault/shared` as filter requirements grow across queries, dashboard, analytics, and UI controls
 
 ### Game Viewer (post-refactor tasks)
 
