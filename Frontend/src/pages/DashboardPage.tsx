@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowRight,
   Search,
-  Upload,
   Plus,
   Folder,
   Trophy,
@@ -113,18 +112,6 @@ export default function DashboardPage() {
                   <span>Search Games</span>
                 </Button>
               </NavLink>
-              <Button
-                variant="solid-bronze"
-                onClick={() =>
-                  alert(
-                    "Import feature not implemented yet. Btw checking for imports should be a global component thing like onboarding gate and it influences every page. hm maybe a hook for reusability or idk",
-                  )
-                }
-                className="font-mono text-xs px-4 py-2 flex items-center gap-2"
-              >
-                <Upload size={13} />
-                <span>Import PGN</span>
-              </Button>
             </div>
           </div>
         </section>

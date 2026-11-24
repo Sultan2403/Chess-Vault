@@ -3,11 +3,16 @@ import { CheckCircle2, Gamepad2, Link2, LogOut, Save, UserRound } from "lucide-r
 import { SignOutButton, UserProfile } from "@clerk/react";
 import { Button } from "../components/ui/Button";
 import { ThemeSegmentedPicker } from "../components/ui/ThemeToggle";
+import { useAccountBootstrap } from "../hooks/useAccount";
 
 type SettingsTab = "profile" | "connections" | "preferences";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
+  const { data: accountData } = useAccountBootstrap();
+  const linkedAccounts = accountData?.linkedAccounts ?? [];
+  const chessComAccount = linkedAccounts.find((a) => a.platform === "chess.com");
+  const lichessAccount = linkedAccounts.find((a) => a.platform === "lichess");
 
   const tabs: { id: SettingsTab; label: string; icon: typeof UserRound }[] = [
     { id: "profile", label: "Profile", icon: UserRound },
@@ -79,10 +84,30 @@ export default function SettingsPage() {
             <div className="mt-9 space-y-5">
               <Platform
                 name="Chess.com"
-                detail="Connected as GM_Archive"
-                connected
+                detail={
+                  chessComAccount
+                    ? `Connected as ${chessComAccount.username}${
+                        chessComAccount.lastSyncedAt
+                          ? ` · Last synced ${new Date(chessComAccount.lastSyncedAt).toLocaleDateString()}`
+                          : ""
+                      }`
+                    : "Not connected"
+                }
+                connected={Boolean(chessComAccount)}
               />
-              <Platform name="Lichess" detail="Not connected" />
+              <Platform
+                name="Lichess"
+                detail={
+                  lichessAccount
+                    ? `Connected as ${lichessAccount.username}${
+                        lichessAccount.lastSyncedAt
+                          ? ` · Last synced ${new Date(lichessAccount.lastSyncedAt).toLocaleDateString()}`
+                          : ""
+                      }`
+                    : "Not connected"
+                }
+                connected={Boolean(lichessAccount)}
+              />
             </div>
           </section>
         )}

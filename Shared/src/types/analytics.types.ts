@@ -210,6 +210,11 @@ export type AnalyticsData = {
   };
   overview: AnalyticsOverview;
   archiveSpan: AnalyticsArchiveSpan;
+  platformCounts?: {
+    all: number;
+    "chess.com": number;
+    lichess: number;
+  };
   byPlatform: AnalyticsPlatformStat[];
   byTimeClass: AnalyticsTimeClassStat[];
   openings: AnalyticsOpenings;

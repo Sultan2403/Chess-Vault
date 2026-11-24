@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useSearchParams } from "react-router-dom";
 import { motion } from "motion/react";
 import {
   Search,
@@ -25,9 +25,18 @@ import { parseOpeningDetails, getGameDate, getMoveCount } from "../utils/game";
 import type { TimeClassType } from "@chess-vault/shared";
 
 export default function GameBankPage() {
+  const [searchParams] = useSearchParams();
+  const initialSearch = searchParams.get("search") ?? "";
+
   // Search & Filter state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch.trim());
+
+  useEffect(() => {
+    const paramSearch = searchParams.get("search") ?? "";
+    setSearchQuery(paramSearch);
+    setDebouncedSearch(paramSearch.trim());
+  }, [searchParams]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

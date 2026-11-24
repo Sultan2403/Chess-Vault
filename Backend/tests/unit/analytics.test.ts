@@ -327,7 +327,9 @@ describe("Analytics Service Unit Tests", () => {
     let capturedMatch: any = null;
 
     vi.spyOn(Games, "aggregate").mockImplementation(((pipeline: any[]) => {
-      capturedMatch = pipeline[0].$match;
+      if (pipeline.some((stage) => "$facet" in stage)) {
+        capturedMatch = pipeline[0].$match;
+      }
       return Promise.resolve([{}]);
     }) as any);
 

@@ -37,15 +37,22 @@ export default function AnalyticsPage() {
     from: fromDate,
   });
 
+  const allGamesCount = useMemo(() => {
+    if (data?.platformCounts) return data.platformCounts.all;
+    return data?.overview.totalGames ?? 0;
+  }, [data?.platformCounts, data?.overview.totalGames]);
+
   const chessComGames = useMemo(() => {
+    if (data?.platformCounts) return data.platformCounts["chess.com"];
     const found = data?.byPlatform.find((p) => p.platform === "chess.com");
     return found ? found.total : 0;
-  }, [data?.byPlatform]);
+  }, [data?.platformCounts, data?.byPlatform]);
 
   const lichessGames = useMemo(() => {
+    if (data?.platformCounts) return data.platformCounts.lichess;
     const found = data?.byPlatform.find((p) => p.platform === "lichess");
     return found ? found.total : 0;
-  }, [data?.byPlatform]);
+  }, [data?.platformCounts, data?.byPlatform]);
 
   const shouldReduceMotion = useReducedMotion();
 
@@ -90,7 +97,7 @@ export default function AnalyticsPage() {
 
           {/* Sticky Filter Toolbar */}
           <AnalyticsFilterBar
-            totalGames={data.overview.totalGames}
+            totalGames={allGamesCount}
             chessComGames={chessComGames}
             lichessGames={lichessGames}
             selectedPlatform={selectedPlatform}

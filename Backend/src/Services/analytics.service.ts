@@ -172,28 +172,30 @@ export const getAnalyticsData = async (
     // Graceful fallback to database query if Redis is unavailable
   }
 
-  const matchQuery: Record<string, any> = { userId };
+  const baseMatchQuery: Record<string, any> = { userId };
 
+  if (timeClass && timeClass !== "all") {
+    baseMatchQuery["time.timeClass"] = timeClass;
+  }
+
+  if (from || to) {
+    baseMatchQuery.playedAt = {};
+    if (from) {
+      baseMatchQuery.playedAt.$gte = new Date(from);
+    }
+    if (to) {
+      baseMatchQuery.playedAt.$lte = new Date(to);
+    }
+  }
+
+  const matchQuery: Record<string, any> = { ...baseMatchQuery };
   if (platform && platform !== "all") {
     matchQuery.platform = platform;
   }
 
-  if (timeClass && timeClass !== "all") {
-    matchQuery["time.timeClass"] = timeClass;
-  }
-
-  if (from || to) {
-    matchQuery.playedAt = {};
-    if (from) {
-      matchQuery.playedAt.$gte = new Date(from);
-    }
-    if (to) {
-      matchQuery.playedAt.$lte = new Date(to);
-    }
-  }
-
-  const facetResults = await Games.aggregate([
-    { $match: matchQuery },
+  const [facetResults, platformCountRows] = await Promise.all([
+    Games.aggregate([
+      { $match: matchQuery },
     {
       $facet: {
         overview: [
@@ -659,7 +661,14 @@ export const getAnalyticsData = async (
           ],
         },
       },
-    ]);
+    ]),
+    platform && platform !== "all"
+      ? Games.aggregate([
+          { $match: baseMatchQuery },
+          { $group: { _id: "$platform", count: { $sum: 1 } } },
+        ])
+      : Promise.resolve(null),
+  ]);
 
   const raw = facetResults[0] || {};
 
@@ -1115,6 +1124,28 @@ export const getAnalyticsData = async (
     longestDrawStreak,
   };
 
+  const platformCounts = {
+    all: 0,
+    "chess.com": 0,
+    lichess: 0,
+  };
+
+  if (platformCountRows) {
+    for (const row of platformCountRows as Array<{ _id: PlatformType; count: number }>) {
+      if (row._id === "chess.com" || row._id === "lichess") {
+        platformCounts[row._id] = row.count;
+      }
+    }
+    platformCounts.all = platformCounts["chess.com"] + platformCounts.lichess;
+  } else {
+    for (const bp of byPlatform) {
+      if (bp.platform === "chess.com" || bp.platform === "lichess") {
+        platformCounts[bp.platform] = bp.total;
+      }
+    }
+    platformCounts.all = overview.totalGames;
+  }
+
   const result: AnalyticsData = {
     query: {
       platform: (platform as PlatformType) || "all",
@@ -1124,6 +1155,7 @@ export const getAnalyticsData = async (
     },
     overview,
     archiveSpan,
+    platformCounts,
     byPlatform,
     byTimeClass,
     openings,
