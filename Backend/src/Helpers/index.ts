@@ -48,7 +48,14 @@ export const normalizeLichessGame = ({
       ? `AI (Level ${game.players.black.aiLevel})`
       : "Guest");
 
-  const opening = parseLichessOpening(game.opening);
+  const parsedOpening = parseLichessOpening(game.opening);
+  if (!parsedOpening || !parsedOpening.name) {
+    throw new Error(`Unable to parse opening for Lichess game ${game.id}`);
+  }
+  const opening = {
+    ...parsedOpening,
+    name: parsedOpening.name,
+  };
   const moves = getPgnMoveCount(game.pgn || game.moves);
   const clocks =
     normalizeLichessClocks(game.clocks) ?? parsePgnClocks(game.pgn);
@@ -108,7 +115,7 @@ export const normalizeLichessGame = ({
     pgn: game.pgn,
     finalFen: game.lastFen,
     isRated: game.rated,
-    ...(opening && { opening }),
+    opening,
     ...(moves && { moves }),
   };
 };
@@ -133,7 +140,14 @@ export const normalizeChessComGame = ({
   username: string;
   folderIds?: string[] | null;
 }): NormalizedGame => {
-  const opening = parseChessComOpening(game.pgn);
+  const parsedOpening = parseChessComOpening(game.pgn);
+  if (!parsedOpening || !parsedOpening.name) {
+    throw new Error(`Unable to parse opening for Chess.com game ${game.uuid}`);
+  }
+  const opening = {
+    ...parsedOpening,
+    name: parsedOpening.name,
+  };
   const moves = getPgnMoveCount(game.pgn);
   const clocks = parsePgnClocks(game.pgn);
   const parsedTime = parseChessComTimeControl(game.time_control);
@@ -188,7 +202,7 @@ export const normalizeChessComGame = ({
     pgn: game.pgn,
     finalFen: game.fen,
     isRated: game.rated,
-    ...(opening && { opening }),
+    opening,
     ...(moves && { moves }),
   };
 };

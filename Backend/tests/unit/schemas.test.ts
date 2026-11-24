@@ -6,6 +6,7 @@ import {
   updateGameBody,
   gameTimeSchema,
   tagsSchema,
+  openingSchema,
 } from "@chess-vault/shared";
 import {
   createFolderBody,
@@ -251,6 +252,14 @@ describe("Zod Validation Schemas", () => {
 
       const emptyId = folderParams.safeParse({ id: "   " });
       expect(emptyId.success).toBe(false);
+    });
+  });
+
+  describe("Opening Schema", () => {
+    it("should require a non-empty opening name", () => {
+      expect(openingSchema.safeParse({ name: "Sicilian Defense" }).success).toBe(true);
+      expect(openingSchema.safeParse({ eco: "B20" }).success).toBe(false);
+      expect(openingSchema.safeParse({ name: "   " }).success).toBe(false);
     });
   });
 });

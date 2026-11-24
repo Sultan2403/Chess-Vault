@@ -281,7 +281,7 @@ describe("Game Clock Pipeline & Canonical GameTime", () => {
         ...MOCK_CHESS_COM_GAME,
         time_control: "180+2",
         time_class: "blitz",
-        pgn: `[Event "Live Chess"]\n[ECO "B01"]\n\n1. e4 {[%clk 0:03:00]} 1... d5 {[%clk 0:02:58.8]} 2. exd5 {[%clk 0:02:59.2]} 2... Qxd5 {[%clk 0:02:55]} 1-0`,
+        pgn: `[Event "Live Chess"]\n[ECO "B01"]\n[Opening "Scandinavian Defense"]\n\n1. e4 {[%clk 0:03:00]} 1... d5 {[%clk 0:02:58.8]} 2. exd5 {[%clk 0:02:59.2]} 2... Qxd5 {[%clk 0:02:55]} 1-0`,
       };
 
       const normalized = normalizeChessComGame({
@@ -319,7 +319,7 @@ describe("Game Clock Pipeline & Canonical GameTime", () => {
         ...MOCK_CHESS_COM_GAME,
         time_class: "blitz",
         time_control: "180+2",
-        pgn: `1. e4 {[%clk 0:03:00]} 1... c5 {[%clk 0:02:58.8]} 2. Nf3 {[%clk 0:02:57.4]} 2... d6 {[%clk 0:02:55]} 1-0`,
+        pgn: `[Opening "Sicilian Defense"]\n\n1. e4 {[%clk 0:03:00]} 1... c5 {[%clk 0:02:58.8]} 2. Nf3 {[%clk 0:02:57.4]} 2... d6 {[%clk 0:02:55]} 1-0`,
       };
 
       // Lichess 3+2 game (structured clocks in cs: [18000, 17880, 17740, 17500])

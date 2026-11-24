@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Games from "../DB/Models/games.model";
+import { validateUserFolderIds } from "./folders.service";
 import {
   Game,
   GameSearchParams,
@@ -117,9 +118,10 @@ export const updateGame = async (
   }> = { ...rest };
 
   if (folderIds !== undefined) {
-    updatePayload.folderIds = folderIds
-      ? folderIds.map((fId) => new mongoose.Types.ObjectId(fId))
-      : null;
+    updatePayload.folderIds =
+      folderIds && folderIds.length > 0
+        ? await validateUserFolderIds(userId, folderIds)
+        : null;
   }
 
   const game = await Games.findOneAndUpdate(
@@ -162,7 +164,7 @@ export const bulkAddFolderIds = async (
   folderIds: string[],
 ): Promise<number> => {
   const gameObjectIds = gameIds.map((id) => new mongoose.Types.ObjectId(id));
-  const folderObjectIds = folderIds.map((id) => new mongoose.Types.ObjectId(id));
+  const folderObjectIds = await validateUserFolderIds(userId, folderIds);
 
   const result = await Games.updateMany(
     { _id: { $in: gameObjectIds }, userId },

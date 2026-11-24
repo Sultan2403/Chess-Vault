@@ -1,7 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import mongoose from "mongoose";
 import Games from "../../src/DB/Models/games.model";
-import { updateGame, deleteGame } from "../../src/Services/games.service";
+import Folders from "../../src/DB/Models/folders.model";
+import {
+  updateGame,
+  deleteGame,
+  bulkAddFolderIds,
+} from "../../src/Services/games.service";
 
 describe("Games Service Unit Tests (Update & Delete)", () => {
   beforeEach(() => {
@@ -38,6 +43,7 @@ describe("Games Service Unit Tests (Update & Delete)", () => {
         updatedAt: new Date(),
       };
 
+      vi.spyOn(Folders, "countDocuments").mockResolvedValue(1);
       vi.spyOn(Games, "findOneAndUpdate").mockReturnValue({
         lean: vi.fn().mockResolvedValue(mockDbResult),
       } as any);
@@ -67,6 +73,57 @@ describe("Games Service Unit Tests (Update & Delete)", () => {
       });
 
       expect(result).toBeNull();
+    });
+
+    it("should throw when folderIds include missing or unowned folders", async () => {
+      vi.spyOn(Folders, "countDocuments").mockResolvedValue(0);
+      const updateSpy = vi.spyOn(Games, "findOneAndUpdate");
+
+      await expect(
+        updateGame("65f1a2b3c4d5e6f7a8b9c0d1", "user_test_123", {
+          folderIds: ["65f1a2b3c4d5e6f7a8b9c0f9"],
+        }),
+      ).rejects.toThrow("One or more folders were not found");
+
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("bulkAddFolderIds", () => {
+    it("should validate folder ownership before bulk updating games", async () => {
+      vi.spyOn(Folders, "countDocuments").mockResolvedValue(1);
+      const updateManySpy = vi.spyOn(Games, "updateMany").mockResolvedValue({
+        acknowledged: true,
+        modifiedCount: 2,
+      } as any);
+
+      const modified = await bulkAddFolderIds(
+        "user_test_123",
+        ["65f1a2b3c4d5e6f7a8b9c0d1", "65f1a2b3c4d5e6f7a8b9c0d2"],
+        ["65f1a2b3c4d5e6f7a8b9c0f9", "65f1a2b3c4d5e6f7a8b9c0f9"],
+      );
+
+      expect(modified).toBe(2);
+      expect(Folders.countDocuments).toHaveBeenCalledWith({
+        _id: { $in: [new mongoose.Types.ObjectId("65f1a2b3c4d5e6f7a8b9c0f9")] },
+        userId: "user_test_123",
+      });
+      expect(updateManySpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("should throw and skip updateMany if any folder does not belong to user", async () => {
+      vi.spyOn(Folders, "countDocuments").mockResolvedValue(1);
+      const updateManySpy = vi.spyOn(Games, "updateMany");
+
+      await expect(
+        bulkAddFolderIds(
+          "user_test_123",
+          ["65f1a2b3c4d5e6f7a8b9c0d1"],
+          ["65f1a2b3c4d5e6f7a8b9c0f9", "65f1a2b3c4d5e6f7a8b9c0fa"],
+        ),
+      ).rejects.toThrow("One or more folders were not found");
+
+      expect(updateManySpy).not.toHaveBeenCalled();
     });
   });
 

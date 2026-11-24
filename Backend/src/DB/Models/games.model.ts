@@ -207,8 +207,7 @@ const gameSchema = new mongoose.Schema(
     // Opening details (parsed from platform data or PGN headers)
     opening: {
       type: openingSchema,
-      required: false,
-      default: undefined,
+      required: true,
     },
 
     // Move count (plies and full moves)

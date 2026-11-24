@@ -17,6 +17,7 @@ import { getUserId } from "../Utils";
 import {
   successResponse,
   notFoundResponse,
+  badRequestResponse,
   internalError,
 } from "../Utils";
 
@@ -65,6 +66,12 @@ export const updateGameController = async (req: Request, res: Response) => {
       data: { game },
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "One or more folders were not found"
+    ) {
+      return badRequestResponse({ res, message: error.message });
+    }
     return internalError({ res, error, message: "Failed to update game" });
   }
 };
@@ -99,6 +106,12 @@ export const bulkAddFolderIdsController = async (
       data: { modifiedCount },
     });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "One or more folders were not found"
+    ) {
+      return badRequestResponse({ res, message: error.message });
+    }
     return internalError({ res, error, message: "Failed to add games to collections" });
   }
 };

@@ -35,7 +35,7 @@ export const openingSchema = z.object({
   /** ECO classification code (e.g. "C34"). Stored for display; not indexed. */
   eco: z.string().trim().max(10).optional(),
   /** Opening family name (e.g. "King's Gambit Accepted") */
-  name: z.string().trim().max(100).optional(),
+  name: z.string().trim().min(1).max(100),
   /** Specific variation (e.g. "Fischer Defense") */
   variation: z.string().trim().max(100).optional(),
 });
@@ -106,7 +106,7 @@ export const GameSchema = z.object({
   sourceUrl: z.string().trim().min(1),
 
   /** Match title, formatted as `${whitePlayer.username} vs ${blackPlayer.username}` (or custom title) */
-  title: z.string().trim().max(100).optional(),
+  title: z.string().trim().min(1).max(100),
 
   /** Details of White player ({ username, rating }) */
   whitePlayer: playerInputSchema,
@@ -141,7 +141,7 @@ export const GameSchema = z.object({
   tags: tagsSchema,
 
   /** Opening details: ECO code, opening family name, and variation */
-  opening: openingSchema.optional(),
+  opening: openingSchema,
 
   /** Move statistics: count (full moves) and plies (half-moves) */
   moves: movesSchema.optional(),

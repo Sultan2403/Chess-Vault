@@ -42,6 +42,11 @@ export const mockGames: Game[] = [
     notes:
       "Found the knight sacrifice on move 23 after remembering Kasparov's game vs Anand (1995). Black's king had nowhere to shelter once the f-file pried open. Move 34. Bxd5 eliminated his only active defensive diagonal. Chigorin stared at the board for 11 minutes before resigning.",
     tags: ["Tournament Games"],
+    opening: {
+      eco: "C52",
+      name: "Evans Gambit",
+      variation: "Accepted",
+    },
   },
   {
     id: "game-2",
@@ -79,6 +84,11 @@ export const mockGames: Game[] = [
     notes:
       "Sacrifice at d5 unlocked rook battery along the e-file. Positional bind retained throughout.",
     tags: ["Najdorf Lab"],
+    opening: {
+      eco: "B90",
+      name: "Sicilian Defense",
+      variation: "Najdorf Variation",
+    },
   },
   {
     id: "game-3",
@@ -115,6 +125,11 @@ export const mockGames: Game[] = [
     notes:
       "Perpetual check sealed after opposite-color bishop blockade. Sharp endgame tactical squeeze.",
     tags: ["Tactical Monoliths"],
+    opening: {
+      eco: "E04",
+      name: "Catalan Opening",
+      variation: "Open Classical Line",
+    },
   },
   {
     id: "game-4",
@@ -152,5 +167,10 @@ export const mockGames: Game[] = [
     notes:
       "Held notoriously tense rook and pawn transition. Balanced dynamic repetition agreement.",
     tags: ["Classical League"],
+    opening: {
+      eco: "D37",
+      name: "Queen's Gambit Declined",
+      variation: "Harrwitz Attack",
+    },
   },
 ];

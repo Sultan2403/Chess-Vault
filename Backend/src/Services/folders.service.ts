@@ -389,7 +389,67 @@ export const updateFolder = async (
   return { id: _id.toString(), ...rest };
 };
 
+/**
+ * Verifies that every folder ID in `folderIds` exists and belongs to `userId`.
+ * Returns deduplicated ObjectIds, or throws if any folder is missing/unowned.
+ */
+export const validateUserFolderIds = async (
+  userId: string,
+  folderIds: string[],
+): Promise<mongoose.Types.ObjectId[]> => {
+  const uniqueIds = [...new Set(folderIds)];
+  if (uniqueIds.length === 0) return [];
+
+  const objectIds = uniqueIds.map((id) => new mongoose.Types.ObjectId(id));
+  const count = await Folders.countDocuments({
+    _id: { $in: objectIds },
+    userId,
+  });
+
+  if (count !== uniqueIds.length) {
+    throw new Error("One or more folders were not found");
+  }
+
+  return objectIds;
+};
+
 export const deleteFolder = async (id: string, userId: string) => {
   const result = await Folders.deleteOne({ _id: id, userId });
-  return result.deletedCount === 1;
+  if (result.deletedCount !== 1) return false;
+
+  const folderObjectId = new mongoose.Types.ObjectId(id);
+
+  // Pull the deleted folder ID from affected games and normalize empty arrays to null
+  await Games.updateMany(
+    { userId, folderIds: folderObjectId },
+    [
+      {
+        $set: {
+          folderIds: {
+            $let: {
+              vars: {
+                remaining: {
+                  $filter: {
+                    input: { $ifNull: ["$folderIds", []] },
+                    as: "fid",
+                    cond: { $ne: ["$$fid", folderObjectId] },
+                  },
+                },
+              },
+              in: {
+                $cond: [
+                  { $gt: [{ $size: "$$remaining" }, 0] },
+                  "$$remaining",
+                  null,
+                ],
+              },
+            },
+          },
+        },
+      },
+    ],
+    { updatePipeline: true },
+  );
+
+  return true;
 };
