@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { Trophy, BarChart2 } from "lucide-react";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
+import {
+  ResponsiveContainer,
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 import { useAccountBootstrap } from "../../hooks/useAccount";
 import type {
   AnalyticsPlatformRatingBrackets,
@@ -12,12 +21,45 @@ interface RatingsAndBracketsSectionProps {
   ratingBrackets: AnalyticsPlatformRatingBrackets[];
 }
 
+interface BracketTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: AnalyticsRatingBracket;
+  }>;
+}
+
+function CustomBracketTooltip({ active, payload }: BracketTooltipProps) {
+  if (!active || !payload?.length) return null;
+  const b = payload[0].payload;
+
+  return (
+    <div className="rounded-lg border border-vault-border-base bg-vault-surface-layer-2/95 p-3 shadow-xl backdrop-blur-sm text-xs font-mono">
+      <div className="font-semibold text-vault-primary mb-1 text-sm">
+        Opponent Elo: {b.label}
+      </div>
+      <div className="flex flex-col gap-1 text-vault-text-secondary">
+        <div className="flex items-center justify-between gap-4">
+          <span>Volume:</span>
+          <span className="font-bold text-vault-text-primary">
+            {b.total.toLocaleString()} games
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <span>Victories:</span>
+          <span className="font-bold text-emerald-400">
+            {b.wins.toLocaleString()} ({b.winPct}%)
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function RatingsAndBracketsSection({
   ratingBrackets,
 }: RatingsAndBracketsSectionProps) {
   const { data: accountData } = useAccountBootstrap();
   const linkedAccounts = accountData?.linkedAccounts ?? [];
-  const shouldReduceMotion = useReducedMotion();
 
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformType | null>(null);
 
@@ -134,64 +176,64 @@ export function RatingsAndBracketsSection({
             )}
           </div>
 
-          <div className="mt-5">
+          <div className="mt-4">
             {platformList.length === 0 || activeBrackets.length === 0 ? (
-              <p className="font-mono text-xs text-vault-text-muted">
+              <p className="font-mono text-xs text-vault-text-muted py-8 text-center">
                 No opponent rating bracket data available for this selection.
               </p>
             ) : (
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activePlatformData?.platform ?? "single"}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  transition={{ duration: 0.15 }}
-                  className="space-y-3.5"
-                >
-                  {activeBrackets.map((bracket) => {
-                    return (
-                      <div key={bracket.bracket} className="space-y-1">
-                        <div className="flex items-center justify-between font-mono text-xs">
-                          <span className="font-medium text-vault-text-primary">
-                            {bracket.label}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-vault-text-muted">
-                              {bracket.total.toLocaleString()} games
-                            </span>
-                            <span
-                              className={`font-semibold ${
-                                bracket.winPct >= 50
-                                  ? "text-emerald-400"
-                                  : "text-vault-text-secondary"
-                              }`}
-                            >
-                              {bracket.winPct}% WR
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Horizontal Bar */}
-                        <div className="h-2 w-full overflow-hidden rounded bg-vault-surface-layer-2">
-                          <motion.div
-                            initial={shouldReduceMotion ? false : { width: 0 }}
-                            animate={{ width: `${bracket.winPct}%` }}
-                            transition={{
-                              duration: 0.6,
-                              delay: shouldReduceMotion ? 0 : 0.1,
-                              ease: [0.22, 1, 0.36, 1],
-                            }}
-                            className={`h-full rounded ${
-                              bracket.winPct >= 50 ? "bg-emerald-500" : "bg-vault-primary"
-                            }`}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </motion.div>
-              </AnimatePresence>
+              <div className="h-48 w-full pt-2 rounded-md bg-vault-surface-container-lowest/60 border border-vault-border-base/40 p-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart
+                    data={activeBrackets}
+                    margin={{ top: 8, right: 16, left: -20, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} opacity={0.6} />
+                    <XAxis
+                      dataKey="label"
+                      stroke="#71717a"
+                      tick={{ fill: "#a1a1aa", fontSize: 10 }}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      yAxisId="left"
+                      stroke="#71717a"
+                      tick={{ fill: "#a1a1aa", fontSize: 10 }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      domain={[0, 100]}
+                      unit="%"
+                      stroke="#10b981"
+                      tick={{ fill: "#10b981", fontSize: 10 }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip content={<CustomBracketTooltip />} cursor={{ fill: "rgba(255, 255, 255, 0.04)" }} />
+                    <Bar
+                      yAxisId="left"
+                      dataKey="total"
+                      name="Volume"
+                      fill="#d4af37"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={36}
+                    />
+                    <Line
+                      yAxisId="right"
+                      dataKey="winPct"
+                      name="Win Rate"
+                      type="monotone"
+                      stroke="#10b981"
+                      strokeWidth={2.5}
+                      dot={{ fill: "#10b981", r: 4 }}
+                      activeDot={{ fill: "#34d399", r: 6 }}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
             )}
           </div>
         </div>

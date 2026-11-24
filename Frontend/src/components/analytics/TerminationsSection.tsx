@@ -25,6 +25,8 @@ interface TermTooltipProps {
       method: string;
       wins: number;
       losses: number;
+      winLabel: string;
+      lossLabel: string;
     };
   }>;
 }
@@ -38,13 +40,13 @@ function CustomTermTooltip({ active, payload }: TermTooltipProps) {
   return (
     <div className="rounded-lg border border-vault-border-base bg-vault-surface-layer-2/95 p-3 shadow-xl backdrop-blur-sm text-xs font-mono">
       <div className="font-semibold text-vault-text-primary mb-1.5 text-sm">
-        {data.method}
+        {data.method} Resolution
       </div>
       <div className="flex flex-col gap-1 text-vault-text-secondary">
         <div className="flex items-center justify-between gap-4">
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            Victories:
+            {data.winLabel}:
           </span>
           <span className="font-bold text-emerald-400">
             {data.wins.toLocaleString()}
@@ -53,7 +55,7 @@ function CustomTermTooltip({ active, payload }: TermTooltipProps) {
         <div className="flex items-center justify-between gap-4">
           <span className="flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-rose-500" />
-            Defeats:
+            {data.lossLabel}:
           </span>
           <span className="font-bold text-rose-400">
             {data.losses.toLocaleString()}
@@ -76,21 +78,29 @@ export function TerminationsSection({ terminations }: TerminationsSectionProps) 
       method: "Resignation",
       wins: winWays.resignation,
       losses: lossWays.resignation,
+      winLabel: "Opponent Resigned",
+      lossLabel: "You Resigned",
     },
     {
       method: "Checkmate",
       wins: winWays.checkmate,
       losses: lossWays.checkmate,
+      winLabel: "Delivered Checkmate",
+      lossLabel: "Checkmated",
     },
     {
       method: "Timeout (Flag)",
       wins: winWays.timeout,
       losses: lossWays.timeout,
+      winLabel: "Opponent Flagged",
+      lossLabel: "You Flagged",
     },
     {
-      method: "Other / Rules",
+      method: "Other Rules",
       wins: winWays.other,
       losses: lossWays.other,
+      winLabel: "Rules Victory",
+      lossLabel: "Rules Defeat",
     },
   ];
 
@@ -125,6 +135,26 @@ export function TerminationsSection({ terminations }: TerminationsSectionProps) 
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Resignation */}
+        <div className="rounded-lg border border-vault-border-base bg-vault-surface-container-lowest/80 p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="grid h-8 w-8 place-items-center rounded bg-emerald-500/10 text-emerald-400 shrink-0">
+              <Flag size={16} />
+            </div>
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-wider text-vault-text-muted">
+                OPPONENT RESIGNED
+              </div>
+              <div className="font-display text-lg font-semibold text-vault-text-primary mt-0.5">
+                {winWays.resignation.toLocaleString()}
+              </div>
+            </div>
+          </div>
+          <div className="text-right font-mono text-xs text-vault-text-muted">
+            vs {lossWays.resignation.toLocaleString()} you resigned
+          </div>
+        </div>
+
         {/* Checkmate */}
         <div className="rounded-lg border border-vault-border-base bg-vault-surface-container-lowest/80 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -145,26 +175,6 @@ export function TerminationsSection({ terminations }: TerminationsSectionProps) 
           </div>
         </div>
 
-        {/* Resignation */}
-        <div className="rounded-lg border border-vault-border-base bg-vault-surface-container-lowest/80 p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="grid h-8 w-8 place-items-center rounded bg-emerald-500/10 text-emerald-400 shrink-0">
-              <Flag size={16} />
-            </div>
-            <div>
-              <div className="font-mono text-[10px] uppercase tracking-wider text-vault-text-muted">
-                FORCED RESIGNATIONS
-              </div>
-              <div className="font-display text-lg font-semibold text-vault-text-primary mt-0.5">
-                {winWays.resignation.toLocaleString()}
-              </div>
-            </div>
-          </div>
-          <div className="text-right font-mono text-xs text-vault-text-muted">
-            vs {lossWays.resignation.toLocaleString()} resigned
-          </div>
-        </div>
-
         {/* Timeout */}
         <div className="rounded-lg border border-vault-border-base bg-vault-surface-container-lowest/80 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -173,7 +183,7 @@ export function TerminationsSection({ terminations }: TerminationsSectionProps) 
             </div>
             <div>
               <div className="font-mono text-[10px] uppercase tracking-wider text-vault-text-muted">
-                TIME SCRAMBLE FLAGS
+                WON ON TIME (FLAG)
               </div>
               <div className="font-display text-lg font-semibold text-vault-text-primary mt-0.5">
                 {winWays.timeout.toLocaleString()}
@@ -181,39 +191,47 @@ export function TerminationsSection({ terminations }: TerminationsSectionProps) 
             </div>
           </div>
           <div className="text-right font-mono text-xs text-vault-text-muted">
-            vs {lossWays.timeout.toLocaleString()} flagged
+            vs {lossWays.timeout.toLocaleString()} you flagged
           </div>
         </div>
       </div>
 
-      {/* Comparative Horizontal Bar Chart */}
+      {/* Vertical Grouped Bar Chart */}
       <div className="flex flex-col gap-2">
-        <div className="font-mono text-[11px] uppercase tracking-wider text-vault-text-muted">
-          VICTORIES VS DEFEATS BY TERMINATION METHOD
+        <div className="flex items-center justify-between">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-vault-text-muted">
+            DECISIVE RESOLUTION COMPARISON (VICTORIES VS DEFEATS)
+          </div>
+          <div className="flex items-center gap-3 font-mono text-[10px] text-vault-text-muted">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-xs bg-emerald-500" />
+              Victories (You Won)
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-xs bg-rose-500" />
+              Defeats (You Lost)
+            </span>
+          </div>
         </div>
+
         <div className="h-60 w-full pt-4 pb-2 px-2 rounded-md bg-vault-surface-container-lowest/60 border border-vault-border-base/40">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              layout="vertical"
               data={comparisonData}
-              margin={{ top: 8, right: 24, left: 24, bottom: 0 }}
+              margin={{ top: 12, right: 16, left: -16, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" horizontal={false} opacity={0.6} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} opacity={0.6} />
               <XAxis
-                type="number"
+                dataKey="method"
+                stroke="#71717a"
+                tick={{ fill: "#a1a1aa", fontSize: 11 }}
+                tickLine={false}
+              />
+              <YAxis
                 stroke="#71717a"
                 tick={{ fill: "#a1a1aa", fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}
-              />
-              <YAxis
-                type="category"
-                dataKey="method"
-                stroke="#71717a"
-                tick={{ fill: "#e4e4e7", fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                width={100}
               />
               <Tooltip
                 content={<CustomTermTooltip />}
@@ -227,15 +245,15 @@ export function TerminationsSection({ terminations }: TerminationsSectionProps) 
                 dataKey="wins"
                 name="Victories"
                 fill="#10b981"
-                radius={[0, 4, 4, 0]}
-                maxBarSize={22}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={42}
               />
               <Bar
                 dataKey="losses"
                 name="Defeats"
                 fill="#f43f5e"
-                radius={[0, 4, 4, 0]}
-                maxBarSize={22}
+                radius={[4, 4, 0, 0]}
+                maxBarSize={42}
               />
             </BarChart>
           </ResponsiveContainer>

@@ -1,10 +1,55 @@
-import { PieChart, Clock } from "lucide-react";
+import { Clock, Disc3 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+} from "recharts";
 import type { AnalyticsOverview, AnalyticsTimeClassStat } from "@chess-vault/shared";
 
 interface ColorAndCadenceSectionProps {
   overview: AnalyticsOverview;
   byTimeClass: AnalyticsTimeClassStat[];
 }
+
+interface MiniPieTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    name: string;
+    value: number;
+    payload: {
+      name: string;
+      value: number;
+      color: string;
+    };
+  }>;
+}
+
+function CustomOutcomeTooltip({ active, payload, total }: MiniPieTooltipProps & { total: number }) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0];
+  const pct = total > 0 ? ((item.value / total) * 100).toFixed(1) : "0";
+
+  return (
+    <div className="rounded bg-vault-surface-layer-3 border border-vault-border-base px-2.5 py-1.5 font-mono text-[10px] shadow-xl backdrop-blur-md">
+      <div className="font-semibold text-vault-text-primary">{item.name}</div>
+      <div className="font-bold mt-0.5" style={{ color: item.payload.color }}>
+        {item.value.toLocaleString()} games ({pct}%)
+      </div>
+    </div>
+  );
+}
+
+// Time class color mappings
+const CADENCE_COLORS: Record<string, string> = {
+  rapid: "#6366f1", // Royal Indigo
+  blitz: "#d4af37", // Vault Archival Gold
+  bullet: "#f97316", // Flame Orange
+  daily: "#88d6af", // Pale Jade
+  classical: "#06b6d4", // Electric Cyan
+  correspondence: "#a855f7", // Amethyst
+};
 
 export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenceSectionProps) {
   const white = overview.white;
@@ -13,8 +58,28 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
   // First-move advantage differential
   const advantageDiff = Number((white.winPct - black.winPct).toFixed(1));
 
-  // Sort time classes logically (Rapid, Blitz, Bullet, Classical, Daily)
-  const sortedCadence = [...byTimeClass].sort((a, b) => b.total - a.total);
+  // Color donut datasets
+  const whiteData = [
+    { name: "Wins", value: white.wins, color: "#10b981" },
+    { name: "Draws", value: white.draws, color: "#71717a" },
+    { name: "Losses", value: white.losses, color: "#f43f5e" },
+  ];
+
+  const blackData = [
+    { name: "Wins", value: black.wins, color: "#10b981" },
+    { name: "Draws", value: black.draws, color: "#71717a" },
+    { name: "Losses", value: black.losses, color: "#f43f5e" },
+  ];
+
+  // Cadence volume pie dataset
+  const cadenceData = byTimeClass.map((tc) => ({
+    name: tc.timeClass.charAt(0).toUpperCase() + tc.timeClass.slice(1),
+    timeClass: tc.timeClass,
+    value: tc.total,
+    winPct: tc.winPct,
+    volumePct: tc.volumePct,
+    color: CADENCE_COLORS[tc.timeClass.toLowerCase()] || "#94a3b8",
+  }));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -23,85 +88,101 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
         <div>
           <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-vault-text-muted">
             <span>PIECE COLOR ANALYSIS</span>
-            <PieChart size={14} className="text-vault-text-muted" />
+            <Disc3 size={14} className="text-vault-text-muted" />
           </div>
           <h2 className="font-display text-xl font-medium text-vault-text-primary mt-1">
             Result Distribution by Color
           </h2>
 
-          {/* White Pieces Breakdown */}
-          <div className="mt-5 space-y-2">
-            <div className="flex items-center justify-between font-mono text-xs">
-              <span className="font-medium text-vault-text-primary flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-xs bg-slate-100 border border-slate-300 inline-block" />
-                White Pieces ({white.total.toLocaleString()} games)
-              </span>
-              <span className="text-emerald-400 font-semibold">
-                Won {white.wins.toLocaleString()} wins as White
-              </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
+            {/* White Pieces Ring Card */}
+            <div className="rounded-lg border border-vault-border-base bg-vault-surface-container-lowest/80 p-4 flex flex-col items-center">
+              <div className="flex items-center gap-2 mb-2 font-mono text-xs">
+                <span className="h-2.5 w-2.5 rounded-xs bg-slate-100 border border-slate-300" />
+                <span className="font-semibold text-vault-text-primary">AS WHITE</span>
+                <span className="text-vault-text-muted">({white.total.toLocaleString()}g)</span>
+              </div>
+
+              {/* Centered Donut */}
+              <div className="relative h-28 w-28 my-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Tooltip content={<CustomOutcomeTooltip total={white.total} />} />
+                    <Pie
+                      data={whiteData}
+                      dataKey="value"
+                      innerRadius={36}
+                      outerRadius={48}
+                      stroke="transparent"
+                      paddingAngle={3}
+                    >
+                      {whiteData.map((d) => (
+                        <Cell key={d.name} fill={d.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="font-mono text-sm font-bold text-vault-text-primary">
+                    {white.winPct}%
+                  </span>
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400">
+                    WIN RATE
+                  </span>
+                </div>
+              </div>
+
+              {/* Record Summary */}
+              <div className="font-mono text-[11px] text-vault-text-secondary mt-2 text-center">
+                <span className="text-emerald-400 font-semibold">{white.wins}W</span> ·{" "}
+                <span className="text-neutral-400">{white.draws}D</span> ·{" "}
+                <span className="text-rose-400">{white.losses}L</span>
+              </div>
             </div>
 
-            {/* Stacked W/D/L Bar */}
-            <div className="flex h-3 w-full overflow-hidden rounded bg-vault-surface-layer-2">
-              <div
-                style={{ width: `${white.winPct}%` }}
-                className="bg-emerald-500 h-full"
-                title={`Wins: ${white.wins} (${white.winPct}%)`}
-              />
-              <div
-                style={{ width: `${safeDrawPct(white.draws, white.total)}%` }}
-                className="bg-neutral-500 h-full"
-                title={`Draws: ${white.draws}`}
-              />
-              <div
-                style={{ width: `${safeLossPct(white.losses, white.total)}%` }}
-                className="bg-rose-500 h-full"
-                title={`Losses: ${white.losses}`}
-              />
-            </div>
+            {/* Black Pieces Ring Card */}
+            <div className="rounded-lg border border-vault-border-base bg-vault-surface-container-lowest/80 p-4 flex flex-col items-center">
+              <div className="flex items-center gap-2 mb-2 font-mono text-xs">
+                <span className="h-2.5 w-2.5 rounded-xs bg-neutral-900 border border-neutral-700" />
+                <span className="font-semibold text-vault-text-primary">AS BLACK</span>
+                <span className="text-vault-text-muted">({black.total.toLocaleString()}g)</span>
+              </div>
 
-            <div className="flex items-center justify-between font-mono text-[11px] text-vault-text-secondary">
-              <span className="text-emerald-400">{white.winPct}% Win ({white.wins})</span>
-              <span className="text-neutral-400">{safeDrawPct(white.draws, white.total)}% Draw ({white.draws})</span>
-              <span className="text-rose-400">{safeLossPct(white.losses, white.total)}% Loss ({white.losses})</span>
-            </div>
-          </div>
+              {/* Centered Donut */}
+              <div className="relative h-28 w-28 my-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Tooltip content={<CustomOutcomeTooltip total={black.total} />} />
+                    <Pie
+                      data={blackData}
+                      dataKey="value"
+                      innerRadius={36}
+                      outerRadius={48}
+                      stroke="transparent"
+                      paddingAngle={3}
+                    >
+                      {blackData.map((d) => (
+                        <Cell key={d.name} fill={d.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="font-mono text-sm font-bold text-vault-text-primary">
+                    {black.winPct}%
+                  </span>
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400">
+                    WIN RATE
+                  </span>
+                </div>
+              </div>
 
-          {/* Black Pieces Breakdown */}
-          <div className="mt-5 space-y-2">
-            <div className="flex items-center justify-between font-mono text-xs">
-              <span className="font-medium text-vault-text-primary flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-xs bg-neutral-900 border border-neutral-700 inline-block" />
-                Black Pieces ({black.total.toLocaleString()} games)
-              </span>
-              <span className="text-emerald-400 font-semibold">
-                Won {black.wins.toLocaleString()} wins as Black
-              </span>
-            </div>
-
-            {/* Stacked W/D/L Bar */}
-            <div className="flex h-3 w-full overflow-hidden rounded bg-vault-surface-layer-2">
-              <div
-                style={{ width: `${black.winPct}%` }}
-                className="bg-emerald-500 h-full"
-                title={`Wins: ${black.wins} (${black.winPct}%)`}
-              />
-              <div
-                style={{ width: `${safeDrawPct(black.draws, black.total)}%` }}
-                className="bg-neutral-500 h-full"
-                title={`Draws: ${black.draws}`}
-              />
-              <div
-                style={{ width: `${safeLossPct(black.losses, black.total)}%` }}
-                className="bg-rose-500 h-full"
-                title={`Losses: ${black.losses}`}
-              />
-            </div>
-
-            <div className="flex items-center justify-between font-mono text-[11px] text-vault-text-secondary">
-              <span className="text-emerald-400">{black.winPct}% Win ({black.wins})</span>
-              <span className="text-neutral-400">{safeDrawPct(black.draws, black.total)}% Draw ({black.draws})</span>
-              <span className="text-rose-400">{safeLossPct(black.losses, black.total)}% Loss ({black.losses})</span>
+              {/* Record Summary */}
+              <div className="font-mono text-[11px] text-vault-text-secondary mt-2 text-center">
+                <span className="text-emerald-400 font-semibold">{black.wins}W</span> ·{" "}
+                <span className="text-neutral-400">{black.draws}D</span> ·{" "}
+                <span className="text-rose-400">{black.losses}L</span>
+              </div>
             </div>
           </div>
         </div>
@@ -126,44 +207,78 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
             Cadence Performance
           </h2>
 
-          <div className="mt-5 space-y-4">
-            {sortedCadence.slice(0, 4).map((tc) => {
-              const drawPct = safeDrawPct(tc.draws, tc.total);
-              const lossPct = safeLossPct(tc.losses, tc.total);
+          <div className="flex flex-col sm:flex-row items-center gap-6 mt-4">
+            {/* Cadence Volume Donut */}
+            <div className="relative h-36 w-36 shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+                      const item = payload[0].payload;
+                      return (
+                        <div className="rounded bg-vault-surface-layer-3 border border-vault-border-base px-2.5 py-1.5 font-mono text-[10px] shadow-xl backdrop-blur-md">
+                          <div className="font-semibold text-vault-text-primary">{item.name}</div>
+                          <div className="text-vault-text-secondary">
+                            {Number(item.value).toLocaleString()} games ({item.volumePct}%)
+                          </div>
+                          <div className="font-bold text-emerald-400 mt-0.5">
+                            {item.winPct}% Win Rate
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Pie
+                    data={cadenceData}
+                    dataKey="value"
+                    innerRadius={44}
+                    outerRadius={62}
+                    stroke="transparent"
+                    paddingAngle={3}
+                  >
+                    {cadenceData.map((d) => (
+                      <Cell key={d.name} fill={d.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="font-mono text-xs font-bold text-vault-text-primary">
+                  {cadenceData.reduce((acc, c) => acc + c.value, 0).toLocaleString()}
+                </span>
+                <span className="font-mono text-[8px] uppercase tracking-wider text-vault-text-muted">
+                  GAMES
+                </span>
+              </div>
+            </div>
 
-              return (
-                <div key={tc.timeClass} className="space-y-1.5">
-                  <div className="flex items-center justify-between font-mono text-xs">
-                    <span className="font-semibold capitalize text-vault-text-primary">
-                      {tc.timeClass}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-vault-text-muted">
-                        {tc.total.toLocaleString()} games ({tc.volumePct}%)
-                      </span>
-                      <span className="text-emerald-400 font-bold">
-                        {tc.winPct}% Win
-                      </span>
-                    </div>
+            {/* Cadence Metrics Legend */}
+            <div className="flex-1 w-full flex flex-col gap-2 font-mono text-xs">
+              {cadenceData.slice(0, 4).map((c) => (
+                <div
+                  key={c.timeClass}
+                  className="flex items-center justify-between p-2 rounded bg-vault-surface-container-lowest/60 border border-vault-border-base/40"
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="h-2.5 w-2.5 rounded-xs shrink-0"
+                      style={{ backgroundColor: c.color }}
+                    />
+                    <span className="font-semibold text-vault-text-primary">{c.name}</span>
+                    <span className="text-[10px] text-vault-text-muted">({c.volumePct}%)</span>
                   </div>
-
-                  <div className="flex h-2.5 w-full overflow-hidden rounded bg-vault-surface-layer-2">
-                    <div
-                      style={{ width: `${tc.winPct}%` }}
-                      className="bg-emerald-500 h-full"
-                    />
-                    <div
-                      style={{ width: `${drawPct}%` }}
-                      className="bg-neutral-500 h-full"
-                    />
-                    <div
-                      style={{ width: `${lossPct}%` }}
-                      className="bg-rose-500 h-full"
-                    />
+                  <div className="flex items-center gap-2 text-right">
+                    <span className="text-[11px] text-vault-text-secondary">
+                      {c.value.toLocaleString()}g
+                    </span>
+                    <span className="font-bold text-emerald-400 text-xs">
+                      {c.winPct}% WR
+                    </span>
                   </div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         </div>
 
@@ -174,14 +289,4 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
       </div>
     </div>
   );
-}
-
-function safeDrawPct(draws: number, total: number) {
-  if (!total || total <= 0) return 0;
-  return Number(((draws / total) * 100).toFixed(1));
-}
-
-function safeLossPct(losses: number, total: number) {
-  if (!total || total <= 0) return 0;
-  return Number(((losses / total) * 100).toFixed(1));
 }
