@@ -65,6 +65,8 @@ export type AnalyticsOpeningStat = {
 export type AnalyticsOpenings = {
   asWhite: AnalyticsOpeningStat[];
   asBlack: AnalyticsOpeningStat[];
+  signatureWeapons: AnalyticsOpeningStat[];
+  vulnerableOpenings: AnalyticsOpeningStat[];
   signatureWeapon: AnalyticsOpeningStat | null;
   vulnerableOpening: AnalyticsOpeningStat | null;
 };
@@ -151,6 +153,11 @@ export type AnalyticsRatingBracket = {
   winPct: number;
 };
 
+export type AnalyticsPlatformRatingBrackets = {
+  platform: PlatformType;
+  brackets: AnalyticsRatingBracket[];
+};
+
 export type AnalyticsArchiveSpan = {
   firstGameAt: string | null;
   lastGameAt: string | null;
@@ -179,6 +186,11 @@ export type AnalyticsRatingPoint = {
   gamesPlayed: number;
 };
 
+export type AnalyticsPlatformRatingProgression = {
+  platform: PlatformType;
+  data: AnalyticsRatingPoint[];
+};
+
 export type AnalyticsStreaks = {
   currentStreak: {
     count: number;
@@ -205,9 +217,9 @@ export type AnalyticsData = {
   terminations: AnalyticsTerminations;
   moveBuckets: AnalyticsMoveBucket[];
   gameLength: AnalyticsGameLength;
-  ratingBrackets: AnalyticsRatingBracket[];
+  ratingBrackets: AnalyticsPlatformRatingBrackets[];
   optimalWindow: AnalyticsOptimalWindow | null;
   activityTrends: AnalyticsActivityTrend[];
-  ratingProgression: AnalyticsRatingPoint[];
+  ratingProgression: AnalyticsPlatformRatingProgression[];
   streaks: AnalyticsStreaks;
 };

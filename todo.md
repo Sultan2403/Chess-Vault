@@ -65,10 +65,36 @@ The boundary to go older than can be computed from your stored games (the oldest
   - Time-class distribution
   - Game length statistics
   - Most-played opponents
-  - Opening distribution
-  - Opponent/rating statistics and trends
+  - Opening distribution (100% archive coverage across Chess.com and Lichess, unified naming, Top 3 Signature Weapons & Vulnerable Openings)
+  - Opponent/rating statistics and trends (Platform-separated brackets and rating progression)
   - Games played over time / activity trends
   - Other useful personal insights that can be derived from the user's archived games
+- [x] Harden MongoDB Game schema and parser pipeline (required title, strict moves subdocument, validated opening subdocument with required name, PGN ECOUrl parser, database backfill)
+
+### Analytics Roadmap: Basic vs Pro Deep Analytics
+
+- **Basic Analytics (Free Tier - Core Experience)**:
+  - [ ] **Total Playtime KPI ("Time on Board")**:
+    - Aggregate exact match duration using `time.clocks` telemetry:
+      `Match Duration = [initial + (whiteMoves * increment) - whiteFinalClock] + [initial + (blackMoves * increment) - blackFinalClock]`
+    - Explicitly exclude Daily/correspondence chess from live board playtime.
+    - Data integrity flag: Show an info/warning indicator if games have missing clock telemetry (e.g., *"Calculated from N games with verified clock data; Daily chess excluded"*).
+    - Support platform filtering (`"all"`, `"chess.com"`, `"lichess"`).
+    - Display in overview KPI cards (formatted as `Xd Yh` / total hours).
+
+- **Deep Analytics (Pro Tier - Premium Intelligence)**:
+  - [ ] **Time Trouble & Flagging Scramble Index**:
+    - Track frequency of dropping under critical thresholds (< 30s, < 10s).
+    - Measure win/conversion rate when in time trouble vs when opponent is in time trouble.
+  - [ ] **Deep Think Moments & Move Allocation Curve**:
+    - Identify specific turns where player spent excessive clock time (> 2-3 mins on a single move).
+    - Heatmap and move-by-move clock depletion curves across game phases (Opening vs Middlegame vs Endgame).
+  - [ ] **Time Spent vs Blunder Correlation**:
+    - Analyze whether blunders occur during rushed instinct moves or overthought moves.
+  - [ ] **Comeback Factor**:
+    - Detect games won or drawn from severely disadvantaged material/eval positions.
+  - [ ] **Chronobiology & Peak Performance Windows**:
+    - Deep correlation of win rate by hour of day and session length (detecting tilt and fatigue).
 
 ## Frontend
 

@@ -11,6 +11,8 @@ import {
   AnalyticsOpeningStat,
   AnalyticsOptimalWindow,
   AnalyticsOpponentStat,
+  AnalyticsPlatformRatingBrackets,
+  AnalyticsPlatformRatingProgression,
   AnalyticsPlatformStat,
   AnalyticsQuery,
   AnalyticsRatingBracket,
@@ -44,6 +46,98 @@ function formatSpan(firstDate: Date | null, lastDate: Date | null): string {
     return months > 0 ? `${years}y ${months}m` : `${years}y`;
   }
   return `${Math.max(1, months)}m`;
+}
+
+function computeRatingBrackets(
+  rawList: { oppRating: number; userResult: "win" | "loss" | "draw" }[]
+): AnalyticsRatingBracket[] {
+  const ratings = rawList
+    .map((b) => b.oppRating)
+    .filter((r) => typeof r === "number" && r > 0);
+
+  if (ratings.length === 0) {
+    return [
+      { bracket: "> 2300", label: "> 2300 Elo", total: 0, wins: 0, winPct: 0 },
+      { bracket: "2100 - 2300", label: "2100 - 2300 Elo", total: 0, wins: 0, winPct: 0 },
+      { bracket: "1900 - 2100", label: "1900 - 2100 Elo", total: 0, wins: 0, winPct: 0 },
+      { bracket: "< 1900", label: "< 1900 Elo", total: 0, wins: 0, winPct: 0 },
+    ];
+  }
+
+  const minRating = Math.min(...ratings);
+  const maxRating = Math.max(...ratings);
+
+  if (maxRating - minRating < 40) {
+    const count = rawList.length;
+    const wins = rawList.filter((b) => b.userResult === "win").length;
+    return [
+      {
+        bracket: `${minRating} - ${maxRating}`,
+        label: `${minRating} - ${maxRating} Elo`,
+        total: count,
+        wins,
+        winPct: safePct(wins, count),
+      },
+    ];
+  }
+
+  const step = (maxRating - minRating) / 4;
+  const q1 = Math.round(minRating + step);
+  const q2 = Math.round(minRating + step * 2);
+  const q3 = Math.round(minRating + step * 3);
+
+  const b4 = { count: 0, wins: 0 };
+  const b3 = { count: 0, wins: 0 };
+  const b2 = { count: 0, wins: 0 };
+  const b1 = { count: 0, wins: 0 };
+
+  for (const item of rawList) {
+    const isWin = item.userResult === "win";
+    if (item.oppRating > q3) {
+      b4.count += 1;
+      if (isWin) b4.wins += 1;
+    } else if (item.oppRating > q2) {
+      b3.count += 1;
+      if (isWin) b3.wins += 1;
+    } else if (item.oppRating > q1) {
+      b2.count += 1;
+      if (isWin) b2.wins += 1;
+    } else {
+      b1.count += 1;
+      if (isWin) b1.wins += 1;
+    }
+  }
+
+  return [
+    {
+      bracket: `> ${q3}`,
+      label: `> ${q3} Elo`,
+      total: b4.count,
+      wins: b4.wins,
+      winPct: safePct(b4.wins, b4.count),
+    },
+    {
+      bracket: `${q2} - ${q3}`,
+      label: `${q2} - ${q3} Elo`,
+      total: b3.count,
+      wins: b3.wins,
+      winPct: safePct(b3.wins, b3.count),
+    },
+    {
+      bracket: `${q1} - ${q2}`,
+      label: `${q1} - ${q2} Elo`,
+      total: b2.count,
+      wins: b2.wins,
+      winPct: safePct(b2.wins, b2.count),
+    },
+    {
+      bracket: `< ${q1}`,
+      label: `< ${q1} Elo`,
+      total: b1.count,
+      wins: b1.wins,
+      winPct: safePct(b1.wins, b1.count),
+    },
+  ];
 }
 
 const DAY_NAMES = [
@@ -259,16 +353,16 @@ export const getAnalyticsData = async (
           byOpening: [
             {
               $match: {
-                "opening.name": { $exists: true, $ne: null, $nin: [""] },
+                "opening.name": { $exists: true, $ne: null, $nin: ["", "Undefined", "undefined"] },
               },
             },
             {
               $group: {
                 _id: {
                   name: "$opening.name",
-                  eco: "$opening.eco",
                   color: "$userPlayedAs",
                 },
+                eco: { $first: "$opening.eco" },
                 total: { $sum: 1 },
                 wins: { $sum: { $cond: [{ $eq: ["$userResult", "win"] }, 1, 0] } },
                 losses: { $sum: { $cond: [{ $eq: ["$userResult", "loss"] }, 1, 0] } },
@@ -438,6 +532,7 @@ export const getAnalyticsData = async (
             {
               $project: {
                 _id: 0,
+                platform: 1,
                 userResult: 1,
                 oppRating: {
                   $cond: [
@@ -458,6 +553,7 @@ export const getAnalyticsData = async (
           ratingProgression: [
             {
               $project: {
+                platform: 1,
                 userRating: {
                   $cond: [
                     { $eq: ["$userPlayedAs", "white"] },
@@ -476,6 +572,7 @@ export const getAnalyticsData = async (
             {
               $group: {
                 _id: {
+                  platform: "$platform",
                   year: { $year: "$playedAt" },
                   month: { $month: "$playedAt" },
                 },
@@ -483,7 +580,7 @@ export const getAnalyticsData = async (
                 gamesPlayed: { $sum: 1 },
               },
             },
-            { $sort: { "_id.year": 1, "_id.month": 1 } },
+            { $sort: { "_id.platform": 1, "_id.year": 1, "_id.month": 1 } },
           ],
 
           streakGames: [
@@ -661,7 +758,7 @@ export const getAnalyticsData = async (
   for (const op of raw.byOpening || []) {
     const stat: AnalyticsOpeningStat = {
       name: op._id.name,
-      eco: op._id.eco,
+      eco: op.eco || op._id.eco,
       color: op._id.color,
       total: op.total,
       wins: op.wins,
@@ -677,23 +774,28 @@ export const getAnalyticsData = async (
     }
   }
 
-  const signatureThreshold = Math.max(5, Math.round(totalGames * 0.25));
-  const vulnerableThreshold = Math.max(5, Math.round(totalGames * 0.1));
+  // Volume threshold for signature weapons and vulnerabilities:
+  // at least 15 games in large archives, or 3% of total games (minimum 5 games for small vaults)
+  const weaponThreshold = Math.max(5, Math.min(15, Math.round(totalGames * 0.03)));
 
   const allOpenings = [...openingsAsWhite, ...openingsAsBlack];
   const eligibleSignature = allOpenings
-    .filter((o) => o.total >= signatureThreshold)
+    .filter((o) => o.total >= weaponThreshold)
     .sort((a, b) => b.winPct - a.winPct || b.total - a.total);
-  const signatureWeapon = eligibleSignature.length > 0 ? eligibleSignature[0] : null;
+  const signatureWeapons = eligibleSignature.slice(0, 3);
+  const signatureWeapon = signatureWeapons.length > 0 ? signatureWeapons[0] : null;
 
   const eligibleVulnerable = allOpenings
-    .filter((o) => o.total >= vulnerableThreshold && o.winPct < 50)
+    .filter((o) => o.total >= weaponThreshold && o.winPct < 50)
     .sort((a, b) => a.winPct - b.winPct || b.total - a.total);
-  const vulnerableOpening = eligibleVulnerable.length > 0 ? eligibleVulnerable[0] : null;
+  const vulnerableOpenings = eligibleVulnerable.slice(0, 3);
+  const vulnerableOpening = vulnerableOpenings.length > 0 ? vulnerableOpenings[0] : null;
 
   const openings = {
     asWhite: openingsAsWhite.slice(0, 20),
     asBlack: openingsAsBlack.slice(0, 20),
+    signatureWeapons,
+    vulnerableOpenings,
     signatureWeapon,
     vulnerableOpening,
   };
@@ -868,100 +970,32 @@ export const getAnalyticsData = async (
     longestGame,
   };
 
-  // 10. Rating brackets (dynamic quartiles)
+  // 10. Rating brackets (per-platform dynamic quartiles)
   const rawBrackets = (raw.ratingBrackets || []) as {
+    platform?: PlatformType;
     oppRating: number;
     userResult: "win" | "loss" | "draw";
   }[];
-  const ratings = rawBrackets
-    .map((b) => b.oppRating)
-    .filter((r) => typeof r === "number" && r > 0);
 
-  let ratingBrackets: AnalyticsRatingBracket[] = [];
+  const bracketPlatforms: PlatformType[] =
+    platform !== "all"
+      ? [platform as PlatformType]
+      : Array.from(
+          new Set([
+            ...byPlatform.map((bp) => bp.platform),
+            ...rawBrackets.map((b) => b.platform).filter(Boolean) as PlatformType[],
+          ])
+        );
 
-  if (ratings.length === 0) {
-    ratingBrackets = [
-      { bracket: "> 2300", label: "> 2300 Elo", total: 0, wins: 0, winPct: 0 },
-      { bracket: "2100 - 2300", label: "2100 - 2300 Elo", total: 0, wins: 0, winPct: 0 },
-      { bracket: "1900 - 2100", label: "1900 - 2100 Elo", total: 0, wins: 0, winPct: 0 },
-      { bracket: "< 1900", label: "< 1900 Elo", total: 0, wins: 0, winPct: 0 },
-    ];
-  } else {
-    const minRating = Math.min(...ratings);
-    const maxRating = Math.max(...ratings);
-
-    if (maxRating - minRating < 40) {
-      const count = rawBrackets.length;
-      const wins = rawBrackets.filter((b) => b.userResult === "win").length;
-      ratingBrackets = [
-        {
-          bracket: `${minRating} - ${maxRating}`,
-          label: `${minRating} - ${maxRating} Elo`,
-          total: count,
-          wins,
-          winPct: safePct(wins, count),
-        },
-      ];
-    } else {
-      const step = (maxRating - minRating) / 4;
-      const q1 = Math.round(minRating + step);
-      const q2 = Math.round(minRating + step * 2);
-      const q3 = Math.round(minRating + step * 3);
-
-      const b4 = { count: 0, wins: 0 };
-      const b3 = { count: 0, wins: 0 };
-      const b2 = { count: 0, wins: 0 };
-      const b1 = { count: 0, wins: 0 };
-
-      for (const item of rawBrackets) {
-        const isWin = item.userResult === "win";
-        if (item.oppRating > q3) {
-          b4.count += 1;
-          if (isWin) b4.wins += 1;
-        } else if (item.oppRating > q2) {
-          b3.count += 1;
-          if (isWin) b3.wins += 1;
-        } else if (item.oppRating > q1) {
-          b2.count += 1;
-          if (isWin) b2.wins += 1;
-        } else {
-          b1.count += 1;
-          if (isWin) b1.wins += 1;
-        }
-      }
-
-      ratingBrackets = [
-        {
-          bracket: `> ${q3}`,
-          label: `> ${q3} Elo`,
-          total: b4.count,
-          wins: b4.wins,
-          winPct: safePct(b4.wins, b4.count),
-        },
-        {
-          bracket: `${q2} - ${q3}`,
-          label: `${q2} - ${q3} Elo`,
-          total: b3.count,
-          wins: b3.wins,
-          winPct: safePct(b3.wins, b3.count),
-        },
-        {
-          bracket: `${q1} - ${q2}`,
-          label: `${q1} - ${q2} Elo`,
-          total: b2.count,
-          wins: b2.wins,
-          winPct: safePct(b2.wins, b2.count),
-        },
-        {
-          bracket: `< ${q1}`,
-          label: `< ${q1} Elo`,
-          total: b1.count,
-          wins: b1.wins,
-          winPct: safePct(b1.wins, b1.count),
-        },
-      ];
-    }
-  }
+  const ratingBrackets: AnalyticsPlatformRatingBrackets[] = bracketPlatforms.map((platform) => {
+    const platformRaw = rawBrackets.filter(
+      (b) => (b.platform || platform) === platform
+    );
+    return {
+      platform,
+      brackets: computeRatingBrackets(platformRaw),
+    };
+  });
 
   // 11. Optimal Window
   const windowThreshold = Math.max(3, Math.round(totalGames * 0.05));
@@ -994,16 +1028,39 @@ export const getAnalyticsData = async (
     };
   });
 
-  // 13. Rating progression
-  const ratingProgression: AnalyticsRatingPoint[] = (raw.ratingProgression || []).map((rp: any) => {
-    const yearStr = String(rp._id.year);
-    const monthStr = String(rp._id.month).padStart(2, "0");
-    return {
-      period: `${yearStr}-${monthStr}`,
-      avgRating: Math.round(rp.avgRating),
-      gamesPlayed: rp.gamesPlayed,
-    };
-  });
+  // 13. Rating progression (per-platform)
+  const progressionPlatforms: PlatformType[] =
+    platform !== "all"
+      ? [platform as PlatformType]
+      : Array.from(
+          new Set([
+            ...byPlatform.map((bp) => bp.platform),
+            ...(raw.ratingProgression || [])
+              .map((rp: any) => rp._id?.platform as PlatformType)
+              .filter(Boolean),
+          ])
+        );
+
+  const ratingProgression: AnalyticsPlatformRatingProgression[] = progressionPlatforms.map(
+    (platform) => {
+      const platformPoints: AnalyticsRatingPoint[] = (raw.ratingProgression || [])
+        .filter((rp: any) => (rp._id?.platform || platform) === platform)
+        .map((rp: any) => {
+          const yearStr = String(rp._id.year);
+          const monthStr = String(rp._id.month).padStart(2, "0");
+          return {
+            period: `${yearStr}-${monthStr}`,
+            avgRating: Math.round(rp.avgRating),
+            gamesPlayed: rp.gamesPlayed,
+          };
+        });
+
+      return {
+        platform,
+        data: platformPoints,
+      };
+    }
+  );
 
   // 14. Streaks
   let longestWinStreak = 0;

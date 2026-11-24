@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, BookOpen, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowUpRight, BookOpen, ChevronDown, ChevronUp, ShieldAlert, Swords } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import type { AnalyticsOpenings } from "@chess-vault/shared";
 
@@ -12,11 +12,158 @@ export function OpeningRepertoireSection({ openings }: OpeningRepertoireSectionP
   const [activeTab, setActiveTab] = useState<"white" | "black">("white");
   const [showAll, setShowAll] = useState(false);
 
+  const signatureWeapons = openings.signatureWeapons?.length
+    ? openings.signatureWeapons
+    : openings.signatureWeapon
+      ? [openings.signatureWeapon]
+      : [];
+
+  const vulnerableOpenings = openings.vulnerableOpenings?.length
+    ? openings.vulnerableOpenings
+    : openings.vulnerableOpening
+      ? [openings.vulnerableOpening]
+      : [];
+
   const list = activeTab === "white" ? openings.asWhite : openings.asBlack;
   const displayedList = showAll ? list : list.slice(0, 8);
 
   return (
     <div className="rounded-lg border border-vault-border-base bg-vault-surface-layer-1 p-6 flex flex-col gap-6">
+      {/* Signature Weapons & Vulnerable Openings Grid */}
+      {(signatureWeapons.length > 0 || vulnerableOpenings.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Signature Weapons */}
+          <div className="rounded-lg border border-vault-border-base bg-vault-surface-container-lowest/80 p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between font-mono text-[10px]">
+                <div className="flex items-center gap-1.5 text-emerald-400 uppercase tracking-wider font-semibold">
+                  <Swords size={13} />
+                  <span>SIGNATURE WEAPONS // TOP PERFORMANCES</span>
+                </div>
+                <span className="text-emerald-400 font-semibold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                  TOP {signatureWeapons.length}
+                </span>
+              </div>
+              <p className="text-xs text-vault-text-secondary mt-1">
+                Your highest-conversion openings across the entire vault with proven sample sizes.
+              </p>
+
+              <div className="mt-4 flex flex-col divide-y divide-vault-border-base/40">
+                {signatureWeapons.map((weapon, idx) => (
+                  <div
+                    key={`weapon-${weapon.color}-${weapon.name}`}
+                    className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[10px] text-vault-text-muted font-bold">
+                          #{idx + 1}
+                        </span>
+                        {weapon.eco && (
+                          <span className="font-mono text-[10px] font-semibold text-vault-primary uppercase bg-vault-primary/10 px-1 py-0.5 rounded">
+                            {weapon.eco}
+                          </span>
+                        )}
+                        <span className="font-display text-sm font-medium text-vault-text-primary truncate">
+                          {weapon.name}
+                        </span>
+                        <span className="font-mono text-[10px] text-vault-text-muted uppercase">
+                          ({weapon.color})
+                        </span>
+                      </div>
+                      <div className="font-mono text-[11px] text-vault-text-muted mt-0.5">
+                        {weapon.wins}W · {weapon.draws}D · {weapon.losses}L ({weapon.total.toLocaleString()} games)
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="font-mono text-sm font-bold text-emerald-400">
+                        {weapon.winPct}%
+                      </span>
+                      <Link
+                        to={`/game-bank?search=${encodeURIComponent(weapon.name)}`}
+                        className="text-vault-text-muted hover:text-vault-primary transition-colors p-1 rounded hover:bg-vault-surface-layer-2"
+                        title="Inspect in Bank"
+                      >
+                        <ArrowUpRight size={14} />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Vulnerable Openings */}
+          <div className="rounded-lg border border-vault-border-base bg-vault-surface-container-lowest/80 p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between font-mono text-[10px]">
+                <div className="flex items-center gap-1.5 text-rose-400 uppercase tracking-wider font-semibold">
+                  <ShieldAlert size={13} />
+                  <span>VULNERABLE OPENINGS // LEAK DETECTION</span>
+                </div>
+                <span className="text-rose-400 font-semibold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
+                  TOP {vulnerableOpenings.length}
+                </span>
+              </div>
+              <p className="text-xs text-vault-text-secondary mt-1">
+                Openings where win rate falls under 50% with significant frequency, signaling tactical leaks.
+              </p>
+
+              <div className="mt-4 flex flex-col divide-y divide-vault-border-base/40">
+                {vulnerableOpenings.length === 0 ? (
+                  <p className="font-mono text-xs text-vault-text-muted py-4 text-center">
+                    No major vulnerabilities identified. All frequent lines meet or exceed 50% win rate.
+                  </p>
+                ) : (
+                  vulnerableOpenings.map((vuln, idx) => (
+                    <div
+                      key={`vuln-${vuln.color}-${vuln.name}`}
+                      className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-3"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[10px] text-vault-text-muted font-bold">
+                            #{idx + 1}
+                          </span>
+                          {vuln.eco && (
+                            <span className="font-mono text-[10px] font-semibold text-vault-primary uppercase bg-vault-primary/10 px-1 py-0.5 rounded">
+                              {vuln.eco}
+                            </span>
+                          )}
+                          <span className="font-display text-sm font-medium text-vault-text-primary truncate">
+                            {vuln.name}
+                          </span>
+                          <span className="font-mono text-[10px] text-vault-text-muted uppercase">
+                            ({vuln.color})
+                          </span>
+                        </div>
+                        <div className="font-mono text-[11px] text-vault-text-muted mt-0.5">
+                          {vuln.wins}W · {vuln.draws}D · {vuln.losses}L ({vuln.total.toLocaleString()} games)
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="font-mono text-sm font-bold text-rose-400">
+                          {vuln.winPct}%
+                        </span>
+                        <Link
+                          to={`/game-bank?search=${encodeURIComponent(vuln.name)}`}
+                          className="text-vault-text-muted hover:text-vault-primary transition-colors p-1 rounded hover:bg-vault-surface-layer-2"
+                          title="Inspect in Bank"
+                        >
+                          <ArrowUpRight size={14} />
+                        </Link>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header & Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>

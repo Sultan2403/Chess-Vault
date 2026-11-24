@@ -66,7 +66,7 @@ describe("Analytics Service Unit Tests", () => {
     expect(result.gameLength.quickestWin).toBeNull();
     expect(result.gameLength.longestGame).toBeNull();
     expect(result.gameLength.medianMoves).toBe(0);
-    expect(result.ratingBrackets).toHaveLength(4);
+    expect(result.ratingBrackets).toEqual([]);
     expect(result.ratingProgression).toEqual([]);
     expect(result.optimalWindow).toBeNull();
     expect(result.streaks.currentStreak.count).toBe(0);
@@ -184,14 +184,14 @@ describe("Analytics Service Unit Tests", () => {
           },
         ],
         ratingBrackets: [
-          { oppRating: 1800, userResult: "win" },
-          { oppRating: 2000, userResult: "win" },
-          { oppRating: 2200, userResult: "loss" },
-          { oppRating: 2400, userResult: "win" },
+          { platform: "chess.com", oppRating: 1800, userResult: "win" },
+          { platform: "chess.com", oppRating: 2000, userResult: "win" },
+          { platform: "chess.com", oppRating: 2200, userResult: "loss" },
+          { platform: "chess.com", oppRating: 2400, userResult: "win" },
         ],
         ratingProgression: [
-          { _id: { year: 2026, month: 1 }, avgRating: 1850.4, gamesPlayed: 4 },
-          { _id: { year: 2026, month: 2 }, avgRating: 1910.1, gamesPlayed: 6 },
+          { _id: { platform: "chess.com", year: 2026, month: 1 }, avgRating: 1850.4, gamesPlayed: 4 },
+          { _id: { platform: "chess.com", year: 2026, month: 2 }, avgRating: 1910.1, gamesPlayed: 6 },
         ],
         streakGames: [
           { userResult: "win" },
@@ -289,14 +289,22 @@ describe("Analytics Service Unit Tests", () => {
     expect(result.gameLength.longestGame?.movesCount).toBe(109);
     expect(result.gameLength.medianMoves).toBe(34);
 
-    // Rating brackets
-    expect(result.ratingBrackets).toHaveLength(4);
+    // Rating brackets (per-platform)
+    expect(result.ratingBrackets).toHaveLength(2);
+    expect(result.ratingBrackets[0].platform).toBe("chess.com");
+    expect(result.ratingBrackets[0].brackets).toHaveLength(4);
+    expect(result.ratingBrackets[1].platform).toBe("lichess");
+    expect(result.ratingBrackets[1].brackets).toHaveLength(4);
 
-    // Rating progression
-    expect(result.ratingProgression).toEqual([
+    // Rating progression (per-platform)
+    expect(result.ratingProgression).toHaveLength(2);
+    expect(result.ratingProgression[0].platform).toBe("chess.com");
+    expect(result.ratingProgression[0].data).toEqual([
       { period: "2026-01", avgRating: 1850, gamesPlayed: 4 },
       { period: "2026-02", avgRating: 1910, gamesPlayed: 6 },
     ]);
+    expect(result.ratingProgression[1].platform).toBe("lichess");
+    expect(result.ratingProgression[1].data).toEqual([]);
 
     // Optimal window
     expect(result.optimalWindow?.dayOfWeek).toBe("Sunday");

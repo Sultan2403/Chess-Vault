@@ -51,21 +51,117 @@ export function parseLichessOpening(
 }
 
 /**
- * Derives opening details from a Chess.com PGN string by reading standard
- * PGN header tags: [ECO "..."], [Opening "..."], [Variation "..."].
+ * Derives opening details from a Chess.com PGN string.
  *
- * Returns `undefined` when none of the relevant headers are present.
+ * Chess.com emits [ECO "..."] and [ECOUrl "https://www.chess.com/openings/<Slug>"]
+ * rather than standard [Opening "..."] tags.
+ *
+ * This function:
+ * 1. Checks for standard [Opening "..."] as a fallback.
+ * 2. If [ECOUrl "..."] is present, extracts the slug.
+ * 3. Strips move notation (e.g. -3.Nc3-Nf6, -with-4-Nf3, ...4.Nf3).
+ * 4. Identifies anchor keywords (Defense, Gambit, Game, Opening, Attack, etc.) to split family name from variation.
+ * 5. Formats punctuation to match standard Lichess opening names (Caro-Kann, King's, Queen's, etc.).
  */
 export function parseChessComOpening(
   pgn: string,
 ): { eco?: string; name?: string; variation?: string } | undefined {
   const eco = parsePgnHeader(pgn, "ECO");
-  const name = parsePgnHeader(pgn, "Opening");
-  const variation = parsePgnHeader(pgn, "Variation");
+  const ecoUrl = parsePgnHeader(pgn, "ECOUrl");
 
-  if (!eco && !name && !variation) return undefined;
+  if (!ecoUrl) {
+    const name = parsePgnHeader(pgn, "Opening");
+    const variation = parsePgnHeader(pgn, "Variation");
+    if (!eco && !name && !variation) return undefined;
+    return { eco, name, variation };
+  }
 
-  return { eco, name, variation };
+  const slug = ecoUrl.replace(/^https?:\/\/[^\/]+\/openings\//, "").trim();
+  if (!slug) {
+    return eco ? { eco } : undefined;
+  }
+
+  // Strip trailing move notation: e.g. -3.Nc3-Nf6, -4...Nf6, ...4.Nf3-Nf6, -with-4-Nf3, -and-...
+  const cleanedSlug = slug
+    .replace(/(?:-(?:with|and))?-(?:\.\.\.|\d+\.{1,3})[A-Za-z0-9#+=-]+.*$/, "")
+    .replace(/(?:-(?:with|and))?-\d+.*$/, "");
+
+  // Anchor keywords marking the end of the opening family name
+  const anchorWords = [
+    "Gambit-Accepted",
+    "Gambit-Declined",
+    "Countergambit",
+    "Defense",
+    "Opening",
+    "Gambit",
+    "Game",
+    "System",
+    "Attack",
+    "Ruy-Lopez",
+    "Catalan",
+    "English",
+    "Reti",
+    "Benoni",
+    "Trompowsky",
+    "Colle",
+    "London",
+  ];
+
+  let rawName = cleanedSlug;
+  let rawVariation: string | undefined = undefined;
+
+  for (const anchor of anchorWords) {
+    const idx = cleanedSlug.indexOf(anchor);
+    if (idx !== -1) {
+      const endIdx = idx + anchor.length;
+      rawName = cleanedSlug.substring(0, endIdx);
+      const rest = cleanedSlug.substring(endIdx).replace(/^-+/, "").trim();
+      if (rest) rawVariation = rest;
+      break;
+    }
+  }
+
+  function formatName(str: string): string {
+    return str
+      .replace(/-/g, " ")
+      .replace(/\bRuy Lopez Opening\b/gi, "Ruy Lopez")
+      .replace(/\bCaro Kann\b/gi, "Caro-Kann")
+      .replace(/\bNimzo Indian\b/gi, "Nimzo-Indian")
+      .replace(/\bBogo Indian\b/gi, "Bogo-Indian")
+      .replace(/\bBogoljubov Indian\b/gi, "Bogoljubov-Indian")
+      .replace(/\bKings\b/gi, "King's")
+      .replace(/\bQueens\b/gi, "Queen's")
+      .replace(/\bBishops\b/gi, "Bishop's")
+      .replace(/\bBirds\b/gi, "Bird's")
+      .replace(/\bQueen's Pawn Opening\b/gi, "Queen's Pawn Game")
+      .replace(/\bKing's Pawn Opening\b/gi, "King's Pawn Game")
+      .replace(/\bAlekhines\b/gi, "Alekhine's")
+      .replace(/\bVant Kruijs\b/gi, "Van't Kruijs")
+      .trim();
+  }
+
+  function formatVariation(str?: string): string | undefined {
+    if (!str) return undefined;
+    const formatted = str
+      .replace(/-/g, " ")
+      .replace(/\bCaro Kann\b/gi, "Caro-Kann")
+      .replace(/\bNimzo Indian\b/gi, "Nimzo-Indian")
+      .replace(/\bKings\b/gi, "King's")
+      .replace(/\bQueens\b/gi, "Queen's")
+      .replace(/\bBishops\b/gi, "Bishop's")
+      .replace(/\bBirds\b/gi, "Bird's")
+      .trim();
+    return formatted || undefined;
+  }
+
+  const name = formatName(rawName);
+  const variation = formatVariation(rawVariation);
+
+  return {
+    eco,
+    name: name || undefined,
+    variation,
+  };
 }
 
 /**

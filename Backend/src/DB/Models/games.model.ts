@@ -56,6 +56,23 @@ const timeSchema = {
   },
 };
 
+const openingSchema = new mongoose.Schema(
+  {
+    eco: { type: String, trim: true, maxlength: 10 },
+    name: { type: String, trim: true, maxlength: 100, required: true },
+    variation: { type: String, trim: true, maxlength: 100 },
+  },
+  { _id: false },
+);
+
+const movesSchema = new mongoose.Schema(
+  {
+    plies: { type: Number, required: true, min: 0 },
+    count: { type: Number, required: true, min: 0 },
+  },
+  { _id: false },
+);
+
 const gameSchema = new mongoose.Schema(
   {
     // Ownership
@@ -104,6 +121,7 @@ const gameSchema = new mongoose.Schema(
     // User metadata
     title: {
       type: String,
+      required: true,
       trim: true,
       maxlength: 100,
     },
@@ -188,15 +206,16 @@ const gameSchema = new mongoose.Schema(
 
     // Opening details (parsed from platform data or PGN headers)
     opening: {
-      eco: { type: String, trim: true, maxlength: 10 },
-      name: { type: String, trim: true, maxlength: 100 },
-      variation: { type: String, trim: true, maxlength: 100 },
+      type: openingSchema,
+      required: false,
+      default: undefined,
     },
 
     // Move count (plies and full moves)
     moves: {
-      plies: { type: Number, min: 0 },
-      count: { type: Number, min: 0 },
+      type: movesSchema,
+      required: false,
+      default: undefined,
     },
   },
   {
