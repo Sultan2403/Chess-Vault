@@ -220,16 +220,16 @@ export function TerminationsSection({ terminations }: TerminationsSectionProps) 
               data={comparisonData}
               margin={{ top: 12, right: 16, left: -16, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} opacity={0.6} />
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />
               <XAxis
                 dataKey="method"
-                stroke="#71717a"
-                tick={{ fill: "#a1a1aa", fontSize: 11 }}
+                stroke="transparent"
+                tick={{ fill: "var(--color-vault-text-muted)", fontSize: 11 }}
                 tickLine={false}
               />
               <YAxis
-                stroke="#71717a"
-                tick={{ fill: "#a1a1aa", fontSize: 10 }}
+                stroke="transparent"
+                tick={{ fill: "var(--color-vault-text-muted)", fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}
               />

@@ -101,16 +101,16 @@ export function ActivityVolumeChart({ trends, optimalWindow }: ActivityVolumeCha
                 <stop offset="100%" stopColor="#d4af37" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} opacity={0.6} />
+            <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />
             <XAxis
               dataKey="period"
-              stroke="#71717a"
-              tick={{ fill: "#a1a1aa", fontSize: 11 }}
+              stroke="transparent"
+              tick={{ fill: "var(--color-vault-text-muted)", fontSize: 11 }}
               tickLine={false}
             />
             <YAxis
-              stroke="#71717a"
-              tick={{ fill: "#a1a1aa", fontSize: 10 }}
+              stroke="transparent"
+              tick={{ fill: "var(--color-vault-text-muted)", fontSize: 10 }}
               tickLine={false}
               axisLine={false}
             />

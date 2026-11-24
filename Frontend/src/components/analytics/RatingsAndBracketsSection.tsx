@@ -188,17 +188,17 @@ export function RatingsAndBracketsSection({
                     data={activeBrackets}
                     margin={{ top: 8, right: 16, left: -20, bottom: 0 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} opacity={0.6} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />
                     <XAxis
                       dataKey="label"
-                      stroke="#71717a"
-                      tick={{ fill: "#a1a1aa", fontSize: 10 }}
+                      stroke="transparent"
+                      tick={{ fill: "var(--color-vault-text-muted)", fontSize: 10 }}
                       tickLine={false}
                     />
                     <YAxis
                       yAxisId="left"
-                      stroke="#71717a"
-                      tick={{ fill: "#a1a1aa", fontSize: 10 }}
+                      stroke="transparent"
+                      tick={{ fill: "var(--color-vault-text-muted)", fontSize: 10 }}
                       tickLine={false}
                       axisLine={false}
                     />
@@ -207,7 +207,7 @@ export function RatingsAndBracketsSection({
                       orientation="right"
                       domain={[0, 100]}
                       unit="%"
-                      stroke="#10b981"
+                      stroke="transparent"
                       tick={{ fill: "#10b981", fontSize: 10 }}
                       tickLine={false}
                       axisLine={false}

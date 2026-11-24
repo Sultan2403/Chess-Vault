@@ -187,17 +187,17 @@ export function GameLengthSection({ gameLength, moveBuckets }: GameLengthSection
               data={moveBuckets}
               margin={{ top: 12, right: 16, left: -16, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} opacity={0.6} />
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />
               <XAxis
                 dataKey="label"
-                stroke="#71717a"
-                tick={{ fill: "#a1a1aa", fontSize: 11 }}
+                stroke="transparent"
+                tick={{ fill: "var(--color-vault-text-muted)", fontSize: 11 }}
                 tickLine={false}
               />
               <YAxis
                 yAxisId="left"
-                stroke="#71717a"
-                tick={{ fill: "#a1a1aa", fontSize: 10 }}
+                stroke="transparent"
+                tick={{ fill: "var(--color-vault-text-muted)", fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}
               />
@@ -206,7 +206,7 @@ export function GameLengthSection({ gameLength, moveBuckets }: GameLengthSection
                 orientation="right"
                 domain={[0, 100]}
                 unit="%"
-                stroke="#10b981"
+                stroke="transparent"
                 tick={{ fill: "#10b981", fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}

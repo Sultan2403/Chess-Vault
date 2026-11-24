@@ -75,20 +75,14 @@ export default function AnalyticsPage() {
       )}
 
       {data && !isLoading && (
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: { staggerChildren: shouldReduceMotion ? 0 : 0.08 },
-            },
-          }}
-          className="flex flex-col gap-8"
-        >
+        <div className="flex flex-col gap-8">
           {/* 1. Header & Filters */}
-          <motion.section variants={sectionVariants}>
+          <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             <AnalyticsHeader
               totalGames={data.overview.totalGames}
               formattedSpan={data.archiveSpan.formattedSpan}
@@ -104,12 +98,22 @@ export default function AnalyticsPage() {
           </motion.section>
 
           {/* 2. Headline 4 KPI Cards */}
-          <motion.section variants={sectionVariants}>
+          <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             <AnalyticsKpiCards data={data} />
           </motion.section>
 
           {/* 3. Activity & Game Volume Area Chart */}
-          <motion.section variants={sectionVariants}>
+          <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             <ActivityVolumeChart
               trends={data.activityTrends}
               optimalWindow={data.optimalWindow}
@@ -117,7 +121,12 @@ export default function AnalyticsPage() {
           </motion.section>
 
           {/* 4. Color & Cadence Performance (2-Column) */}
-          <motion.section variants={sectionVariants}>
+          <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             <ColorAndCadenceSection
               overview={data.overview}
               byTimeClass={data.byTimeClass}
@@ -125,7 +134,12 @@ export default function AnalyticsPage() {
           </motion.section>
 
           {/* 5. Game Length & Move Duration Histogram */}
-          <motion.section variants={sectionVariants}>
+          <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             <GameLengthSection
               gameLength={data.gameLength}
               moveBuckets={data.moveBuckets}
@@ -133,30 +147,55 @@ export default function AnalyticsPage() {
           </motion.section>
 
           {/* 6. Decisive Terminations & Battle Endings */}
-          <motion.section variants={sectionVariants}>
+          <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             <TerminationsSection terminations={data.terminations} />
           </motion.section>
 
           {/* 7. Opening Repertoire Distribution (As White / As Black) */}
-          <motion.section variants={sectionVariants}>
+          <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             <OpeningRepertoireSection openings={data.openings} />
           </motion.section>
 
           {/* 7. Frequent Opponents & Rivalries */}
-          <motion.section variants={sectionVariants}>
+          <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             <RivalriesSection opponents={data.opponents} />
           </motion.section>
 
           {/* 8. Active Elo Ratings & Rating Brackets */}
-          <motion.section variants={sectionVariants}>
+          <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             <RatingsAndBracketsSection ratingBrackets={data.ratingBrackets} />
           </motion.section>
 
           {/* 9. Vault Intelligence Inferences / Insights Link */}
-          <motion.section variants={sectionVariants}>
+          <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             <ArchivalInferencesSection />
           </motion.section>
-        </motion.div>
+        </div>
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import Redis from "ioredis";
+import * as Sentry from "@sentry/node";
 import env, { isProd } from "../../Config/env";
 import { logger } from "../../Config/logger";
 
@@ -10,11 +11,21 @@ export const BullMQRedis = isProd
       maxRetriesPerRequest: null, // Required by BullMQ
     });
 
+// Cache client: fast-fail when Redis is offline so API requests never hang.
+// enableOfflineQueue: false — commands are rejected immediately if the connection
+// is not ready, letting the try/catch in services fall through to the DB.
 export const redis = isProd
-  ? new Redis(env.REDIS_URL)
+  ? new Redis(env.REDIS_URL, {
+      enableOfflineQueue: false,
+      connectTimeout: 1500,
+      maxRetriesPerRequest: 1,
+    })
   : new Redis({
       host: env.REDIS_URL,
       port: env.REDIS_PORT,
+      enableOfflineQueue: false,
+      connectTimeout: 1500,
+      maxRetriesPerRequest: 1,
     });
 
 BullMQRedis.on("connect", () => {
@@ -26,10 +37,13 @@ BullMQRedis.on("error", (err) => {
 });
 
 redis.on("connect", () => {
-  logger.info("Redis client connection successful");
+  logger.info("Redis cache client connection successful");
 });
 
 redis.on("error", (err) => {
-  logger.error({ err }, "Redis client error");
+  logger.error({ err }, "Redis cache client error");
+  if (isProd) {
+    Sentry.captureException(err, { tags: { layer: "redis-cache" } });
+  }
 });
 

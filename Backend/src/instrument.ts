@@ -13,6 +13,7 @@ if (isProd) {
       Sentry.httpIntegration(),
       Sentry.expressIntegration(),
       Sentry.mongoIntegration(),
+      Sentry.redisIntegration(),
     ],
   });
   logger.info({ environment: env.NODE_ENV }, "Sentry instrumentation initialized");
