@@ -1,6 +1,36 @@
 import { Trophy, Clock, History } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import type { AnalyticsData } from "@chess-vault/shared";
+
+interface OutcomeTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    name: string;
+    value: number;
+    payload: {
+      name: string;
+      value: number;
+      color: string;
+    };
+  }>;
+}
+
+function OutcomeTooltip({ active, payload, totalGames }: OutcomeTooltipProps & { totalGames: number }) {
+  if (!active || !payload?.length) return null;
+  const entry = payload[0];
+  const pct = totalGames > 0
+    ? ((Number(entry.value) / totalGames) * 100).toFixed(1)
+    : "0";
+  return (
+    <div className="rounded bg-vault-surface-layer-3 border border-vault-border-base px-2 py-1 font-mono text-[10px] shadow-lg">
+      <span className="font-semibold text-vault-text-primary">{entry.name}: </span>
+      <span style={{ color: entry.payload.color }}>
+        {Number(entry.value).toLocaleString()} ({pct}%)
+      </span>
+    </div>
+  );
+}
 
 export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
   const { overview, archiveSpan, byTimeClass, streaks } = data;
@@ -17,6 +47,13 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
         year: "numeric",
       })
     : "—";
+
+  // Donut chart segments for Outcome split
+  const outcomeData = [
+    { name: "Wins", value: overview.wins, color: "#10b981" },
+    { name: "Draws", value: overview.draws, color: "#737373" },
+    { name: "Losses", value: overview.losses, color: "#f43f5e" },
+  ];
 
   const cardVariants = {
     hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 12 },
@@ -40,7 +77,7 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
       }}
       className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
     >
-      {/* 1. OVERALL RECORD */}
+      {/* 1. OVERALL RECORD WITH INTERACTIVE DONUT */}
       <motion.div
         variants={cardVariants}
         whileHover={shouldReduceMotion ? undefined : { y: -2 }}
@@ -55,49 +92,61 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
             </span>
           </div>
 
-          <div className="flex items-baseline gap-2 mt-2">
-            <span className="font-display text-3xl md:text-4xl font-medium text-vault-text-primary">
-              {overview.winPct}%
-            </span>
-            <span className="font-mono text-xs text-vault-text-muted">
-              (W {overview.winPct} · D {overview.drawPct} · L {overview.lossPct})
-            </span>
-          </div>
+          <div className="flex items-center justify-between mt-2">
+            <div className="min-w-0">
+              <div className="flex items-baseline gap-2">
+                <span className="font-display text-3xl md:text-4xl font-medium text-vault-text-primary">
+                  {overview.winPct}%
+                </span>
+                <span className="font-mono text-xs text-vault-text-muted">
+                  Win Rate
+                </span>
+              </div>
+              <div className="font-mono text-xs text-vault-text-secondary mt-0.5">
+                {overview.totalGames.toLocaleString()} Total Games
+              </div>
+            </div>
 
-          {/* Segmented W/D/L Bar */}
-          <div className="flex h-2 w-full overflow-hidden rounded-full bg-vault-surface-layer-2 mt-3">
-            <motion.div
-              initial={shouldReduceMotion ? false : { width: 0 }}
-              animate={{ width: `${overview.winPct}%` }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="bg-emerald-500 h-full"
-              title={`Wins: ${overview.wins} (${overview.winPct}%)`}
-            />
-            <motion.div
-              initial={shouldReduceMotion ? false : { width: 0 }}
-              animate={{ width: `${overview.drawPct}%` }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-              className="bg-neutral-500 h-full"
-              title={`Draws: ${overview.draws} (${overview.drawPct}%)`}
-            />
-            <motion.div
-              initial={shouldReduceMotion ? false : { width: 0 }}
-              animate={{ width: `${overview.lossPct}%` }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-              className="bg-rose-500 h-full"
-              title={`Losses: ${overview.losses} (${overview.lossPct}%)`}
-            />
+            {/* Mini Donut Chart */}
+            <div className="h-16 w-16 shrink-0 relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Tooltip content={<OutcomeTooltip totalGames={overview.totalGames} />} />
+                  <Pie
+                    data={outcomeData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={20}
+                    outerRadius={30}
+                    stroke="transparent"
+                    paddingAngle={2}
+                  >
+                    {outcomeData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Counts */}
-          <div className="flex items-center justify-between font-mono text-xs mt-2 text-vault-text-secondary">
-            <span className="text-emerald-400">{overview.wins.toLocaleString()} W</span>
-            <span className="text-neutral-400">{overview.draws.toLocaleString()} D</span>
-            <span className="text-rose-400">{overview.losses.toLocaleString()} L</span>
+          <div className="flex items-center justify-between font-mono text-xs mt-3 pt-2 border-t border-vault-border-base/40 text-vault-text-secondary">
+            <span className="text-emerald-400 font-medium">
+              {overview.wins.toLocaleString()} W <span className="text-vault-text-muted text-[10px]">({overview.winPct}%)</span>
+            </span>
+            <span className="text-neutral-400 font-medium">
+              {overview.draws.toLocaleString()} D <span className="text-vault-text-muted text-[10px]">({overview.drawPct}%)</span>
+            </span>
+            <span className="text-rose-400 font-medium">
+              {overview.losses.toLocaleString()} L <span className="text-vault-text-muted text-[10px]">({overview.lossPct}%)</span>
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-vault-border-base/40 pt-3 mt-4 font-mono text-[11px] text-vault-text-muted">
+        <div className="flex items-center justify-between border-t border-vault-border-base/40 pt-3 mt-3 font-mono text-[11px] text-vault-text-muted">
           <span>PRACTICAL OUTCOME: <strong className="text-vault-text-primary">{overview.practicalOutcomeIndex}%</strong></span>
           <span>STREAK: <strong className="text-vault-text-primary">+{streaks.longestWinStreak}W</strong></span>
         </div>

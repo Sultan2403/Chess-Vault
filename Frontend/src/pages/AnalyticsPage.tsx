@@ -7,6 +7,7 @@ import { AnalyticsKpiCards } from "../components/analytics/AnalyticsKpiCards";
 import { ActivityVolumeChart } from "../components/analytics/ActivityVolumeChart";
 import { ColorAndCadenceSection } from "../components/analytics/ColorAndCadenceSection";
 import { GameLengthSection } from "../components/analytics/GameLengthSection";
+import { TerminationsSection } from "../components/analytics/TerminationsSection";
 import { OpeningRepertoireSection } from "../components/analytics/OpeningRepertoireSection";
 import { RivalriesSection } from "../components/analytics/RivalriesSection";
 import { RatingsAndBracketsSection } from "../components/analytics/RatingsAndBracketsSection";
@@ -131,7 +132,12 @@ export default function AnalyticsPage() {
             />
           </motion.section>
 
-          {/* 6. Opening Repertoire Distribution (As White / As Black) */}
+          {/* 6. Decisive Terminations & Battle Endings */}
+          <motion.section variants={sectionVariants}>
+            <TerminationsSection terminations={data.terminations} />
+          </motion.section>
+
+          {/* 7. Opening Repertoire Distribution (As White / As Black) */}
           <motion.section variants={sectionVariants}>
             <OpeningRepertoireSection openings={data.openings} />
           </motion.section>

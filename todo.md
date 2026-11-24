@@ -40,8 +40,8 @@ The boundary to go older than can be computed from your stored games (the oldest
 - Once it's time, make evrything in the app account oriented. For examples max-games should be per account from `Account.plan.gameBankLimit`. Similarly for analysis minutes and such.
 
 - Investigate game storage as some games get past the game cap.
-- ANALYTICSSSSSSS!!!! IT'S IMPORTANT BRO!!!
-- Remove `.optional()` in Game.opening as it and it's kids are all required. This is just a knock off of the type safety task below but just more precise lol.
+- [x] ANALYTICSSSSSSS!!!! IT'S IMPORTANT BRO!!! (Donut chart KPI, move duration histogram + win% spline, termination divergence breakdown, opening repertoire treemap & list switcher, all 101 tests green)
+- [x] Remove `.optional()` in Game.opening as it and it's kids are all required. This is just a knock off of the type safety task below but just more precise lol.
 
 ## Payments
 
