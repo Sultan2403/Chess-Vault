@@ -40,7 +40,7 @@ export const IMPORT_EVENT_NAMES = {
 /**
  * Fetches Chess.com archives and yields batches of normalized games (one month archive per batch, newest first).
  */
-async function* fetchChessComBatches(
+export async function* fetchChessComBatches(
   username: string,
   userId: string,
   lastArchiveUrl?: string | null,
@@ -105,7 +105,7 @@ async function* fetchChessComBatches(
 /**
  * Streams Lichess games in chunks of CHUNK_SIZE normalized games, newest first.
  */
-async function* fetchLichessBatches(
+export async function* fetchLichessBatches(
   username: string,
   userId: string,
   max: number,

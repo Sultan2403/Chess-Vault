@@ -11,6 +11,11 @@ vi.mock("../../src/DB/Connections/redis", () => ({
     ping: mockPing,
     on: vi.fn(),
   },
+  redis: {
+    ping: mockPing,
+    on: vi.fn(),
+  },
+  BullMQRedis: {},
 }));
 
 import app from "../../src/app";

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AxiosError, AxiosHeaders } from "axios";
+import type { Lichess_User } from "@chess-vault/shared";
 import {
   verifyLinkedAccount,
   connectLinkedAccounts,
@@ -9,6 +10,7 @@ import chessComApi from "../../src/Api/chess_com.api";
 import lichessApi from "../../src/Api/lichess.api";
 import Accounts from "../../src/DB/Models/accounts.model";
 import LinkedAccounts from "../../src/DB/Models/linked_accounts.model";
+import Games from "../../src/DB/Models/games.model";
 
 // Helper to create realistic Axios errors
 const createAxiosError = (status: number, message: string) => {
@@ -43,10 +45,14 @@ describe("Accounts Service Unit Tests", () => {
     });
 
     it("should successfully verify an existing Lichess account", async () => {
-      vi.spyOn(lichessApi, "getUserProfile").mockResolvedValue({
+      const mockLichessUser: Lichess_User = {
         id: "sultan2403",
         username: "Sultan2403",
-      });
+        url: "https://lichess.org/@/Sultan2403",
+        createdAt: 1609459200000,
+        perfs: {},
+      };
+      vi.spyOn(lichessApi, "getUserProfile").mockResolvedValue(mockLichessUser);
 
       const result = await verifyLinkedAccount("lichess", "Sultan2403");
 
@@ -110,7 +116,9 @@ describe("Accounts Service Unit Tests", () => {
         lean: vi.fn().mockResolvedValue({
           _id: "65f1a2b3c4d5e6f7a8b9c0aa",
           userId: "user_123",
-          linkedAccountLimit: 2,
+          plan: {
+            linkedAccountLimit: 2,
+          },
         }),
       } as any);
 
@@ -154,7 +162,9 @@ describe("Accounts Service Unit Tests", () => {
         lean: vi.fn().mockResolvedValue({
           _id: "65f1a2b3c4d5e6f7a8b9c0aa",
           userId: "user_123",
-          linkedAccountLimit: 2,
+          plan: {
+            linkedAccountLimit: 2,
+          },
         }),
       } as any);
 
@@ -176,12 +186,12 @@ describe("Accounts Service Unit Tests", () => {
         accounts: [{ platform: "chess.com", username: "Sultan2403" }],
       });
 
-      expect(response.success).toBe(false);
+      expect(response.success).toBe(true);
       expect(response.results[0]).toEqual({
         platform: "chess.com",
         username: "Sultan2403",
-        success: false,
-        message: "This chess.com account is already linked.",
+        success: true,
+        message: "Sultan2403 is already connected.",
       });
     });
 
@@ -194,7 +204,9 @@ describe("Accounts Service Unit Tests", () => {
         lean: vi.fn().mockResolvedValue({
           _id: "65f1a2b3c4d5e6f7a8b9c0aa",
           userId: "user_123",
-          linkedAccountLimit: 1, // Limit is 1, and user already has 1 account
+          plan: {
+            linkedAccountLimit: 1, // Limit is 1, and user already has 1 account
+          },
         }),
       } as any);
 
@@ -234,7 +246,9 @@ describe("Accounts Service Unit Tests", () => {
         lean: vi.fn().mockResolvedValue({
           _id: "65f1a2b3c4d5e6f7a8b9c0aa",
           userId: "user_123",
-          linkedAccountLimit: 2,
+          plan: {
+            linkedAccountLimit: 2,
+          },
         }),
       } as any);
 
@@ -266,6 +280,7 @@ describe("Accounts Service Unit Tests", () => {
         lean: vi.fn().mockResolvedValue({
           _id: "65f1a2b3c4d5e6f7a8b9c0aa",
           userId: "user_123",
+          needsOnboarding: true,
         }),
       } as any);
 
@@ -274,6 +289,8 @@ describe("Accounts Service Unit Tests", () => {
           lean: vi.fn().mockResolvedValue([]),
         }),
       } as any);
+
+      vi.spyOn(Games, "exists").mockResolvedValue(null as any);
 
       const bootstrap = await getAccountBootstrap("user_123");
 
@@ -287,6 +304,7 @@ describe("Accounts Service Unit Tests", () => {
         lean: vi.fn().mockResolvedValue({
           _id: "65f1a2b3c4d5e6f7a8b9c0aa",
           userId: "user_123",
+          needsOnboarding: false,
         }),
       } as any);
 
@@ -302,6 +320,8 @@ describe("Accounts Service Unit Tests", () => {
           ]),
         }),
       } as any);
+
+      vi.spyOn(Games, "exists").mockResolvedValue({ _id: "game_1" } as any);
 
       const bootstrap = await getAccountBootstrap("user_123");
 

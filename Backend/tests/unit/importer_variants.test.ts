@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { importGames } from "../../src/Services/games.service";
+import {
+  fetchChessComBatches,
+  fetchLichessBatches,
+} from "../../src/Services/import.service";
 import chessComApi from "../../src/Api/chess_com.api";
 import lichessApi from "../../src/Api/lichess.api";
-import Games from "../../src/DB/Models/games.model";
 import { Readable } from "stream";
 import { MOCK_CHESS_COM_GAME } from "../fixtures/chess_com_game.fixture";
 import { MOCK_LICHESS_GAME } from "../fixtures/lichess_game.fixture";
@@ -33,23 +35,18 @@ describe("Importer Variant Filtering", () => {
         games: [standardGame, threeCheckGame] as any,
       });
 
-      const bulkWriteSpy = vi.spyOn(Games, "bulkWrite").mockResolvedValue({
-        upsertedCount: 2,
-        matchedCount: 0,
-      } as any);
+      const batches = [];
+      for await (const batch of fetchChessComBatches("mada1974", "user_123")) {
+        batches.push(batch);
+      }
 
-      const result = await importGames({
-        userId: "user_123",
-        username: "mada1974",
-        platform: "chess.com",
-      });
-
-      expect(result.success).toBe(true);
-      expect(bulkWriteSpy).toHaveBeenCalledTimes(1);
-      const ops = bulkWriteSpy.mock.calls[0][0] as any[];
-      expect(ops.length).toBe(2);
-      expect(ops[0].updateOne.filter.platformGameId).toBe("chess-tc-1");
-      expect(ops[1].updateOne.filter.platformGameId).toBe("chess-std-1");
+      expect(batches.length).toBe(1);
+      expect(batches[0].batch.length).toBe(2);
+      expect(batches[0].skipped).toBe(0);
+      expect(batches[0].batch.map((g) => g.platformGameId)).toEqual([
+        "chess-tc-1",
+        "chess-std-1",
+      ]);
     });
 
     it("should reject and skip non-standard variants (bughouse, crazyhouse, etc.)", async () => {
@@ -77,22 +74,15 @@ describe("Importer Variant Filtering", () => {
         games: [bughouseGame, crazyhouseGame, standardGame] as any,
       });
 
-      const bulkWriteSpy = vi.spyOn(Games, "bulkWrite").mockResolvedValue({
-        upsertedCount: 1,
-        matchedCount: 0,
-      } as any);
+      const batches = [];
+      for await (const batch of fetchChessComBatches("mada1974", "user_123")) {
+        batches.push(batch);
+      }
 
-      const result = await importGames({
-        userId: "user_123",
-        username: "mada1974",
-        platform: "chess.com",
-      });
-
-      expect(result.success).toBe(true);
-      expect(bulkWriteSpy).toHaveBeenCalledTimes(1);
-      const ops = bulkWriteSpy.mock.calls[0][0] as any[];
-      expect(ops.length).toBe(1);
-      expect(ops[0].updateOne.filter.platformGameId).toBe("chess-std-2");
+      expect(batches.length).toBe(1);
+      expect(batches[0].batch.length).toBe(1);
+      expect(batches[0].skipped).toBe(2);
+      expect(batches[0].batch[0].platformGameId).toBe("chess-std-2");
     });
   });
 
@@ -130,23 +120,18 @@ describe("Importer Variant Filtering", () => {
 
       vi.spyOn(lichessApi, "getUserGames").mockResolvedValue(mockStream as any);
 
-      const bulkWriteSpy = vi.spyOn(Games, "bulkWrite").mockResolvedValue({
-        upsertedCount: 2,
-        matchedCount: 0,
-      } as any);
+      const batches = [];
+      for await (const batch of fetchLichessBatches("sultan2403", "user_123", 100)) {
+        batches.push(batch);
+      }
 
-      const result = await importGames({
-        userId: "user_123",
-        username: "sultan2403",
-        platform: "lichess",
-      });
-
-      expect(result.success).toBe(true);
-      expect(bulkWriteSpy).toHaveBeenCalledTimes(1);
-      const ops = bulkWriteSpy.mock.calls[0][0] as any[];
-      expect(ops.length).toBe(2);
-      expect(ops[0].updateOne.filter.platformGameId).toBe("lichess-std-1");
-      expect(ops[1].updateOne.filter.platformGameId).toBe("lichess-tc-1");
+      expect(batches.length).toBe(1);
+      expect(batches[0].batch.length).toBe(2);
+      expect(batches[0].skipped).toBe(2);
+      expect(batches[0].batch.map((g) => g.platformGameId)).toEqual([
+        "lichess-std-1",
+        "lichess-tc-1",
+      ]);
     });
   });
 });
