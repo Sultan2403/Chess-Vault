@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import { Skull, Timer, Flag } from "lucide-react";
+import { useInView } from "motion/react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -71,6 +73,8 @@ function CustomTermTooltip({ active, payload }: TermTooltipProps) {
 }
 
 export function TerminationsSection({ terminations }: TerminationsSectionProps) {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const isChartInView = useInView(chartRef, { once: true, amount: 0.2 });
   const { winWays, lossWays } = terminations;
 
   const comparisonData = [
@@ -214,49 +218,54 @@ export function TerminationsSection({ terminations }: TerminationsSectionProps) 
           </div>
         </div>
 
-        <div className="h-60 w-full pt-4 pb-2 px-2 rounded-md bg-vault-surface-container-lowest/60 border border-vault-border-base/40">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={comparisonData}
-              margin={{ top: 12, right: 16, left: -16, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />
-              <XAxis
-                dataKey="method"
-                stroke="transparent"
-                tick={{ fill: "var(--color-vault-text-muted)", fontSize: 11 }}
-                tickLine={false}
-              />
-              <YAxis
-                stroke="transparent"
-                tick={{ fill: "var(--color-vault-text-muted)", fontSize: 10 }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <Tooltip
-                content={<CustomTermTooltip />}
-                cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
-              />
-              <Legend
-                wrapperStyle={{ paddingTop: 8, fontSize: 11, fontFamily: "monospace" }}
-                iconSize={8}
-              />
-              <Bar
-                dataKey="wins"
-                name="Victories"
-                fill="#10b981"
-                radius={[4, 4, 0, 0]}
-                maxBarSize={42}
-              />
-              <Bar
-                dataKey="losses"
-                name="Defeats"
-                fill="#f43f5e"
-                radius={[4, 4, 0, 0]}
-                maxBarSize={42}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+        <div
+          ref={chartRef}
+          className="h-60 w-full pt-4 pb-2 px-2 rounded-md bg-vault-surface-container-lowest/60 border border-vault-border-base/40"
+        >
+          {isChartInView && (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={comparisonData}
+                margin={{ top: 12, right: 16, left: -16, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />
+                <XAxis
+                  dataKey="method"
+                  stroke="transparent"
+                  tick={{ fill: "rgb(var(--color-vault-text-muted))", fontSize: 11 }}
+                  tickLine={false}
+                />
+                <YAxis
+                  stroke="transparent"
+                  tick={{ fill: "rgb(var(--color-vault-text-muted))", fontSize: 10 }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  content={<CustomTermTooltip />}
+                  cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
+                />
+                <Legend
+                  wrapperStyle={{ paddingTop: 8, fontSize: 11, fontFamily: "monospace" }}
+                  iconSize={8}
+                />
+                <Bar
+                  dataKey="wins"
+                  name="Victories"
+                  fill="#10b981"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={42}
+                />
+                <Bar
+                  dataKey="losses"
+                  name="Defeats"
+                  fill="#f43f5e"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={42}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
     </div>

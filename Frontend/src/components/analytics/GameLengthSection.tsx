@@ -1,5 +1,7 @@
+import { useRef } from "react";
 import { Link } from "react-router-dom";
 import { Swords, Zap, ArrowUpRight } from "lucide-react";
+import { useInView } from "motion/react";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -60,6 +62,8 @@ function CustomHistogramTooltip({ active, payload }: CustomTooltipProps) {
 }
 
 export function GameLengthSection({ gameLength, moveBuckets }: GameLengthSectionProps) {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const isChartInView = useInView(chartRef, { once: true, amount: 0.2 });
   const { meanMoves, medianMoves, quickestWin, longestGame } = gameLength;
 
   return (
@@ -181,58 +185,63 @@ export function GameLengthSection({ gameLength, moveBuckets }: GameLengthSection
           </div>
         </div>
 
-        <div className="h-56 w-full pt-4 pb-2 px-2 rounded-md bg-vault-surface-container-lowest/60 border border-vault-border-base/40">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={moveBuckets}
-              margin={{ top: 12, right: 16, left: -16, bottom: 0 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />
-              <XAxis
-                dataKey="label"
-                stroke="transparent"
-                tick={{ fill: "var(--color-vault-text-muted)", fontSize: 11 }}
-                tickLine={false}
-              />
-              <YAxis
-                yAxisId="left"
-                stroke="transparent"
-                tick={{ fill: "var(--color-vault-text-muted)", fontSize: 10 }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                yAxisId="right"
-                orientation="right"
-                domain={[0, 100]}
-                unit="%"
-                stroke="transparent"
-                tick={{ fill: "#10b981", fontSize: 10 }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <Tooltip
-                content={<CustomHistogramTooltip />}
-                cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
-              />
-              <Bar
-                yAxisId="left"
-                dataKey="count"
-                fill="#6366f1"
-                radius={[4, 4, 0, 0]}
-                maxBarSize={48}
-              />
-              <Line
-                yAxisId="right"
-                dataKey="winPct"
-                type="monotone"
-                stroke="#10b981"
-                strokeWidth={2.5}
-                dot={{ fill: "#10b981", r: 4, strokeWidth: 0 }}
-                activeDot={{ fill: "#34d399", r: 6, stroke: "#065f46", strokeWidth: 2 }}
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
+        <div
+          ref={chartRef}
+          className="h-56 w-full pt-4 pb-2 px-2 rounded-md bg-vault-surface-container-lowest/60 border border-vault-border-base/40"
+        >
+          {isChartInView && (
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart
+                data={moveBuckets}
+                margin={{ top: 12, right: 16, left: -16, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  stroke="transparent"
+                  tick={{ fill: "rgb(var(--color-vault-text-muted))", fontSize: 11 }}
+                  tickLine={false}
+                />
+                <YAxis
+                  yAxisId="left"
+                  stroke="transparent"
+                  tick={{ fill: "rgb(var(--color-vault-text-muted))", fontSize: 10 }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  domain={[0, 100]}
+                  unit="%"
+                  stroke="transparent"
+                  tick={{ fill: "#10b981", fontSize: 10 }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  content={<CustomHistogramTooltip />}
+                  cursor={{ fill: "rgba(255, 255, 255, 0.04)" }}
+                />
+                <Bar
+                  yAxisId="left"
+                  dataKey="count"
+                  fill="#6366f1"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={48}
+                />
+                <Line
+                  yAxisId="right"
+                  dataKey="winPct"
+                  type="monotone"
+                  stroke="#10b981"
+                  strokeWidth={2.5}
+                  dot={{ fill: "#10b981", r: 4, strokeWidth: 0 }}
+                  activeDot={{ fill: "#34d399", r: 6, stroke: "#065f46", strokeWidth: 2 }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
     </div>

@@ -1,136 +1,16 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowUpRight, BookOpen, ChevronDown, ChevronUp, ShieldAlert, Swords, LayoutGrid, List as ListIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowUpRight, BookOpen, ChevronDown, ChevronUp, ShieldAlert, Swords } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { ResponsiveContainer, Treemap, Tooltip } from "recharts";
-import type { AnalyticsOpenings, AnalyticsOpeningStat } from "@chess-vault/shared";
+import type { AnalyticsOpenings } from "@chess-vault/shared";
 
 interface OpeningRepertoireSectionProps {
   openings: AnalyticsOpenings;
 }
 
-interface TreemapCustomContentProps {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  name?: string;
-  total?: number;
-  winPct?: number;
-  eco?: string;
-  onSelect?: (name: string) => void;
-}
-
-function TreemapTile(props: TreemapCustomContentProps) {
-  const { x = 0, y = 0, width = 0, height = 0, name = "", total = 0, winPct = 0, eco, onSelect } = props;
-  if (width < 28 || height < 20) return null;
-
-  // Determine fill color based on win rate
-  let bg = "#334155"; // neutral
-  if (winPct >= 58) bg = "#059669"; // emerald
-  else if (winPct >= 50) bg = "#0d9488"; // teal
-  else if (winPct >= 42) bg = "#475569"; // slate
-  else bg = "#e11d48"; // rose
-
-  const maxChars = Math.max(4, Math.floor(width / 7.5));
-  const displayName = name.length > maxChars ? `${name.slice(0, maxChars)}…` : name;
-
-  return (
-    <g
-      onClick={() => onSelect?.(name)}
-      className="cursor-pointer group"
-    >
-      <rect
-        x={x + 1}
-        y={y + 1}
-        width={Math.max(0, width - 2)}
-        height={Math.max(0, height - 2)}
-        style={{
-          fill: bg,
-          stroke: "#18181b",
-          strokeWidth: 1.5,
-          rx: 4,
-          ry: 4,
-        }}
-        className="transition-all duration-150 hover:brightness-125"
-      />
-      {width > 55 && height > 30 && (
-        <text
-          x={x + 7}
-          y={y + 17}
-          fill="#ffffff"
-          fontSize={11}
-          fontWeight={600}
-          fontFamily="system-ui, sans-serif"
-          className="pointer-events-none select-none"
-        >
-          {eco ? `[${eco}] ` : ""}{displayName}
-        </text>
-      )}
-      {width > 55 && height > 44 && (
-        <text
-          x={x + 7}
-          y={y + 32}
-          fill="rgba(255, 255, 255, 0.85)"
-          fontSize={10}
-          fontFamily="monospace"
-          className="pointer-events-none select-none font-semibold"
-        >
-          {winPct}% ({total}g)
-        </text>
-      )}
-    </g>
-  );
-}
-
-interface TreemapTooltipProps {
-  active?: boolean;
-  payload?: Array<{
-    payload: AnalyticsOpeningStat;
-  }>;
-}
-
-function TreemapTooltip({ active, payload }: TreemapTooltipProps) {
-  if (!active || !payload?.length) return null;
-  const op = payload[0].payload;
-
-  return (
-    <div className="rounded-lg border border-vault-border-base bg-vault-surface-layer-2/95 p-3 shadow-xl backdrop-blur-sm text-xs font-mono">
-      <div className="flex items-center gap-2 mb-1">
-        {op.eco && (
-          <span className="font-semibold text-vault-primary uppercase bg-vault-primary/10 px-1 py-0.5 rounded text-[10px]">
-            {op.eco}
-          </span>
-        )}
-        <span className="font-semibold text-vault-text-primary text-sm truncate max-w-[200px]">
-          {op.name}
-        </span>
-      </div>
-      <div className="flex flex-col gap-1 text-vault-text-secondary mt-1">
-        <div className="flex items-center justify-between gap-4">
-          <span>Games Volume:</span>
-          <span className="font-bold text-vault-text-primary">
-            {op.total.toLocaleString()} games
-          </span>
-        </div>
-        <div className="flex items-center justify-between gap-4">
-          <span>Win Rate:</span>
-          <span className="font-bold text-emerald-400">{op.winPct}%</span>
-        </div>
-        <div className="flex items-center justify-between gap-4 text-[10px] text-vault-text-muted pt-1 border-t border-vault-border-base/40">
-          <span>Record:</span>
-          <span>{op.wins}W · {op.draws}D · {op.losses}L</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function OpeningRepertoireSection({ openings }: OpeningRepertoireSectionProps) {
   const [activeTab, setActiveTab] = useState<"white" | "black">("white");
-  const [viewMode, setViewMode] = useState<"list" | "treemap">("list");
   const [showAll, setShowAll] = useState(false);
-  const navigate = useNavigate();
 
   const signatureWeapons = openings.signatureWeapons?.length
     ? openings.signatureWeapons
@@ -295,116 +175,33 @@ export function OpeningRepertoireSection({ openings }: OpeningRepertoireSectionP
           </h2>
         </div>
 
-        {/* Controls: Color Tabs & View Mode Switcher */}
-        <div className="flex items-center gap-3 self-start sm:self-auto">
-          {/* Tab Switcher */}
-          <div className="inline-flex items-center rounded border border-vault-border-base bg-vault-surface-container-lowest p-0.5 text-xs font-mono">
-            <button
-              onClick={() => setActiveTab("white")}
-              className={`px-3 py-1 rounded transition-colors ${
-                activeTab === "white"
-                  ? "bg-vault-surface-layer-2 text-vault-text-primary font-semibold shadow-xs"
-                  : "text-vault-text-muted hover:text-vault-text-secondary"
-              }`}
-            >
-              AS WHITE
-            </button>
-            <button
-              onClick={() => setActiveTab("black")}
-              className={`px-3 py-1 rounded transition-colors ${
-                activeTab === "black"
-                  ? "bg-vault-surface-layer-2 text-vault-text-primary font-semibold shadow-xs"
-                  : "text-vault-text-muted hover:text-vault-text-secondary"
-              }`}
-            >
-              AS BLACK
-            </button>
-          </div>
-
-          {/* View Mode Switcher */}
-          <div className="inline-flex items-center rounded border border-vault-border-base bg-vault-surface-container-lowest p-0.5 text-xs font-mono">
-            <button
-              onClick={() => setViewMode("treemap")}
-              title="Visual Treemap Distribution"
-              className={`p-1.5 rounded transition-colors ${
-                viewMode === "treemap"
-                  ? "bg-vault-surface-layer-2 text-vault-primary shadow-xs"
-                  : "text-vault-text-muted hover:text-vault-text-secondary"
-              }`}
-            >
-              <LayoutGrid size={14} />
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              title="Detailed List Breakdown"
-              className={`p-1.5 rounded transition-colors ${
-                viewMode === "list"
-                  ? "bg-vault-surface-layer-2 text-vault-primary shadow-xs"
-                  : "text-vault-text-muted hover:text-vault-text-secondary"
-              }`}
-            >
-              <ListIcon size={14} />
-            </button>
-          </div>
+        {/* Color Tabs */}
+        <div className="inline-flex items-center rounded border border-vault-border-base bg-vault-surface-container-lowest p-0.5 text-xs font-mono self-start sm:self-auto">
+          <button
+            onClick={() => setActiveTab("white")}
+            className={`px-3 py-1 rounded transition-colors ${
+              activeTab === "white"
+                ? "bg-vault-surface-layer-2 text-vault-text-primary font-semibold shadow-xs"
+                : "text-vault-text-muted hover:text-vault-text-secondary"
+            }`}
+          >
+            AS WHITE
+          </button>
+          <button
+            onClick={() => setActiveTab("black")}
+            className={`px-3 py-1 rounded transition-colors ${
+              activeTab === "black"
+                ? "bg-vault-surface-layer-2 text-vault-text-primary font-semibold shadow-xs"
+                : "text-vault-text-muted hover:text-vault-text-secondary"
+            }`}
+          >
+            AS BLACK
+          </button>
         </div>
       </div>
 
-      {viewMode === "treemap" ? (
-        <div className="flex flex-col gap-3">
-          {/* Treemap Legend */}
-          <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-vault-text-muted px-1">
-            <span>Tile size represents game volume. Click any tile to inspect in Bank.</span>
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-xs bg-emerald-600" />
-                ≥58% (Strong)
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-xs bg-teal-600" />
-                50–57% (Solid)
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-xs bg-slate-600" />
-                42–49% (Balanced)
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-xs bg-rose-600" />
-                &lt;42% (Vulnerable)
-              </span>
-            </div>
-          </div>
-
-          <div className="h-80 w-full rounded-md bg-vault-surface-container-lowest/60 border border-vault-border-base/40 p-2">
-            {list.length === 0 ? (
-              <div className="h-full grid place-items-center font-mono text-xs text-vault-text-muted">
-                No opening theory logged for this color yet.
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <Treemap
-                  data={list}
-                  dataKey="total"
-                  nameKey="name"
-                  aspectRatio={4 / 3}
-                  stroke="#18181b"
-                  content={
-                    <TreemapTile
-                      onSelect={(name) =>
-                        navigate(`/game-bank?search=${encodeURIComponent(name)}`)
-                      }
-                    />
-                  }
-                >
-                  <Tooltip content={<TreemapTooltip />} />
-                </Treemap>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* Openings Table / List */}
-          <div className="flex flex-col divide-y divide-vault-border-base/40">
+      {/* Openings Table / List */}
+      <div className="flex flex-col divide-y divide-vault-border-base/40">
             {list.length === 0 ? (
               <p className="font-mono text-xs text-vault-text-muted py-6 text-center">
                 No opening theory logged for this color yet.
@@ -464,9 +261,27 @@ export function OpeningRepertoireSection({ openings }: OpeningRepertoireSectionP
 
                           {/* Mini segmented bar */}
                           <div className="hidden sm:flex h-2 w-32 overflow-hidden rounded bg-vault-surface-layer-2">
-                            <div style={{ width: `${op.winPct}%` }} className="bg-emerald-500 h-full" />
-                            <div style={{ width: `${drawPct}%` }} className="bg-neutral-500 h-full" />
-                            <div style={{ width: `${lossPct}%` }} className="bg-rose-500 h-full" />
+                            <motion.div
+                              initial={{ width: 0 }}
+                              whileInView={{ width: `${op.winPct}%` }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                              className="bg-emerald-500 h-full"
+                            />
+                            <motion.div
+                              initial={{ width: 0 }}
+                              whileInView={{ width: `${drawPct}%` }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
+                              className="bg-neutral-500 h-full"
+                            />
+                            <motion.div
+                              initial={{ width: 0 }}
+                              whileInView={{ width: `${lossPct}%` }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+                              className="bg-rose-500 h-full"
+                            />
                           </div>
 
                           {/* Inspect in Bank Link */}
@@ -498,8 +313,6 @@ export function OpeningRepertoireSection({ openings }: OpeningRepertoireSectionP
               </button>
             </div>
           )}
-        </>
-      )}
     </div>
   );
 }

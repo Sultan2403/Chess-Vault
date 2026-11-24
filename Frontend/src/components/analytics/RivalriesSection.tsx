@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, ChevronDown, ChevronUp } from "lucide-react";
+import { motion } from "motion/react";
 import type { AnalyticsOpponents } from "@chess-vault/shared";
 
 interface RivalriesSectionProps {
@@ -89,9 +90,27 @@ export function RivalriesSection({ opponents }: RivalriesSectionProps) {
 
                       {/* Mini segmented bar */}
                       <div className="flex h-1.5 w-full overflow-hidden rounded bg-vault-surface-layer-2 mt-2">
-                        <div style={{ width: `${rival.winPct}%` }} className="bg-emerald-500 h-full" />
-                        <div style={{ width: `${drawPct}%` }} className="bg-neutral-500 h-full" />
-                        <div style={{ width: `${lossPct}%` }} className="bg-rose-500 h-full" />
+                        <motion.div
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${rival.winPct}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                          className="bg-emerald-500 h-full"
+                        />
+                        <motion.div
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${drawPct}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
+                          className="bg-neutral-500 h-full"
+                        />
+                        <motion.div
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${lossPct}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+                          className="bg-rose-500 h-full"
+                        />
                       </div>
                     </div>
                   </div>

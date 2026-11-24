@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Trophy, BarChart2 } from "lucide-react";
+import { useInView } from "motion/react";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -58,6 +59,8 @@ function CustomBracketTooltip({ active, payload }: BracketTooltipProps) {
 export function RatingsAndBracketsSection({
   ratingBrackets,
 }: RatingsAndBracketsSectionProps) {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const isChartInView = useInView(chartRef, { once: true, amount: 0.2 });
   const { data: accountData } = useAccountBootstrap();
   const linkedAccounts = accountData?.linkedAccounts ?? [];
 
@@ -182,57 +185,62 @@ export function RatingsAndBracketsSection({
                 No opponent rating bracket data available for this selection.
               </p>
             ) : (
-              <div className="h-48 w-full pt-2 rounded-md bg-vault-surface-container-lowest/60 border border-vault-border-base/40 p-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart
-                    data={activeBrackets}
-                    margin={{ top: 8, right: 16, left: -20, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />
-                    <XAxis
-                      dataKey="label"
-                      stroke="transparent"
-                      tick={{ fill: "var(--color-vault-text-muted)", fontSize: 10 }}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      yAxisId="left"
-                      stroke="transparent"
-                      tick={{ fill: "var(--color-vault-text-muted)", fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <YAxis
-                      yAxisId="right"
-                      orientation="right"
-                      domain={[0, 100]}
-                      unit="%"
-                      stroke="transparent"
-                      tick={{ fill: "#10b981", fontSize: 10 }}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <Tooltip content={<CustomBracketTooltip />} cursor={{ fill: "rgba(255, 255, 255, 0.04)" }} />
-                    <Bar
-                      yAxisId="left"
-                      dataKey="total"
-                      name="Volume"
-                      fill="#d4af37"
-                      radius={[4, 4, 0, 0]}
-                      maxBarSize={36}
-                    />
-                    <Line
-                      yAxisId="right"
-                      dataKey="winPct"
-                      name="Win Rate"
-                      type="monotone"
-                      stroke="#10b981"
-                      strokeWidth={2.5}
-                      dot={{ fill: "#10b981", r: 4 }}
-                      activeDot={{ fill: "#34d399", r: 6 }}
-                    />
-                  </ComposedChart>
-                </ResponsiveContainer>
+              <div
+                ref={chartRef}
+                className="h-48 w-full pt-2 rounded-md bg-vault-surface-container-lowest/60 border border-vault-border-base/40 p-2"
+              >
+                {isChartInView && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <ComposedChart
+                      data={activeBrackets}
+                      margin={{ top: 8, right: 16, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />
+                      <XAxis
+                        dataKey="label"
+                        stroke="transparent"
+                        tick={{ fill: "rgb(var(--color-vault-text-muted))", fontSize: 10 }}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        yAxisId="left"
+                        stroke="transparent"
+                        tick={{ fill: "rgb(var(--color-vault-text-muted))", fontSize: 10 }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        domain={[0, 100]}
+                        unit="%"
+                        stroke="transparent"
+                        tick={{ fill: "#10b981", fontSize: 10 }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip content={<CustomBracketTooltip />} cursor={{ fill: "rgba(255, 255, 255, 0.04)" }} />
+                      <Bar
+                        yAxisId="left"
+                        dataKey="total"
+                        name="Volume"
+                        fill="#d4af37"
+                        radius={[4, 4, 0, 0]}
+                        maxBarSize={36}
+                      />
+                      <Line
+                        yAxisId="right"
+                        dataKey="winPct"
+                        name="Win Rate"
+                        type="monotone"
+                        stroke="#10b981"
+                        strokeWidth={2.5}
+                        dot={{ fill: "#10b981", r: 4 }}
+                        activeDot={{ fill: "#34d399", r: 6 }}
+                      />
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                )}
               </div>
             )}
           </div>

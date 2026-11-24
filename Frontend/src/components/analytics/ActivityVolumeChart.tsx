@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import { Sparkles } from "lucide-react";
+import { useInView } from "motion/react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -53,6 +55,9 @@ function CustomActivityTooltip({ active, payload }: ActivityTooltipProps) {
 }
 
 export function ActivityVolumeChart({ trends, optimalWindow }: ActivityVolumeChartProps) {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const isChartInView = useInView(chartRef, { once: true, amount: 0.2 });
+
   if (!trends || trends.length === 0) {
     return (
       <div className="rounded-lg border border-vault-border-base bg-vault-surface-layer-1 p-6">
@@ -91,44 +96,49 @@ export function ActivityVolumeChart({ trends, optimalWindow }: ActivityVolumeCha
       </div>
 
       {/* Recharts Area Chart */}
-      <div className="h-64 w-full pt-4 pb-2 px-2 rounded-md bg-vault-surface-container-lowest/60 border border-vault-border-base/40">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={trends} margin={{ top: 12, right: 16, left: -16, bottom: 0 }}>
-            <defs>
-              <linearGradient id="vaultActivityGold" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#d4af37" stopOpacity={0.45} />
-                <stop offset="60%" stopColor="#d4af37" stopOpacity={0.08} />
-                <stop offset="100%" stopColor="#d4af37" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />
-            <XAxis
-              dataKey="period"
-              stroke="transparent"
-              tick={{ fill: "var(--color-vault-text-muted)", fontSize: 11 }}
-              tickLine={false}
-            />
-            <YAxis
-              stroke="transparent"
-              tick={{ fill: "var(--color-vault-text-muted)", fontSize: 10 }}
-              tickLine={false}
-              axisLine={false}
-            />
-            <Tooltip
-              content={<CustomActivityTooltip />}
-              cursor={{ stroke: "#d4af37", strokeWidth: 1.5, strokeDasharray: "3 3" }}
-            />
-            <Area
-              type="monotone"
-              dataKey="count"
-              stroke="#d4af37"
-              strokeWidth={2.5}
-              fill="url(#vaultActivityGold)"
-              dot={{ fill: "#d4af37", r: 3, strokeWidth: 0 }}
-              activeDot={{ fill: "#f59e0b", r: 6, stroke: "#18181b", strokeWidth: 2 }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+      <div
+        ref={chartRef}
+        className="h-64 w-full pt-4 pb-2 px-2 rounded-md bg-vault-surface-container-lowest/60 border border-vault-border-base/40"
+      >
+        {isChartInView && (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={trends} margin={{ top: 12, right: 16, left: -16, bottom: 0 }}>
+              <defs>
+                <linearGradient id="vaultActivityGold" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#d4af37" stopOpacity={0.45} />
+                  <stop offset="60%" stopColor="#d4af37" stopOpacity={0.08} />
+                  <stop offset="100%" stopColor="#d4af37" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" strokeOpacity={0.08} vertical={false} />
+              <XAxis
+                dataKey="period"
+                stroke="transparent"
+                tick={{ fill: "rgb(var(--color-vault-text-muted))", fontSize: 11 }}
+                tickLine={false}
+              />
+              <YAxis
+                stroke="transparent"
+                tick={{ fill: "rgb(var(--color-vault-text-muted))", fontSize: 10 }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <Tooltip
+                content={<CustomActivityTooltip />}
+                cursor={{ stroke: "#d4af37", strokeWidth: 1.5, strokeDasharray: "3 3" }}
+              />
+              <Area
+                type="monotone"
+                dataKey="count"
+                stroke="#d4af37"
+                strokeWidth={2.5}
+                fill="url(#vaultActivityGold)"
+                dot={{ fill: "#d4af37", r: 3, strokeWidth: 0 }}
+                activeDot={{ fill: "#f59e0b", r: 6, stroke: "#18181b", strokeWidth: 2 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* Optimal Performance Window Banner */}

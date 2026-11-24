@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import { Clock, Disc3 } from "lucide-react";
+import { useInView } from "motion/react";
 import {
   ResponsiveContainer,
   PieChart,
@@ -52,6 +54,9 @@ const CADENCE_COLORS: Record<string, string> = {
 };
 
 export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenceSectionProps) {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const isChartInView = useInView(sectionRef, { once: true, amount: 0.2 });
+
   const white = overview.white;
   const black = overview.black;
 
@@ -82,7 +87,7 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
   }));
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div ref={sectionRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* 1. Result Distribution by Color */}
       <div className="rounded-lg border border-vault-border-base bg-vault-surface-layer-1 p-6 flex flex-col justify-between">
         <div>
@@ -105,23 +110,25 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
 
               {/* Centered Donut */}
               <div className="relative h-28 w-28 my-1">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Tooltip content={<CustomOutcomeTooltip total={white.total} />} />
-                    <Pie
-                      data={whiteData}
-                      dataKey="value"
-                      innerRadius={36}
-                      outerRadius={48}
-                      stroke="transparent"
-                      paddingAngle={3}
-                    >
-                      {whiteData.map((d) => (
-                        <Cell key={d.name} fill={d.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+                {isChartInView && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Tooltip content={<CustomOutcomeTooltip total={white.total} />} />
+                      <Pie
+                        data={whiteData}
+                        dataKey="value"
+                        innerRadius={36}
+                        outerRadius={48}
+                        stroke="transparent"
+                        paddingAngle={3}
+                      >
+                        {whiteData.map((d) => (
+                          <Cell key={d.name} fill={d.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="font-mono text-sm font-bold text-vault-text-primary">
                     {white.winPct}%
@@ -150,23 +157,25 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
 
               {/* Centered Donut */}
               <div className="relative h-28 w-28 my-1">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Tooltip content={<CustomOutcomeTooltip total={black.total} />} />
-                    <Pie
-                      data={blackData}
-                      dataKey="value"
-                      innerRadius={36}
-                      outerRadius={48}
-                      stroke="transparent"
-                      paddingAngle={3}
-                    >
-                      {blackData.map((d) => (
-                        <Cell key={d.name} fill={d.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+                {isChartInView && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Tooltip content={<CustomOutcomeTooltip total={black.total} />} />
+                      <Pie
+                        data={blackData}
+                        dataKey="value"
+                        innerRadius={36}
+                        outerRadius={48}
+                        stroke="transparent"
+                        paddingAngle={3}
+                      >
+                        {blackData.map((d) => (
+                          <Cell key={d.name} fill={d.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="font-mono text-sm font-bold text-vault-text-primary">
                     {black.winPct}%
@@ -210,39 +219,41 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
           <div className="flex flex-col sm:flex-row items-center gap-6 mt-4">
             {/* Cadence Volume Donut */}
             <div className="relative h-36 w-36 shrink-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (!active || !payload?.length) return null;
-                      const item = payload[0].payload;
-                      return (
-                        <div className="rounded bg-vault-surface-layer-3 border border-vault-border-base px-2.5 py-1.5 font-mono text-[10px] shadow-xl backdrop-blur-md">
-                          <div className="font-semibold text-vault-text-primary">{item.name}</div>
-                          <div className="text-vault-text-secondary">
-                            {Number(item.value).toLocaleString()} games ({item.volumePct}%)
+              {isChartInView && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (!active || !payload?.length) return null;
+                        const item = payload[0].payload;
+                        return (
+                          <div className="rounded bg-vault-surface-layer-3 border border-vault-border-base px-2.5 py-1.5 font-mono text-[10px] shadow-xl backdrop-blur-md">
+                            <div className="font-semibold text-vault-text-primary">{item.name}</div>
+                            <div className="text-vault-text-secondary">
+                              {Number(item.value).toLocaleString()} games ({item.volumePct}%)
+                            </div>
+                            <div className="font-bold text-emerald-400 mt-0.5">
+                              {item.winPct}% Win Rate
+                            </div>
                           </div>
-                          <div className="font-bold text-emerald-400 mt-0.5">
-                            {item.winPct}% Win Rate
-                          </div>
-                        </div>
-                      );
-                    }}
-                  />
-                  <Pie
-                    data={cadenceData}
-                    dataKey="value"
-                    innerRadius={44}
-                    outerRadius={62}
-                    stroke="transparent"
-                    paddingAngle={3}
-                  >
-                    {cadenceData.map((d) => (
-                      <Cell key={d.name} fill={d.color} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
+                        );
+                      }}
+                    />
+                    <Pie
+                      data={cadenceData}
+                      dataKey="value"
+                      innerRadius={44}
+                      outerRadius={62}
+                      stroke="transparent"
+                      paddingAngle={3}
+                    >
+                      {cadenceData.map((d) => (
+                        <Cell key={d.name} fill={d.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="font-mono text-xs font-bold text-vault-text-primary">
                   {cadenceData.reduce((acc, c) => acc + c.value, 0).toLocaleString()}

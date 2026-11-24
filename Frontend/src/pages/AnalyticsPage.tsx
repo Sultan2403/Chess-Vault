@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
 import { motion, useReducedMotion } from "motion/react";
+import { startOfDay, subDays, subYears } from "date-fns";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { useAnalytics } from "../hooks/useAnalytics";
-import { AnalyticsHeader } from "../components/analytics/AnalyticsHeader";
+import { AnalyticsHeader, AnalyticsFilterBar } from "../components/analytics/AnalyticsHeader";
 import { AnalyticsKpiCards } from "../components/analytics/AnalyticsKpiCards";
 import { ActivityVolumeChart } from "../components/analytics/ActivityVolumeChart";
 import { ColorAndCadenceSection } from "../components/analytics/ColorAndCadenceSection";
@@ -20,21 +21,17 @@ export default function AnalyticsPage() {
   const [selectedTimeClass, setSelectedTimeClass] = useState<TimeClassType | "all">("all");
   const [selectedRange, setSelectedRange] = useState<string>("all");
 
-  // Derive `from` ISO string based on selected range
+  // Derive `from` ISO string normalized to start of day for stable React Query cache keys
   const fromDate = useMemo(() => {
     if (selectedRange === "all") return undefined;
-    const now = new Date();
-    if (selectedRange === "12m") {
-      now.setFullYear(now.getFullYear() - 1);
-    } else if (selectedRange === "90d") {
-      now.setDate(now.getDate() - 90);
-    } else if (selectedRange === "30d") {
-      now.setDate(now.getDate() - 30);
-    }
-    return now.toISOString();
+    const today = startOfDay(new Date());
+    if (selectedRange === "12m") return subYears(today, 1).toISOString();
+    if (selectedRange === "90d") return subDays(today, 90).toISOString();
+    if (selectedRange === "30d") return subDays(today, 30).toISOString();
+    return undefined;
   }, [selectedRange]);
 
-  const { data, isLoading, isError, error, refetch } = useAnalytics({
+  const { data, isLoading, isFetching, isError, error, refetch } = useAnalytics({
     platform: selectedPlatform,
     timeClass: selectedTimeClass,
     from: fromDate,
@@ -76,7 +73,7 @@ export default function AnalyticsPage() {
 
       {data && !isLoading && (
         <div className="flex flex-col gap-8">
-          {/* 1. Header & Filters */}
+          {/* 1. Header */}
           <motion.section
             variants={sectionVariants}
             initial="hidden"
@@ -88,14 +85,22 @@ export default function AnalyticsPage() {
               formattedSpan={data.archiveSpan.formattedSpan}
               chessComGames={chessComGames}
               lichessGames={lichessGames}
-              selectedPlatform={selectedPlatform}
-              onSelectPlatform={setSelectedPlatform}
-              selectedTimeClass={selectedTimeClass}
-              onSelectTimeClass={setSelectedTimeClass}
-              selectedRange={selectedRange}
-              onSelectRange={setSelectedRange}
             />
           </motion.section>
+
+          {/* Sticky Filter Toolbar */}
+          <AnalyticsFilterBar
+            totalGames={data.overview.totalGames}
+            chessComGames={chessComGames}
+            lichessGames={lichessGames}
+            selectedPlatform={selectedPlatform}
+            onSelectPlatform={setSelectedPlatform}
+            selectedTimeClass={selectedTimeClass}
+            onSelectTimeClass={setSelectedTimeClass}
+            selectedRange={selectedRange}
+            onSelectRange={setSelectedRange}
+            isFetching={isFetching}
+          />
 
           {/* 2. Headline 4 KPI Cards */}
           <motion.section
