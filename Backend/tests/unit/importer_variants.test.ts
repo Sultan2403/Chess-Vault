@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { UNKNOWN_OPENING_NAME } from "@chess-vault/shared";
 import {
   fetchChessComBatches,
   fetchLichessBatches,
@@ -132,6 +133,40 @@ describe("Importer Variant Filtering", () => {
         "lichess-std-1",
         "lichess-tc-1",
       ]);
+    });
+
+    it("9. continues importing subsequent valid games when a game in the stream has no opening metadata", async () => {
+      const noOpeningGame = {
+        ...MOCK_LICHESS_GAME,
+        id: "lichess-no-opening",
+        opening: undefined,
+      };
+      const validFollowupGame = {
+        ...MOCK_LICHESS_GAME,
+        id: "lichess-valid-followup",
+      };
+
+      const ndjsonContent = [
+        JSON.stringify(noOpeningGame),
+        JSON.stringify(validFollowupGame),
+      ].join("\n");
+
+      vi.spyOn(lichessApi, "getUserGames").mockResolvedValue(
+        Readable.from([ndjsonContent]) as any,
+      );
+
+      const batches = [];
+      for await (const batch of fetchLichessBatches("sultan2403", "user_123", 100)) {
+        batches.push(batch);
+      }
+
+      expect(batches).toHaveLength(1);
+      expect(batches[0].skipped).toBe(0);
+      expect(batches[0].batch).toHaveLength(2);
+      expect(batches[0].batch[0].platformGameId).toBe("lichess-no-opening");
+      expect(batches[0].batch[0].opening).toEqual({ name: UNKNOWN_OPENING_NAME });
+      expect(batches[0].batch[1].platformGameId).toBe("lichess-valid-followup");
+      expect(batches[0].batch[1].opening?.name).toBe("Caro-Kann Defense");
     });
   });
 });

@@ -36,6 +36,9 @@ export function parseLichessOpening(
   opening: Lichess_Game["opening"],
 ): { eco?: string; name?: string; variation?: string } | undefined {
   if (!opening) return undefined;
+  if (!opening.name) {
+    return opening.eco ? { eco: opening.eco } : undefined;
+  }
 
   const colonIdx = opening.name.indexOf(": ");
   const name =

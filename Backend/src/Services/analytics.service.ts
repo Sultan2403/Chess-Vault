@@ -22,6 +22,7 @@ import {
   AnalyticsTimeClassStat,
   PlatformType,
   TimeClassType,
+  UNKNOWN_OPENING_NAME,
 } from "@chess-vault/shared";
 
 function safePct(value: number, total: number): number {
@@ -355,7 +356,11 @@ export const getAnalyticsData = async (
           byOpening: [
             {
               $match: {
-                "opening.name": { $exists: true, $ne: null, $nin: ["", "Undefined", "undefined"] },
+                "opening.name": {
+                  $exists: true,
+                  $ne: null,
+                  $nin: ["", "Undefined", "undefined", UNKNOWN_OPENING_NAME],
+                },
               },
             },
             {

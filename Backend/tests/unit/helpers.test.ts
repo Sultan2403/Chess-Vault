@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { UNKNOWN_OPENING_NAME } from "@chess-vault/shared";
 import { normalizeChessComGame, normalizeLichessGame } from "../../src/Helpers";
 import {
   MOCK_CHESS_COM_GAME,
@@ -118,19 +119,18 @@ describe("Game Normalizers", () => {
       expect(normalized.opening?.variation).toBe("Declined");
     });
 
-    it("should throw when no PGN opening headers are present", () => {
+    it("should fall back to UNKNOWN_OPENING_NAME when no PGN opening headers are present", () => {
       const noHeaderGame = {
         ...MOCK_CHESS_COM_DRAWN_GAME,
         pgn: "1. e4 e6 2. d4 1/2-1/2",
       };
 
-      expect(() =>
-        normalizeChessComGame({
-          game: noHeaderGame,
-          userId: "user_123",
-          username: "sultan2403",
-        }),
-      ).toThrow(`Unable to parse opening for Chess.com game ${noHeaderGame.uuid}`);
+      const normalized = normalizeChessComGame({
+        game: noHeaderGame,
+        userId: "user_123",
+        username: "sultan2403",
+      });
+      expect(normalized.opening).toEqual({ name: UNKNOWN_OPENING_NAME });
     });
     it("should compute moves correctly for Chess.com game", () => {
       const normalized = normalizeChessComGame({
@@ -264,14 +264,13 @@ describe("Game Normalizers", () => {
       expect(normalized.opening?.variation).toBe("Two Knights Attack");
     });
 
-    it("should throw when no opening object is present", () => {
-      expect(() =>
-        normalizeLichessGame({
-          game: MOCK_LICHESS_DRAWN_GAME,
-          userId: "user_123",
-          username: "sultan2403",
-        }),
-      ).toThrow(`Unable to parse opening for Lichess game ${MOCK_LICHESS_DRAWN_GAME.id}`);
+    it("should fall back to UNKNOWN_OPENING_NAME when no opening object is present", () => {
+      const normalized = normalizeLichessGame({
+        game: MOCK_LICHESS_DRAWN_GAME,
+        userId: "user_123",
+        username: "sultan2403",
+      });
+      expect(normalized.opening).toEqual({ name: UNKNOWN_OPENING_NAME });
     });
   });
 });

@@ -56,3 +56,15 @@ export const MOCK_CHESS_COM_DRAWN_GAME: Chess_Com_Game = {
     uuid: "0169100e-5f5d-11eb-912c-2b6726e38cf8",
   },
 };
+
+export const MOCK_CHESS_COM_GAME_NO_OPENING: Chess_Com_Game = {
+  ...MOCK_CHESS_COM_DRAWN_GAME,
+  uuid: "chess-no-opening-1",
+  pgn: '[Event "Live Chess"]\n\n1. e4 e6 2. d4 1/2-1/2',
+};
+
+export const MOCK_CHESS_COM_GAME_ECO_ONLY: Chess_Com_Game = {
+  ...MOCK_CHESS_COM_GAME,
+  uuid: "chess-eco-only-1",
+  pgn: '[Event "Live Chess"]\n[ECO "B20"]\n\n1. e4 c5 1-0',
+};

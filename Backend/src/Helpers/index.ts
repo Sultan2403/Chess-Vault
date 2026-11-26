@@ -1,3 +1,4 @@
+import { UNKNOWN_OPENING_NAME } from "@chess-vault/shared";
 import { TimeClassType } from "../Config/constants";
 import {
   Chess_Com_Game,
@@ -13,6 +14,33 @@ import {
   parseChessComTimeControl,
   determineTerminationReason,
 } from "../Utils/chess";
+
+/**
+ * Builds a schema-valid opening metadata object, falling back to `UNKNOWN_OPENING_NAME`
+ * when the opening name cannot be derived and omitting `eco`/`variation` when absent.
+ */
+export function buildOpeningMetadata(parsed?: {
+  eco?: string;
+  name?: string;
+  variation?: string;
+}): NonNullable<NormalizedGame["opening"]> {
+  const trimmedName = parsed?.name?.trim();
+  const trimmedEco = parsed?.eco?.trim();
+  const trimmedVariation = parsed?.variation?.trim();
+
+  const opening: NonNullable<NormalizedGame["opening"]> = {
+    name: trimmedName ? trimmedName : UNKNOWN_OPENING_NAME,
+  };
+
+  if (trimmedEco) {
+    opening.eco = trimmedEco;
+  }
+  if (trimmedVariation) {
+    opening.variation = trimmedVariation;
+  }
+
+  return opening;
+}
 
 /**
  * Normalizes a raw Lichess game response into the canonical Chess Vault `NormalizedGame` model.
@@ -49,13 +77,7 @@ export const normalizeLichessGame = ({
       : "Guest");
 
   const parsedOpening = parseLichessOpening(game.opening);
-  if (!parsedOpening || !parsedOpening.name) {
-    throw new Error(`Unable to parse opening for Lichess game ${game.id}`);
-  }
-  const opening = {
-    ...parsedOpening,
-    name: parsedOpening.name,
-  };
+  const opening = buildOpeningMetadata(parsedOpening);
   const moves = getPgnMoveCount(game.pgn || game.moves);
   const clocks =
     normalizeLichessClocks(game.clocks) ?? parsePgnClocks(game.pgn);
@@ -141,13 +163,7 @@ export const normalizeChessComGame = ({
   folderIds?: string[] | null;
 }): NormalizedGame => {
   const parsedOpening = parseChessComOpening(game.pgn);
-  if (!parsedOpening || !parsedOpening.name) {
-    throw new Error(`Unable to parse opening for Chess.com game ${game.uuid}`);
-  }
-  const opening = {
-    ...parsedOpening,
-    name: parsedOpening.name,
-  };
+  const opening = buildOpeningMetadata(parsedOpening);
   const moves = getPgnMoveCount(game.pgn);
   const clocks = parsePgnClocks(game.pgn);
   const parsedTime = parseChessComTimeControl(game.time_control);

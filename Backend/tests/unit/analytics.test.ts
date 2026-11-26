@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { UNKNOWN_OPENING_NAME } from "@chess-vault/shared";
 import Games from "../../src/DB/Models/games.model";
 import { getAnalyticsData } from "../../src/Services/analytics.service";
 
@@ -346,5 +347,57 @@ describe("Analytics Service Unit Tests", () => {
     expect(capturedMatch["time.timeClass"]).toBe("rapid");
     expect(capturedMatch.playedAt.$gte).toEqual(new Date("2026-01-01T00:00:00Z"));
     expect(capturedMatch.playedAt.$lte).toEqual(new Date("2026-06-01T00:00:00Z"));
+  });
+
+  it("7 & 8. excludes UNKNOWN_OPENING_NAME from byOpening analytics while keeping those games in general analytics", async () => {
+    let capturedFacetPipeline: any = null;
+
+    vi.spyOn(Games, "aggregate").mockImplementation(((pipeline: any[]) => {
+      const facetStage = pipeline.find((stage) => "$facet" in stage);
+      if (facetStage) {
+        capturedFacetPipeline = facetStage.$facet;
+      }
+      return Promise.resolve([
+        {
+          overview: [
+            {
+              totalGames: 5,
+              wins: 3,
+              losses: 1,
+              draws: 1,
+              whiteTotal: 3,
+              whiteWins: 2,
+              whiteLosses: 1,
+              whiteDraws: 0,
+              blackTotal: 2,
+              blackWins: 1,
+              blackLosses: 0,
+              blackDraws: 1,
+            },
+          ],
+          byOpening: [
+            {
+              _id: { name: "Sicilian Defense", color: "white", eco: "B20" },
+              eco: "B20",
+              total: 3,
+              wins: 2,
+              losses: 1,
+              draws: 0,
+            },
+          ],
+        },
+      ]);
+    }) as any);
+
+    const result = await getAnalyticsData("user_test_123");
+
+    // Verify byOpening $match explicitly excludes UNKNOWN_OPENING_NAME
+    const openingMatch = capturedFacetPipeline.byOpening[0].$match;
+    expect(openingMatch["opening.name"].$nin).toContain(UNKNOWN_OPENING_NAME);
+
+    // General analytics still reflect all 5 games (including unknown-opening games)
+    expect(result.overview.totalGames).toBe(5);
+    expect(result.openings.asWhite).toHaveLength(1);
+    expect(result.openings.asWhite[0].name).toBe("Sicilian Defense");
   });
 });

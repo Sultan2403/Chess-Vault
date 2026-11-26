@@ -103,3 +103,19 @@ export const MOCK_LICHESS_AI_GAME: Lichess_Game = {
   moves: "d4 d5",
   pgn: "1. d4 d5 1-0",
 };
+
+export const MOCK_LICHESS_GAME_NO_OPENING: Lichess_Game = {
+  ...MOCK_LICHESS_GAME,
+  id: "lichessNoOpening1",
+  opening: undefined,
+};
+
+export const MOCK_LICHESS_GAME_NO_VARIATION: Lichess_Game = {
+  ...MOCK_LICHESS_GAME,
+  id: "lichessNoVariation1",
+  opening: {
+    eco: "B20",
+    name: "Sicilian Defense",
+    ply: 2,
+  },
+};

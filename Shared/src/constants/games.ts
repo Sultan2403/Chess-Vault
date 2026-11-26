@@ -96,3 +96,5 @@ export const LichessSupportedVariants = ["standard", "threeCheck"] as const;
 
 export const ChessComSupportedRules = ["chess", "threecheck"] as const;
 export type ChessComSupportedRuleType = (typeof ChessComSupportedRules)[number];
+
+export const UNKNOWN_OPENING_NAME = "Unknown Opening" as const;
