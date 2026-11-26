@@ -185,6 +185,10 @@ export function AnalyticsFilterBar({
           </div>
         </div>
       </div>
+
+      <p className="font-mono text-[11px] text-vault-text-muted mt-2">
+        All metrics below are influenced by your active time range, platform, and cadence filters.
+      </p>
     </div>
   );
 }
