@@ -8,6 +8,7 @@ import {
   Cell,
   Tooltip,
 } from "recharts";
+import { InfoTooltip } from "../ui/InfoTooltip";
 import type { AnalyticsOverview, AnalyticsTimeClassStat } from "@chess-vault/shared";
 
 interface ColorAndCadenceSectionProps {
@@ -198,8 +199,13 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
 
         {/* Footnote Differential */}
         <div className="border-t border-vault-border-base/40 pt-4 mt-6 text-xs text-vault-text-secondary font-mono">
-          <strong className="text-vault-primary font-semibold">
-            First-Move Advantage Differential:
+          <strong className="inline-flex items-center gap-1.5 text-vault-primary font-semibold">
+            <span>First-Move Advantage Differential:</span>
+            <InfoTooltip
+              align="left"
+              position="top"
+              text="Difference between your win rate with the White pieces and your win rate with the Black pieces."
+            />
           </strong>{" "}
           {advantageDiff >= 0 ? `+${advantageDiff}%` : `${advantageDiff}%`} win margin when holding the White pieces ({white.winPct}% vs {black.winPct}%).
         </div>

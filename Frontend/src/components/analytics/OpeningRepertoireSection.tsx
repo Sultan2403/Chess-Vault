@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, BookOpen, ChevronDown, ChevronUp, ShieldAlert, Swords } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { InfoTooltip } from "../ui/InfoTooltip";
 import type { AnalyticsOpenings } from "@chess-vault/shared";
 
 interface OpeningRepertoireSectionProps {
@@ -39,6 +40,10 @@ export function OpeningRepertoireSection({ openings }: OpeningRepertoireSectionP
                 <div className="flex items-center gap-1.5 text-emerald-400 uppercase tracking-wider font-semibold">
                   <Swords size={13} />
                   <span>SIGNATURE WEAPONS // TOP PERFORMANCES</span>
+                  <InfoTooltip
+                    align="left"
+                    text="Scans all matching games in your archive and ranks openings you have played at least 5–15 times so 1-game flukes don't skew the list."
+                  />
                 </div>
                 <span className="text-emerald-400 font-semibold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
                   TOP {signatureWeapons.length}
@@ -101,6 +106,10 @@ export function OpeningRepertoireSection({ openings }: OpeningRepertoireSectionP
                 <div className="flex items-center gap-1.5 text-rose-400 uppercase tracking-wider font-semibold">
                   <ShieldAlert size={13} />
                   <span>VULNERABLE OPENINGS // LEAK DETECTION</span>
+                  <InfoTooltip
+                    align="left"
+                    text="Scans all matching games in your archive for openings played at least 5–15 times where your win rate is under 50%."
+                  />
                 </div>
                 <span className="text-rose-400 font-semibold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
                   TOP {vulnerableOpenings.length}

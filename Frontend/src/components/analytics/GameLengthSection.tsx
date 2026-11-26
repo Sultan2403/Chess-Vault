@@ -12,6 +12,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import { InfoTooltip } from "../ui/InfoTooltip";
 import type { AnalyticsGameLength, AnalyticsMoveBucket } from "@chess-vault/shared";
 
 interface GameLengthSectionProps {
@@ -79,10 +80,14 @@ export function GameLengthSection({ gameLength, moveBuckets }: GameLengthSection
           </h2>
         </div>
 
-        <div className="flex items-center gap-4 font-mono text-xs text-vault-text-secondary self-start sm:self-auto">
+        <div className="flex items-center gap-3 font-mono text-xs text-vault-text-secondary self-start sm:self-auto">
           <span>Mean: <strong className="text-vault-text-primary">{meanMoves} Moves</strong></span>
           <span>·</span>
           <span>Median: <strong className="text-vault-text-primary">{medianMoves} Moves</strong></span>
+          <InfoTooltip
+            align="right"
+            text="Mean is the average full-move count; Median is the midpoint game length (less skewed by 100+ move marathons)."
+          />
         </div>
       </div>
 
@@ -170,8 +175,12 @@ export function GameLengthSection({ gameLength, moveBuckets }: GameLengthSection
       {/* Move Count Distribution Frequency Histogram & Win Rate Spline */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <div className="font-mono text-[11px] uppercase tracking-wider text-vault-text-muted">
-            MOVE COUNT DISTRIBUTION & WIN CONVERSION SPLINE
+          <div className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-vault-text-muted">
+            <span>MOVE COUNT DISTRIBUTION & WIN CONVERSION SPLINE</span>
+            <InfoTooltip
+              align="left"
+              text="Bars show how many games ended in each move range; the green line tracks your win rate % in that bucket."
+            />
           </div>
           <div className="flex items-center gap-3 font-mono text-[10px] text-vault-text-muted">
             <span className="flex items-center gap-1.5">

@@ -11,6 +11,7 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
+import { InfoTooltip } from "../ui/InfoTooltip";
 import type { AnalyticsTerminations } from "@chess-vault/shared";
 
 interface TerminationsSectionProps {
@@ -119,8 +120,12 @@ export function TerminationsSection({ terminations }: TerminationsSectionProps) 
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-vault-text-muted">
             DECISIVE RESOLUTION
           </span>
-          <h2 className="font-display text-xl md:text-2xl font-medium text-vault-text-primary mt-0.5">
-            Termination Breakdown & Battle Endings
+          <h2 className="inline-flex items-center gap-2 font-display text-xl md:text-2xl font-medium text-vault-text-primary mt-0.5">
+            <span>Termination Breakdown & Battle Endings</span>
+            <InfoTooltip
+              align="left"
+              text="Compares decisive wins vs. decisive losses by how the game ended (resignation, checkmate, timeout/flag). Draws are excluded."
+            />
           </h2>
         </div>
 

@@ -1,6 +1,7 @@
 import { Trophy, Clock, History } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { InfoTooltip } from "../ui/InfoTooltip";
 import type { AnalyticsData } from "@chess-vault/shared";
 
 interface OutcomeTooltipProps {
@@ -86,7 +87,13 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
       >
         <div>
           <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-vault-text-muted">
-            <span>Overall Record</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span>Overall Record</span>
+              <InfoTooltip
+                align="left"
+                text="Win Rate is calculated as Wins divided by Total Games (including draws and losses)."
+              />
+            </span>
             <span className="text-[10px] bg-vault-surface-layer-2 px-1.5 py-0.5 rounded text-vault-text-secondary border border-vault-border-base">
               W-D-L
             </span>
@@ -195,7 +202,10 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
       >
         <div>
           <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-vault-text-muted">
-            <span>Streak Performance</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span>Streak Performance</span>
+              <InfoTooltip text="Longest consecutive win/loss runs and your active streak across games ordered by date." />
+            </span>
             <Trophy size={14} className="text-vault-primary" />
           </div>
 

@@ -12,6 +12,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { useAccountBootstrap } from "../../hooks/useAccount";
+import { InfoTooltip } from "../ui/InfoTooltip";
 import type {
   AnalyticsPlatformRatingBrackets,
   AnalyticsRatingBracket,
@@ -152,8 +153,9 @@ export function RatingsAndBracketsSection({
             <BarChart2 size={14} className="text-vault-text-muted" />
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-1">
-            <h2 className="font-display text-xl font-medium text-vault-text-primary">
-              Performance by Rating Bracket
+            <h2 className="inline-flex items-center gap-2 font-display text-xl font-medium text-vault-text-primary">
+              <span>Performance by Rating Bracket</span>
+              <InfoTooltip text="Groups games by your opponent's Elo at the time of the match, showing volume (gold bars) and your win rate % (green line)." />
             </h2>
 
             {/* Platform tab switcher when multiple platforms exist */}
