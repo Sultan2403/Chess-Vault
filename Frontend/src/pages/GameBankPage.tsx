@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import {
   Search,
   Copy,
+  Check,
   ExternalLink,
   FolderPlus,
   Download,
@@ -27,6 +28,7 @@ import type { TimeClassType } from "@chess-vault/shared";
 export default function GameBankPage() {
   const [searchParams] = useSearchParams();
   const initialSearch = searchParams.get("search") ?? "";
+  const [copiedGameId, setCopiedGameId] = useState<string | null>(null);
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState(initialSearch);
@@ -662,12 +664,21 @@ export default function GameBankPage() {
                         type="button"
                         onClick={() => {
                           navigator.clipboard.writeText(game.pgn);
-                          alert("PGN copied to clipboard!");
+                          setCopiedGameId(game.id);
+                          window.setTimeout(() => {
+                            setCopiedGameId((prev) =>
+                              prev === game.id ? null : prev,
+                            );
+                          }, 1800);
                         }}
                         className="hover:text-vault-text-primary cursor-pointer"
-                        title="Copy PGN"
+                        title={copiedGameId === game.id ? "Copied" : "Copy PGN"}
                       >
-                        <Copy size={12} />
+                        {copiedGameId === game.id ? (
+                          <Check size={12} className="text-vault-win" />
+                        ) : (
+                          <Copy size={12} />
+                        )}
                       </button>
                       <NavLink
                         to={`/game/${game.id}`}

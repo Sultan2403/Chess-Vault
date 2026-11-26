@@ -1,4 +1,4 @@
-import js from "eslint/js";
+import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
@@ -23,7 +23,7 @@ export default defineConfig([
 
       parserOptions: {
         tsconfigRootDir: import.meta.dirname,
-        project: "./tsconfig.json",
+        project: ["./tsconfig.app.json", "./tsconfig.node.json"],
       },
     },
   },

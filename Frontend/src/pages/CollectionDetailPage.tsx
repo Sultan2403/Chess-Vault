@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
+import { ErrorModal } from "../components/ui/ErrorModal";
 import { MiniChessboard } from "../components/ui/MiniChessboard";
 import { Modal } from "../components/ui/Modal";
 import { CollectionDiscoveriesShowcase } from "../components/collections/CollectionDiscoveriesShowcase";
@@ -54,6 +55,7 @@ export default function CollectionDetailPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
+  const [removeError, setRemoveError] = useState<unknown>(null);
 
   // Queries
   const {
@@ -121,8 +123,8 @@ export default function CollectionDetailPage() {
         },
       });
       refetchGames();
-    } catch {
-      alert("Failed to remove game from album.");
+    } catch (err) {
+      setRemoveError(err);
     }
   };
 
@@ -142,7 +144,7 @@ export default function CollectionDetailPage() {
       setIsEditModalOpen(false);
       refetchFolder();
     } catch {
-      alert("Failed to update album. Please try again.");
+      // Error state is rendered inline via updateFolderMutation.isError
     }
   };
 
@@ -152,7 +154,7 @@ export default function CollectionDetailPage() {
       await deleteFolderMutation.mutateAsync(folderId);
       navigate("/collections");
     } catch {
-      alert("Failed to delete album. Please try again.");
+      // Error state is rendered inline via deleteFolderMutation.isError
     }
   };
 
@@ -479,11 +481,22 @@ export default function CollectionDetailPage() {
       {/* MODAL: EDIT COLLECTION */}
       <Modal
         isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          updateFolderMutation.reset();
+        }}
         title="Edit Album"
         description="Update the title and personal notes for this album."
       >
         <form onSubmit={handleEditSubmit} className="space-y-4 font-mono text-xs">
+          {updateFolderMutation.isError && (
+            <ErrorBanner
+              compact
+              error={updateFolderMutation.error}
+              message="Failed to update album. Please try again."
+              onDismiss={() => updateFolderMutation.reset()}
+            />
+          )}
           <div>
             <label className="block text-[10px] uppercase text-vault-text-muted mb-1">
               Album Name
@@ -531,11 +544,22 @@ export default function CollectionDetailPage() {
       {/* MODAL: DELETE CONFIRMATION */}
       <Modal
         isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          deleteFolderMutation.reset();
+        }}
         title="Delete Album"
         description="Are you sure you want to delete this album? Your games will remain safe in your Game Bank."
       >
         <div className="space-y-4 font-mono text-xs">
+          {deleteFolderMutation.isError && (
+            <ErrorBanner
+              compact
+              error={deleteFolderMutation.error}
+              message="Failed to delete album. Please try again."
+              onDismiss={() => deleteFolderMutation.reset()}
+            />
+          )}
           <p className="text-vault-text-secondary leading-relaxed">
             Deleting <span className="font-bold text-vault-text-primary">"{folder.name}"</span> only
             removes this group. None of the underlying match records will be deleted from your vault.
@@ -561,6 +585,14 @@ export default function CollectionDetailPage() {
           </div>
         </div>
       </Modal>
+
+      <ErrorModal
+        isOpen={Boolean(removeError)}
+        onClose={() => setRemoveError(null)}
+        title="Couldn't remove game"
+        error={removeError}
+        message="Failed to remove game from album."
+      />
     </div>
   );
 }

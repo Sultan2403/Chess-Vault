@@ -46,7 +46,7 @@ export default function CollectionsPage() {
       setNewFolderDesc("");
       setIsCreateModalOpen(false);
     } catch {
-      alert("Failed to create collection. Please try again.");
+      // Error state is rendered inline via createFolderMutation.isError
     }
   };
 
@@ -154,11 +154,22 @@ export default function CollectionsPage() {
       {/* MODAL: CREATE COLLECTION */}
       <Modal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          createFolderMutation.reset();
+        }}
         title="Create New Album"
         description="Organize your competitive matches and training studies into a personal collection."
       >
         <form onSubmit={handleCreateSubmit} className="space-y-4 font-mono text-xs">
+          {createFolderMutation.isError && (
+            <ErrorBanner
+              compact
+              error={createFolderMutation.error}
+              message="Failed to create collection. Please try again."
+              onDismiss={() => createFolderMutation.reset()}
+            />
+          )}
           <div>
             <label className="block text-[10px] uppercase text-vault-text-muted mb-1">
               Album Name
