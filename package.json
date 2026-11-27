@@ -19,5 +19,8 @@
   },
   "devDependencies": {
     "concurrently": "^10.0.5"
+  },
+  "dependencies": {
+    "@tanstack/react-virtual": "^3.14.28"
   }
 }
