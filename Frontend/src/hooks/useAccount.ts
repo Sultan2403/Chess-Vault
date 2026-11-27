@@ -9,6 +9,7 @@ export const useAccountBootstrap = (enabled = true) =>
     queryKey: QUERY_KEYS.account.bootstrap(),
     queryFn: accountApi.getBootstrap,
     enabled,
+    staleTime: 1000 * 60 * 30, // 30 minutes; explicitly invalidated on onboarding/link/import mutations
   });
 
 export const usePlatformUsernames = () => {

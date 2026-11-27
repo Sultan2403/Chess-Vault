@@ -1,5 +1,8 @@
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { useTheme } from "../../contexts";
+
+const MemoizedChessboard = memo(Chessboard);
 
 type MiniChessboardProps = {
   fen?: string;
@@ -17,28 +20,60 @@ export function MiniChessboard({
   className = "",
 }: MiniChessboardProps) {
   const { boardColors } = useTheme();
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isNearViewport, setIsNearViewport] = useState(
+    () => typeof IntersectionObserver === "undefined",
+  );
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element || typeof IntersectionObserver === "undefined") return;
+
+    // Keep ~2-3 rows above and below the viewport mounted; unmount far off-screen boards
+    // to bound DOM node count without triggering any API refetches.
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry) {
+          setIsNearViewport(entry.isIntersecting);
+        }
+      },
+      { rootMargin: "900px 0px" },
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  const boardOptions = useMemo(
+    () => ({
+      position: fen,
+      boardOrientation: orientation,
+      allowDragging: false,
+      animationDurationInMs: 0,
+      boardStyle: {
+        borderRadius: "0px",
+      },
+      darkSquareStyle: {
+        backgroundColor: boardColors.boardDark,
+      },
+      lightSquareStyle: {
+        backgroundColor: boardColors.boardLight,
+      },
+    }),
+    [fen, orientation, boardColors.boardDark, boardColors.boardLight],
+  );
 
   return (
     <div
+      ref={containerRef}
       className={`relative aspect-square w-full overflow-hidden border border-vault-border-interactive bg-vault-surface-layer-1 ${className}`}
     >
-      <Chessboard
-        options={{
-          position: fen,
-          boardOrientation: orientation,
-          allowDragging: false,
-          animationDurationInMs: 0,
-          boardStyle: {
-            borderRadius: "0px",
-          },
-          darkSquareStyle: {
-            backgroundColor: boardColors.boardDark,
-          },
-          lightSquareStyle: {
-            backgroundColor: boardColors.boardLight,
-          },
-        }}
-      />
+      {isNearViewport ? (
+        <MemoizedChessboard options={boardOptions} />
+      ) : (
+        <div className="h-full w-full bg-vault-surface-layer-1" aria-hidden="true" />
+      )}
 
       {/* Coordinate / Move Highlight Badge overlay if provided */}
       {badgeLabel && (
