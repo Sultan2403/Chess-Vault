@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef, useLayoutEffect } from "react";
 import { NavLink, useSearchParams } from "react-router-dom";
-import { motion } from "motion/react";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import {
   Search,
   FolderPlus,
@@ -14,6 +14,7 @@ import { Button } from "../components/ui/Button";
 import { ErrorBanner } from "../components/ui/ErrorBanner";
 import { useInfiniteGames } from "../hooks/useGames";
 import { useIntersectionObserver } from "../hooks/useIntersectionObserver";
+import { useResponsiveColumns, chunkIntoRows } from "../hooks/useResponsiveColumns";
 import { BulkAddToFolderModal } from "../components/game-bank/BulkAddToFolderModal";
 import { PurgeGamesModal } from "../components/game-bank/PurgeGamesModal";
 import { GameBankCard } from "../components/game-bank/GameBankCard";
@@ -129,6 +130,38 @@ export default function GameBankPage() {
       setSelectedGameIds(new Set(games.map((g) => g.id)));
     }
   };
+
+  const columns = useResponsiveColumns();
+  const rows = useMemo(() => chunkIntoRows(games, columns), [games, columns]);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const [scrollMargin, setScrollMargin] = useState(0);
+
+  useLayoutEffect(() => {
+    if (listRef.current) {
+      setScrollMargin(listRef.current.offsetTop);
+    }
+  }, [games.length, columns]);
+
+  const virtualizer = useWindowVirtualizer({
+    count: rows.length,
+    estimateSize: () => 450,
+    overscan: 2,
+    scrollMargin,
+  });
+
+  const virtualRows = virtualizer.getVirtualItems();
+  const lastVirtualRow = virtualRows[virtualRows.length - 1];
+
+  useEffect(() => {
+    if (
+      lastVirtualRow &&
+      lastVirtualRow.index >= rows.length - 2 &&
+      hasNextPage &&
+      !isFetchingNextPage
+    ) {
+      fetchNextPage();
+    }
+  }, [lastVirtualRow, rows.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleToggleGame = useCallback((id: string) => {
     setSelectedGameIds((prev) => {
@@ -514,30 +547,41 @@ export default function GameBankPage() {
             </div>
           </div>
         ) : (
-          <motion.section
-            key={`${platformTab}-${outcomeFilter}-${cadenceFilter}-${selectedFolderId}`}
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: { staggerChildren: 0.05 },
-              },
-            }}
-            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          <section
+            ref={listRef}
+            style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}
+            className="w-full"
           >
-            {games.map((game) => (
-              <GameBankCard
-                key={game.id}
-                game={game}
-                isSelected={selectedGameIds.has(game.id)}
-                isCopied={copiedGameId === game.id}
-                onToggle={handleToggleGame}
-                onCopyPgn={handleCopyPgn}
-              />
-            ))}
-          </motion.section>
+            {virtualRows.map((virtualRow) => {
+              const rowGames = rows[virtualRow.index] ?? [];
+              return (
+                <div
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={virtualizer.measureElement}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualRow.start - virtualizer.options.scrollMargin}px)`,
+                  }}
+                  className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 pb-6"
+                >
+                  {rowGames.map((game) => (
+                    <GameBankCard
+                      key={game.id}
+                      game={game}
+                      isSelected={selectedGameIds.has(game.id)}
+                      isCopied={copiedGameId === game.id}
+                      onToggle={handleToggleGame}
+                      onCopyPgn={handleCopyPgn}
+                    />
+                  ))}
+                </div>
+              );
+            })}
+          </section>
         )}
 
         {/* INFINITE SCROLL SENTINEL & FOOTER STATUS */}

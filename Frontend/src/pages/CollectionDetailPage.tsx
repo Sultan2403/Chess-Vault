@@ -1,6 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useLayoutEffect } from "react";
 import { useParams, useNavigate, NavLink } from "react-router-dom";
 import { motion } from "motion/react";
+import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import {
   ArrowLeft,
   Search,
@@ -26,6 +27,7 @@ import {
   useDeleteFolder,
 } from "../hooks/useFolders";
 import { useIntersectionObserver } from "../hooks/useIntersectionObserver";
+import { useResponsiveColumns, chunkIntoRows } from "../hooks/useResponsiveColumns";
 import { useUpdateGame } from "../hooks/useGames";
 import {
   getPlayerPerspective,
@@ -111,6 +113,41 @@ export default function CollectionDetailPage() {
 
   // Games already filtered server-side
   const filteredGames = games;
+
+  const columns = useResponsiveColumns();
+  const rows = useMemo(
+    () => chunkIntoRows(filteredGames, columns),
+    [filteredGames, columns],
+  );
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const [scrollMargin, setScrollMargin] = useState(0);
+
+  useLayoutEffect(() => {
+    if (listRef.current) {
+      setScrollMargin(listRef.current.offsetTop);
+    }
+  }, [filteredGames.length, columns]);
+
+  const virtualizer = useWindowVirtualizer({
+    count: rows.length,
+    estimateSize: () => 390,
+    overscan: 2,
+    scrollMargin,
+  });
+
+  const virtualRows = virtualizer.getVirtualItems();
+  const lastVirtualRow = virtualRows[virtualRows.length - 1];
+
+  useEffect(() => {
+    if (
+      lastVirtualRow &&
+      lastVirtualRow.index >= rows.length - 2 &&
+      hasNextPage &&
+      !isFetchingNextPage
+    ) {
+      fetchNextPage();
+    }
+  }, [lastVirtualRow, rows.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Remove game from this collection
   const handleRemoveGameFromFolder = async (gameId: string, currentFolderIds: string[] | null) => {
@@ -325,119 +362,142 @@ export default function CollectionDetailPage() {
             ))}
           </div>
         ) : filteredGames.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredGames.map((game) => {
-              const perspective = getPlayerPerspective(game);
-              const opening = parseOpeningDetails(game);
-              const gameDate = getGameDate(game);
-              const moveCount = getMoveCount(game);
-
+          <div
+            ref={listRef}
+            style={{ height: `${virtualizer.getTotalSize()}px`, position: "relative" }}
+            className="w-full"
+          >
+            {virtualRows.map((virtualRow) => {
+              const rowGames = rows[virtualRow.index] ?? [];
               return (
-                <motion.article
-                  key={game.id}
-                  whileHover={{ y: -2 }}
-                  transition={{ duration: 0.15 }}
-                  className="group relative flex flex-col justify-between rounded-vault border border-vault-border-base hover:border-vault-border-interactive bg-vault-surface-layer-1 p-4 shadow-xs transition-colors"
+                <div
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={virtualizer.measureElement}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    transform: `translateY(${virtualRow.start - virtualizer.options.scrollMargin}px)`,
+                  }}
+                  className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 pb-4"
                 >
-                  <div className="space-y-3">
-                    {/* Top Row: Date, Result Badge & Remove Action */}
-                    <div className="flex items-center justify-between text-xs font-mono">
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={`rounded-xs px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                            perspective.result === "win"
-                              ? "bg-vault-win/15 text-vault-win border border-vault-win/30"
-                              : perspective.result === "loss"
-                                ? "bg-vault-loss/15 text-vault-loss border border-vault-loss/30"
-                                : "bg-vault-draw/15 text-vault-draw border border-vault-draw/30"
-                          }`}
-                        >
-                          {perspective.result}
-                        </span>
-                        <span className="text-vault-text-muted text-[11px]">{gameDate}</span>
-                      </div>
+                  {rowGames.map((game) => {
+                    const perspective = getPlayerPerspective(game);
+                    const opening = parseOpeningDetails(game);
+                    const gameDate = getGameDate(game);
+                    const moveCount = getMoveCount(game);
 
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveGameFromFolder(game.id, game.folderIds)}
-                        title="Remove from this album (keeps in Game Bank)"
-                        className="rounded-xs p-1 text-vault-text-muted hover:bg-vault-surface-layer-2 hover:text-vault-loss transition-colors cursor-pointer"
+                    return (
+                      <motion.article
+                        key={game.id}
+                        whileHover={{ y: -2 }}
+                        transition={{ duration: 0.15 }}
+                        className="group relative flex flex-col justify-between rounded-vault border border-vault-border-base hover:border-vault-border-interactive bg-vault-surface-layer-1 p-4 shadow-xs transition-colors"
                       >
-                        <FolderMinus size={13} />
-                      </button>
-                    </div>
+                        <div className="space-y-3">
+                          {/* Top Row: Date, Result Badge & Remove Action */}
+                          <div className="flex items-center justify-between text-xs font-mono">
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`rounded-xs px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                                  perspective.result === "win"
+                                    ? "bg-vault-win/15 text-vault-win border border-vault-win/30"
+                                    : perspective.result === "loss"
+                                      ? "bg-vault-loss/15 text-vault-loss border border-vault-loss/30"
+                                      : "bg-vault-draw/15 text-vault-draw border border-vault-draw/30"
+                                }`}
+                              >
+                                {perspective.result}
+                              </span>
+                              <span className="text-vault-text-muted text-[11px]">{gameDate}</span>
+                            </div>
 
-                    {/* Board preview */}
-                    <div className="flex justify-center py-1">
-                      <div className="w-full max-w-[200px]">
-                        <MiniChessboard
-                          fen={game.finalFen}
-                          orientation={perspective.playerColor}
-                          className="rounded-xs"
-                        />
-                      </div>
-                    </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveGameFromFolder(game.id, game.folderIds)}
+                              title="Remove from this album (keeps in Game Bank)"
+                              className="rounded-xs p-1 text-vault-text-muted hover:bg-vault-surface-layer-2 hover:text-vault-loss transition-colors cursor-pointer"
+                            >
+                              <FolderMinus size={13} />
+                            </button>
+                          </div>
 
-                    {/* Players */}
-                    <div className="space-y-1 font-mono text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-1.5 truncate">
-                          <span className="h-1.5 w-1.5 rounded-full bg-white border border-vault-border-base" />
-                          <span
-                            className={
-                              game.userPlayedAs === "white"
-                                ? "font-bold text-vault-text-primary"
-                                : "text-vault-text-secondary"
-                            }
+                          {/* Board preview */}
+                          <div className="flex justify-center py-1">
+                            <div className="w-full max-w-[200px]">
+                              <MiniChessboard
+                                fen={game.finalFen}
+                                orientation={perspective.playerColor}
+                                className="rounded-xs"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Players */}
+                          <div className="space-y-1 font-mono text-xs">
+                            <div className="flex items-center justify-between">
+                              <span className="flex items-center gap-1.5 truncate">
+                                <span className="h-1.5 w-1.5 rounded-full bg-white border border-vault-border-base" />
+                                <span
+                                  className={
+                                    game.userPlayedAs === "white"
+                                      ? "font-bold text-vault-text-primary"
+                                      : "text-vault-text-secondary"
+                                  }
+                                >
+                                  {game.whitePlayer.username}
+                                </span>
+                              </span>
+                              <span className="text-vault-text-muted text-[11px]">
+                                {game.whitePlayer.rating}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                              <span className="flex items-center gap-1.5 truncate">
+                                <span className="h-1.5 w-1.5 rounded-full bg-zinc-800 border border-vault-border-base" />
+                                <span
+                                  className={
+                                    game.userPlayedAs === "black"
+                                      ? "font-bold text-vault-text-primary"
+                                      : "text-vault-text-secondary"
+                                  }
+                                >
+                                  {game.blackPlayer.username}
+                                </span>
+                              </span>
+                              <span className="text-vault-text-muted text-[11px]">
+                                {game.blackPlayer.rating}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Opening & Tag info */}
+                          {opening.opening && (
+                            <div className="text-[11px] text-vault-text-muted font-sans truncate">
+                              {opening.eco ? `${opening.eco}: ` : ""}
+                              {opening.opening}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Footer & Open Action */}
+                        <div className="mt-4 flex items-center justify-between border-t border-vault-border-base/70 pt-2.5 font-mono text-[11px] text-vault-text-muted">
+                          <span>{moveCount > 0 ? `${moveCount} moves` : ""}</span>
+                          <NavLink
+                            to={`/game/${game.id}`}
+                            className="flex items-center gap-1 text-vault-bronze hover:underline font-semibold"
                           >
-                            {game.whitePlayer.username}
-                          </span>
-                        </span>
-                        <span className="text-vault-text-muted text-[11px]">
-                          {game.whitePlayer.rating}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-1.5 truncate">
-                          <span className="h-1.5 w-1.5 rounded-full bg-zinc-800 border border-vault-border-base" />
-                          <span
-                            className={
-                              game.userPlayedAs === "black"
-                                ? "font-bold text-vault-text-primary"
-                                : "text-vault-text-secondary"
-                            }
-                          >
-                            {game.blackPlayer.username}
-                          </span>
-                        </span>
-                        <span className="text-vault-text-muted text-[11px]">
-                          {game.blackPlayer.rating}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Opening & Tag info */}
-                    {opening.opening && (
-                      <div className="text-[11px] text-vault-text-muted font-sans truncate">
-                        {opening.eco ? `${opening.eco}: ` : ""}
-                        {opening.opening}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Footer & Open Action */}
-                  <div className="mt-4 flex items-center justify-between border-t border-vault-border-base/70 pt-2.5 font-mono text-[11px] text-vault-text-muted">
-                    <span>{moveCount > 0 ? `${moveCount} moves` : ""}</span>
-                    <NavLink
-                      to={`/game/${game.id}`}
-                      className="flex items-center gap-1 text-vault-bronze hover:underline font-semibold"
-                    >
-                      <span>Open</span>
-                      <ExternalLink size={11} />
-                    </NavLink>
-                  </div>
-                </motion.article>
+                            <span>Open</span>
+                            <ExternalLink size={11} />
+                          </NavLink>
+                        </div>
+                      </motion.article>
+                    );
+                  })}
+                </div>
               );
             })}
           </div>
