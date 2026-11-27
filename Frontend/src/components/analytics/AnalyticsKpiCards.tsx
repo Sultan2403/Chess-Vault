@@ -116,9 +116,12 @@ export function AnalyticsKpiCards({ data }: { data: AnalyticsData }) {
 
             {/* Mini Donut Chart */}
             <div className="h-16 w-16 shrink-0 relative">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" className="relative z-10">
                 <PieChart>
-                  <Tooltip content={<OutcomeTooltip totalGames={overview.totalGames} />} />
+                  <Tooltip
+                    content={<OutcomeTooltip totalGames={overview.totalGames} />}
+                    wrapperStyle={{ zIndex: 50 }}
+                  />
                   <Pie
                     data={outcomeData}
                     dataKey="value"

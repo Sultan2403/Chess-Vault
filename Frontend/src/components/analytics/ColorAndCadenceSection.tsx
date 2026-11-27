@@ -111,10 +111,21 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
 
               {/* Centered Donut */}
               <div className="relative h-28 w-28 my-1">
+                <div className="absolute inset-0 z-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="font-mono text-sm font-bold text-vault-text-primary">
+                    {white.winPct}%
+                  </span>
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400">
+                    WIN RATE
+                  </span>
+                </div>
                 {isChartInView && (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" className="relative z-10">
                     <PieChart>
-                      <Tooltip content={<CustomOutcomeTooltip total={white.total} />} />
+                      <Tooltip
+                        content={<CustomOutcomeTooltip total={white.total} />}
+                        wrapperStyle={{ zIndex: 50 }}
+                      />
                       <Pie
                         data={whiteData}
                         dataKey="value"
@@ -130,14 +141,6 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
                     </PieChart>
                   </ResponsiveContainer>
                 )}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="font-mono text-sm font-bold text-vault-text-primary">
-                    {white.winPct}%
-                  </span>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400">
-                    WIN RATE
-                  </span>
-                </div>
               </div>
 
               {/* Record Summary */}
@@ -158,10 +161,21 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
 
               {/* Centered Donut */}
               <div className="relative h-28 w-28 my-1">
+                <div className="absolute inset-0 z-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="font-mono text-sm font-bold text-vault-text-primary">
+                    {black.winPct}%
+                  </span>
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400">
+                    WIN RATE
+                  </span>
+                </div>
                 {isChartInView && (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" className="relative z-10">
                     <PieChart>
-                      <Tooltip content={<CustomOutcomeTooltip total={black.total} />} />
+                      <Tooltip
+                        content={<CustomOutcomeTooltip total={black.total} />}
+                        wrapperStyle={{ zIndex: 50 }}
+                      />
                       <Pie
                         data={blackData}
                         dataKey="value"
@@ -177,14 +191,6 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
                     </PieChart>
                   </ResponsiveContainer>
                 )}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="font-mono text-sm font-bold text-vault-text-primary">
-                    {black.winPct}%
-                  </span>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400">
-                    WIN RATE
-                  </span>
-                </div>
               </div>
 
               {/* Record Summary */}
@@ -225,10 +231,19 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
           <div className="flex flex-col sm:flex-row items-center gap-6 mt-4">
             {/* Cadence Volume Donut */}
             <div className="relative h-36 w-36 shrink-0">
+              <div className="absolute inset-0 z-0 flex flex-col items-center justify-center pointer-events-none">
+                <span className="font-mono text-xs font-bold text-vault-text-primary">
+                  {cadenceData.reduce((acc, c) => acc + c.value, 0).toLocaleString()}
+                </span>
+                <span className="font-mono text-[8px] uppercase tracking-wider text-vault-text-muted">
+                  GAMES
+                </span>
+              </div>
               {isChartInView && (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" className="relative z-10">
                   <PieChart>
                     <Tooltip
+                      wrapperStyle={{ zIndex: 50 }}
                       content={({ active, payload }) => {
                         if (!active || !payload?.length) return null;
                         const item = payload[0].payload;
@@ -260,14 +275,6 @@ export function ColorAndCadenceSection({ overview, byTimeClass }: ColorAndCadenc
                   </PieChart>
                 </ResponsiveContainer>
               )}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="font-mono text-xs font-bold text-vault-text-primary">
-                  {cadenceData.reduce((acc, c) => acc + c.value, 0).toLocaleString()}
-                </span>
-                <span className="font-mono text-[8px] uppercase tracking-wider text-vault-text-muted">
-                  GAMES
-                </span>
-              </div>
             </div>
 
             {/* Cadence Metrics Legend */}
